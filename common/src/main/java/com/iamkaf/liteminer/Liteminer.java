@@ -1,4 +1,4 @@
-package com.iamkaf.template;
+package com.iamkaf.liteminer;
 
 import com.iamkaf.registry.CreativeModeTabs;
 import com.iamkaf.registry.Items;
@@ -6,12 +6,12 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 
-public final class Template {
-    public static final String MOD_ID = "template";
+public final class Liteminer {
+    public static final String MOD_ID = "liteminer";
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public static void init() {
-        LOGGER.info("Kaf template.");
+        LOGGER.info("Liteminer initializing.");
 
         // Registries
         Items.init();

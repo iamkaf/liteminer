@@ -1,10 +1,10 @@
-package com.iamkaf.template.fabric;
+package com.iamkaf.liteminer.fabric;
 
 import net.fabricmc.api.ModInitializer;
 
-import com.iamkaf.template.Template;
+import com.iamkaf.liteminer.Liteminer;
 
-public final class TemplateFabric implements ModInitializer {
+public final class LiteminerFabric implements ModInitializer {
     @Override
     public void onInitialize() {
         // This code runs as soon as Minecraft is in a mod-load-ready state.
@@ -12,6 +12,6 @@ public final class TemplateFabric implements ModInitializer {
         // Proceed with mild caution.
 
         // Run our common setup.
-        Template.init();
+        Liteminer.init();
     }
 }
