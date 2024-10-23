@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${mod_version}",
+  "name": "${mod_name}",
+  "description": "${mod_description}",
+  "authors": [
+    "${mod_author}"
+  ],
+  "contact": {
+    "homepage": "${mod_page_url}",
+    "issues": "${mod_issue_url}",
+    "sources": "${mod_page_url}"
+  },
+  "license": "${mod_license}",
+  "icon": "assets/${mod_id}/icon.png",
+  "environment": "${mod_fabric_environment}",
+  "entrypoints": {
+    "main": [
+      "${main_entrypoint}"
+    ],
+    "client": [
+      "${client_entrypoint}"
+    ]
+  },
+  "mixins": [
+    "${mod_id}.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${fabric_loader_version}",
+    "minecraft": "~${minecraft_version}",
+    "java": ">=21",
+    "architectury": ">=${architectury_api_version}",
+    "fabric-api": "*"
+  }
+}

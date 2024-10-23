@@ -1,0 +1,9 @@
+apply from: "https://raw.githubusercontent.com/iamkaf/modresources/refs/heads/main/gradle/${minecraft_version}/fabric.gradle"
+
+dependencies {
+    // Fabric API. This is technically optional, but you probably want it anyway.
+    modImplementation "net.fabricmc.fabric-api:fabric-api:$fabric_api_version"
+
+    modImplementation "com.iamkaf.amber:amber-fabric:$rootProject.amber_version"
+    modRuntimeOnly("dev.emi:emi-fabric:${rootProject.emi_version}")
+}

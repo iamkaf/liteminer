@@ -1,0 +1,5 @@
+apply from: "https://raw.githubusercontent.com/iamkaf/modresources/main/gradle/${minecraft_version}/common.gradle"
+
+dependencies {
+    modImplementation "com.iamkaf.amber:amber-common:$rootProject.amber_version"
+}

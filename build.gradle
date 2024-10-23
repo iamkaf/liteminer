@@ -1,0 +1,34 @@
+plugins {
+    id 'dev.architectury.loom' version '1.7-SNAPSHOT' apply false
+    id 'architectury-plugin' version '3.4-SNAPSHOT'
+    id 'com.github.johnrengelman.shadow' version '8.1.1' apply false
+}
+
+println("Mod Resources: ${System.getenv("MOD_RESOURCES")}")
+
+apply from: "https://raw.githubusercontent.com/iamkaf/modresources/refs/heads/main/gradle/${minecraft_version}/main.gradle"
+
+subprojects {
+    // Configure Maven publishing.
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                groupId = "${mod_group}"
+                artifactId = "${mod_id}-${project.name}"
+                from components.java
+            }
+        }
+
+        // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
+        repositories {
+            // Add repositories to publish to here.
+            // Notice: This block does NOT have the same function as the block in the top level.
+            // The repositories here will be used for publishing your artifact, not for
+            // retrieving dependencies.
+            maven {
+                // change to point to your repo, e.g. http://my.org/repo
+                url = file(System.getenv("MOD_RESOURCES").concat(File.separator).concat("maven"))
+            }
+        }
+    }
+}
