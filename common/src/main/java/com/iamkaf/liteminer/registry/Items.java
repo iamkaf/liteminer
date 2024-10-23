@@ -1,4 +1,4 @@
-package com.iamkaf.registry;
+package com.iamkaf.liteminer.registry;
 
 import com.iamkaf.liteminer.Liteminer;
 import dev.architectury.registry.registries.DeferredRegister;

@@ -1,7 +1,7 @@
 package com.iamkaf.liteminer;
 
-import com.iamkaf.registry.CreativeModeTabs;
-import com.iamkaf.registry.Items;
+import com.iamkaf.liteminer.registry.CreativeModeTabs;
+import com.iamkaf.liteminer.registry.Items;
 import com.mojang.logging.LogUtils;
 import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
