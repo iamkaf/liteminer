@@ -7,7 +7,7 @@ import com.iamkaf.liteminer.Liteminer;
 @Mod(Liteminer.MOD_ID)
 public final class LiteminerNeoForge {
     public LiteminerNeoForge() {
-        // Run our common setup.
+        new Liteminer();
         Liteminer.init();
     }
 }
