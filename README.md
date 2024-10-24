@@ -1,3 +1,3 @@
-# Template
+# Liteminer
 
-A multiloader mod template for @iamkaf mods.
+A veinmining mod for Fabric and NeoForge available on CurseForge and Modrinth.
