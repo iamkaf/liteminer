@@ -13,7 +13,6 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
@@ -51,7 +50,7 @@ public class BlockHighlightRenderer {
             "liteminer_lines_transparent",
             DefaultVertexFormat.POSITION_COLOR,
             VertexFormat.Mode.DEBUG_LINES,
-            256,
+            1536,
             false,
             false,
             RenderType.CompositeState.builder()
@@ -121,19 +120,21 @@ public class BlockHighlightRenderer {
         VertexConsumer vertexBuilder2 = buffers.getBuffer(LINES_TRANSPARENT);
 
         orShapes(shapes).forAllEdges((x1, y1, z1, x2, y2, z2) -> {
-            float q = (float) (x2 - x1);
-            float r = (float) (y2 - y1);
-            float s = (float) (z2 - z1);
-            float t = Mth.sqrt(q * q + r * r + s * s);
-            q /= t;
-            r /= t;
-            s /= t;
+            final double dx = x2 - x1;
+            final double dy = y2 - y1;
+            final double dz = z2 - z1;
+
+            final double invMag = 1.0 / Math.sqrt(dx * dx + dy * dy + dz * dz);
+            final float nx = (float) (dx * invMag);
+            final float ny = (float) (dy * invMag);
+            final float nz = (float) (dz * invMag);
+            PoseStack.Pose pose = poseStack.last();
             vertexBuilder2.addVertex(matrix, (float) x1, (float) y1, (float) z1)
                     .setColor(10, 206, 245, 180)
-                    .setNormal(poseStack.last(), q, r, s);
+                    .setNormal(pose, nx, ny, nz);
             vertexBuilder2.addVertex(matrix, (float) x2, (float) y2, (float) z2)
                     .setColor(10, 206, 245, 180)
-                    .setNormal(poseStack.last(), q, r, s);
+                    .setNormal(pose, nx, ny, nz);
         });
         buffers.endBatch(LINES_TRANSPARENT);
 
@@ -149,5 +150,4 @@ public class BlockHighlightRenderer {
         }
         return combinedShape;
     }
-
 }
