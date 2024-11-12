@@ -72,7 +72,7 @@ public class BlockHighlightRenderer {
             return true;
         }
 
-        if (!LiteminerClient.KEY_MAPPING.isDown()) {
+        if (!LiteminerClient.isVeinMining()) {
             return true;
         }
 

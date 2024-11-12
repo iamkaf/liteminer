@@ -2,4 +2,5 @@ apply from: "https://raw.githubusercontent.com/iamkaf/modresources/main/gradle/$
 
 dependencies {
     modImplementation "com.iamkaf.amber:amber-common:$rootProject.amber_version"
+    modApi "fuzs.forgeconfigapiport:forgeconfigapiport-common-neoforgeapi:$rootProject.forge_config_api_port_version"
 }

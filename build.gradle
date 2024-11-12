@@ -8,6 +8,15 @@ println("Mod Resources: ${System.getenv("MOD_RESOURCES")}")
 
 apply from: "https://raw.githubusercontent.com/iamkaf/modresources/refs/heads/main/gradle/${minecraft_version}/main.gradle"
 
+allprojects {
+    repositories {
+        maven {
+            name = "Fuzs Mod Resources"
+            url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/"
+        }
+    }
+}
+
 subprojects {
     // Configure Maven publishing.
     publishing {

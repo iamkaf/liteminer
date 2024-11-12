@@ -1,6 +1,7 @@
 package com.iamkaf.liteminer.walker;
 
 import com.iamkaf.liteminer.Constants;
+import com.iamkaf.liteminer.Liteminer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -56,7 +57,7 @@ public class Walker {
 
     private void searchBlocks(Level level, BlockPos myPos, BlockPos absoluteOrigin,
             HashSet<BlockPos> blocksToCollapse, Block originBlock) {
-        if (VISITED.size() >= Constants.LIMIT) return;
+        if (VISITED.size() >= Liteminer.CONFIG.blockBreakLimit.get()) return;
         if (VISITED.contains(myPos)) return;
 //        if (!level.getBlockState(myPos).is(originBlock)) return;
         if (!NeighborPredicate.matches(originBlock, level.getBlockState(myPos).getBlock())) return;

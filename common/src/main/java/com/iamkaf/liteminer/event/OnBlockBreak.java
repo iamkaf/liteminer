@@ -57,7 +57,8 @@ public class OnBlockBreak {
                 BlockState state = level.getBlockState(block);
                 if (!tool.isEmpty() && tool.isDamageableItem()) {
                     boolean itemIsAboutToBreak = tool.getMaxDamage() - tool.getDamageValue() <= 2;
-                    if (itemIsAboutToBreak) {
+                    boolean preventFromBreaking = Liteminer.CONFIG.preventToolBreaking.get();
+                    if (itemIsAboutToBreak && preventFromBreaking) {
                         break;
                     } else {
                         if (state.getDestroySpeed(level, block) != 0.0f) {
@@ -65,7 +66,11 @@ public class OnBlockBreak {
                         }
                     }
                 }
-                player.causeFoodExhaustion(0.2f);
+                boolean exhaustionEnabled = Liteminer.CONFIG.foodExhaustionEnabled.get();
+                float exhaustion = Liteminer.CONFIG.foodExhaustion.get().floatValue();
+                if (exhaustionEnabled && exhaustion > 0) {
+                    player.causeFoodExhaustion(exhaustion);
+                }
 
                 boolean skipDrops = state.requiresCorrectToolForDrops() && !tool.isCorrectToolForDrops(state);
 
