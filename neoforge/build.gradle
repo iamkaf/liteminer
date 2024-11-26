@@ -1,3 +1,7 @@
+plugins {
+    id "com.hypherionmc.modutils.modpublisher" version "2.1.6"
+}
+
 apply from: "https://raw.githubusercontent.com/iamkaf/modresources/refs/heads/main/gradle/${minecraft_version}/neoforge.gradle"
 
 dependencies {

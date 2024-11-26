@@ -2,9 +2,10 @@
   "key.liteminer.veinmine": "Vein Mine",
   "key.categories.liteminer": "Liteminer",
 
+  "hud.liteminer.selected_blocks": "%s Blocks Selected",
+
   "liteminer.configuration.title": "Liteminer Configuration",
   "liteminer.configuration.section.liteminer.common.toml.title": "Liteminer Configuration",
-  "liteminer.configuration.section.liteminer.common.toml": "",
 
   "liteminer.config.key_mode": "Key Mode",
   "liteminer.config.key_mode.tooltip": "In Hold mode you must keep holding the key to mine. In toggle mode you have to hit the key to toggle.",

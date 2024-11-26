@@ -22,13 +22,16 @@ public class LiteminerNetwork {
     public static class Messages {
         public static class C2SVeinmineKeybindChange extends BaseC2SMessage {
             private final boolean keybindState;
+            private final int shape;
 
-            public C2SVeinmineKeybindChange(boolean keybindState) {
+            public C2SVeinmineKeybindChange(boolean keybindState, int shape) {
                 this.keybindState = keybindState;
+                this.shape = shape;
             }
 
             public C2SVeinmineKeybindChange(FriendlyByteBuf buf) {
                 this.keybindState = buf.readBoolean();
+                this.shape = buf.readInt();
             }
 
             @Override
@@ -39,20 +42,23 @@ public class LiteminerNetwork {
             @Override
             public void write(RegistryFriendlyByteBuf buf) {
                 buf.writeBoolean(keybindState);
+                buf.writeInt(shape);
             }
 
             public void encode(FriendlyByteBuf buf) {
                 buf.writeBoolean(keybindState);
+                buf.writeInt(shape);
             }
 
             @Override
             public void handle(NetworkManager.PacketContext context) {
-                Liteminer.instance.onKeymappingStateChange((ServerPlayer) context.getPlayer(), keybindState);
+                Liteminer.instance.onKeymappingStateChange((ServerPlayer) context.getPlayer(), keybindState, shape);
             }
 
             public void apply(Supplier<NetworkManager.PacketContext> context) {
                 Liteminer.instance.onKeymappingStateChange((ServerPlayer) context.get().getPlayer(),
-                        keybindState
+                        keybindState,
+                        shape
                 );
             }
         }

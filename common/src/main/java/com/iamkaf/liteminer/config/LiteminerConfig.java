@@ -2,8 +2,7 @@ package com.iamkaf.liteminer.config;
 
 import net.neoforged.neoforge.common.ModConfigSpec;
 
-public class LiteminerConfig {
-    public final ModConfigSpec.ConfigValue<KeyMode> keyMode;
+public final class LiteminerConfig {
     public final ModConfigSpec.ConfigValue<Boolean> preventToolBreaking;
     public final ModConfigSpec.ConfigValue<Integer> blockBreakLimit;
     public final ModConfigSpec.ConfigValue<Boolean> harvestTimePerBlockModifierEnabled;
@@ -11,9 +10,13 @@ public class LiteminerConfig {
     public final ModConfigSpec.ConfigValue<Boolean> foodExhaustionEnabled;
     public final ModConfigSpec.ConfigValue<Double> foodExhaustion;
 
-    public LiteminerConfig(ModConfigSpec.Builder builder) {
-        keyMode = builder.translation("liteminer.config.key_mode").defineEnum("key_mode", KeyMode.HOLD);
+//    public final ModConfigSpec.ConfigValue<Boolean> requireFood;
+//    public final ModConfigSpec.ConfigValue<Boolean> useToolWhitelist;
+//    public final ModConfigSpec.ConfigValue<List<ResourceLocation>> toolWhitelist;
+//    public final ModConfigSpec.ConfigValue<Boolean> useBlockWhitelist;
+//    public final ModConfigSpec.ConfigValue<List<Block>> blockWhitelist;
 
+    public LiteminerConfig(ModConfigSpec.Builder builder) {
         preventToolBreaking = builder.translation("liteminer.config.prevent_tool_breaking")
                 .define("prevent_tool_breaking", true);
 
@@ -30,10 +33,5 @@ public class LiteminerConfig {
                 .define("food_exhaustion_enabled", true);
         foodExhaustion = builder.translation("liteminer.config.food_exhaustion")
                 .defineInRange("food_exhaustion", 0.2d, 0.0d, 1d);
-    }
-
-    public enum KeyMode {
-        HOLD,
-        TOGGLE
     }
 }

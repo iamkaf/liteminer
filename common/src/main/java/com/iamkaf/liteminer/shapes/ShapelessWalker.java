@@ -1,7 +1,8 @@
-package com.iamkaf.liteminer.walker;
+package com.iamkaf.liteminer.shapes;
 
-import com.iamkaf.liteminer.Constants;
+import com.iamkaf.liteminer.Blacklist;
 import com.iamkaf.liteminer.Liteminer;
+import com.iamkaf.liteminer.walker.NeighborPredicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -9,13 +10,15 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class Walker {
+public class ShapelessWalker implements Walker {
     public final Set<BlockPos> VISITED = new HashSet<>();
     public final int RANGE = 64;
 
@@ -31,6 +34,11 @@ public class Walker {
                 ClipContext.Fluid.NONE,
                 player
         ));
+    }
+
+    @Override
+    public String toString() {
+        return "Shapeless";
     }
 
     public static @NotNull BlockPos raytraceBlock(Level level, Player player) {
@@ -49,7 +57,13 @@ public class Walker {
     public HashSet<BlockPos> walk(Level level, Player player, BlockPos origin) {
         HashSet<BlockPos> potentialBrokenBlocks = new HashSet<>();
 
-        searchBlocks(level, origin, origin, potentialBrokenBlocks, level.getBlockState(origin).getBlock());
+        BlockState originState = level.getBlockState(origin);
+
+        if (Blacklist.isBlacklistedBlock(originState) || originState.is(Blocks.AIR)) {
+            return HashSet.newHashSet(0);
+        }
+
+        searchBlocks(level, origin, origin, potentialBrokenBlocks, originState.getBlock());
         VISITED.clear();
 
         return potentialBrokenBlocks;

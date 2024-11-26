@@ -1,7 +1,9 @@
 package com.iamkaf.liteminer.event;
 
 import com.iamkaf.liteminer.Liteminer;
-import com.iamkaf.liteminer.walker.Walker;
+import com.iamkaf.liteminer.LiteminerPlayerState;
+import com.iamkaf.liteminer.shapes.ShapelessWalker;
+import com.iamkaf.liteminer.shapes.Walker;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.BlockEvent;
 import dev.architectury.utils.value.IntValue;
@@ -21,6 +23,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
 
+import static com.iamkaf.liteminer.Liteminer.WALKERS;
+
 public class OnBlockBreak {
     public static void init() {
         BlockEvent.BREAK.register(OnBlockBreak::onBlockBreak);
@@ -32,7 +36,8 @@ public class OnBlockBreak {
             return EventResult.pass();
         }
 
-        if (Liteminer.instance.getPlayerState(player).getKeymappingState()) {
+        LiteminerPlayerState playerState = Liteminer.instance.getPlayerState(player);
+        if (playerState.getKeymappingState()) {
             ItemStack tool = player.getMainHandItem();
 
             // 1 durability left on the tool
@@ -40,8 +45,9 @@ public class OnBlockBreak {
                 return EventResult.pass();
             }
 
-            Walker walker = new Walker();
-            var blocks = walker.walk(level, player, absoluteOrigin)
+            Walker shapelessWalker = WALKERS.get(playerState.getShape());
+
+            var blocks = shapelessWalker.walk(level, player, absoluteOrigin)
                     .stream()
                     .sorted(Comparator.comparingInt(p -> p.distManhattan(absoluteOrigin)))
                     .toList();

@@ -2,7 +2,8 @@ package com.iamkaf.liteminer.rendering;
 
 import com.iamkaf.amber.api.aabb.BoundingBoxMerger;
 import com.iamkaf.liteminer.LiteminerClient;
-import com.iamkaf.liteminer.walker.Walker;
+import com.iamkaf.liteminer.shapes.ShapelessWalker;
+import com.iamkaf.liteminer.shapes.Walker;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -81,12 +82,13 @@ public class BlockHighlightRenderer {
             return true;
         }
 
-        Walker walker = new Walker();
+        Walker walker = LiteminerClient.shapes.getCurrentItem();
 
-        BlockPos origin = Walker.raytraceBlock(level, player);
+        BlockPos origin = ShapelessWalker.raytraceBlock(level, player);
 
         HashSet<BlockPos> blocksToHighlight =
-                walker.walk(level, player, Walker.raytrace(level, player).getBlockPos());
+                walker.walk(level, player, ShapelessWalker.raytrace(level, player).getBlockPos());
+        LiteminerClient.selectedBlocks = blocksToHighlight;
         if (blocksToHighlight.isEmpty()) {
             return true;
         }
@@ -137,7 +139,6 @@ public class BlockHighlightRenderer {
                     .setNormal(pose, nx, ny, nz);
         });
         buffers.endBatch(LINES_TRANSPARENT);
-
 
         poseStack.popPose();
         return false;

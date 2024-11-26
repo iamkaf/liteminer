@@ -32,6 +32,13 @@ versionRange = "[${architectury_api_version},)"
 ordering = "AFTER"
 side = "BOTH"
 
+[[dependencies.${mod_id}]]
+modId = "amber"
+type = "required"
+versionRange = "[${amber_version},)"
+ordering = "AFTER"
+side = "BOTH"
+
 [[mixins]]
 config = "${mod_id}.mixins.json"
 

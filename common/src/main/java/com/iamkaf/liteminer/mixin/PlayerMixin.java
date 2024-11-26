@@ -2,7 +2,7 @@ package com.iamkaf.liteminer.mixin;
 
 import com.iamkaf.liteminer.Liteminer;
 import com.iamkaf.liteminer.LiteminerClient;
-import com.iamkaf.liteminer.walker.Walker;
+import com.iamkaf.liteminer.shapes.ShapelessWalker;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -44,8 +44,8 @@ public abstract class PlayerMixin extends LivingEntity {
 
     @Unique
     private int liteminer$calculateBlockCountForClient() {
-        Walker walker = new Walker();
+        ShapelessWalker shapelessWalker = new ShapelessWalker();
         Player player = (Player) (Object) this;
-        return walker.walk(level(), player, Walker.raytrace(level(), player).getBlockPos()).size();
+        return shapelessWalker.walk(level(), player, ShapelessWalker.raytrace(level(), player).getBlockPos()).size();
     }
 }
