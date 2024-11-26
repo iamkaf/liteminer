@@ -60,7 +60,10 @@ public class TunnelWalker implements Walker {
             HashSet<BlockPos> blocksToCollapse, Block originBlock, Direction direction) {
         if (VISITED.size() >= Liteminer.CONFIG.blockBreakLimit.get()) return;
         if (VISITED.contains(myPos)) return;
-        if (level.getBlockState(myPos).is(Blocks.AIR)) return;
+
+        BlockState state = level.getBlockState(myPos);
+
+        if (state.is(Blocks.AIR) || Blacklist.isBlacklistedBlock(state)) return;
 
         BlockPos cursor = myPos;
 
