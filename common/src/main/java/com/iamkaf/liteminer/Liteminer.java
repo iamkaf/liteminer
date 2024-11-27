@@ -3,9 +3,7 @@ package com.iamkaf.liteminer;
 import com.iamkaf.liteminer.config.LiteminerConfig;
 import com.iamkaf.liteminer.event.Events;
 import com.iamkaf.liteminer.networking.LiteminerNetwork;
-import com.iamkaf.liteminer.shapes.ShapelessWalker;
-import com.iamkaf.liteminer.shapes.TunnelWalker;
-import com.iamkaf.liteminer.shapes.Walker;
+import com.iamkaf.liteminer.shapes.*;
 import com.mojang.logging.LogUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -24,7 +22,12 @@ public final class Liteminer {
     public static final Logger LOGGER = LogUtils.getLogger();
     public static final LiteminerConfig CONFIG;
     public static final ModConfigSpec CONFIG_SPEC;
-    public static final List<Walker> WALKERS = List.of(new ShapelessWalker(), new TunnelWalker());
+    public static final List<Walker> WALKERS = List.of(new ShapelessWalker(),
+            new TunnelWalker(),
+            new StaircaseUpWalker(),
+            new StaircaseDownWalker(),
+            new ThreeByThreeWalker()
+    );
     public static Liteminer instance;
 
     static {

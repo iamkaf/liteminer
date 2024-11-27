@@ -2,6 +2,7 @@ package com.iamkaf.liteminer.shapes;
 
 import com.iamkaf.liteminer.Blacklist;
 import com.iamkaf.liteminer.Liteminer;
+import com.iamkaf.liteminer.LiteminerClient;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -18,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashSet;
 import java.util.Set;
 
-public class TunnelWalker implements Walker {
+public class StaircaseUpWalker implements Walker {
     public final Set<BlockPos> VISITED = new HashSet<>();
 
     public static @NotNull BlockHitResult raytrace(Level level, Player player) {
@@ -37,11 +38,11 @@ public class TunnelWalker implements Walker {
 
     @Override
     public String toString() {
-        return "Small Tunnel";
+        return "Staircase Up";
     }
 
     public HashSet<BlockPos> walk(Level level, Player player, BlockPos origin) {
-        Direction direction = raytrace(level, player).getDirection().getOpposite();
+        Direction direction = player.getDirection();
         HashSet<BlockPos> potentialBrokenBlocks = new HashSet<>();
 
         BlockState originState = level.getBlockState(origin);
@@ -69,11 +70,17 @@ public class TunnelWalker implements Walker {
 
         while (blocksToCollapse.size() < Liteminer.CONFIG.blockBreakLimit.get()) {
             boolean shouldMineCursor = shouldMine(level, cursor);
-            if (!shouldMineCursor) {
+            boolean shouldMineAboveCursor = shouldMine(level, cursor.above());
+            if (!shouldMineCursor && !shouldMineAboveCursor) {
                 break;
             }
-            blocksToCollapse.add(cursor);
-            cursor = cursor.relative(direction);
+            if (shouldMineCursor) {
+                blocksToCollapse.add(cursor);
+            }
+            if (shouldMineAboveCursor) {
+                blocksToCollapse.add(cursor.below());
+            }
+            cursor = cursor.relative(direction).above();
         }
 
         blocksToCollapse.add(myPos);

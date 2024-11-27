@@ -1,7 +1,6 @@
 package com.iamkaf.liteminer.shapes;
 
 import com.iamkaf.liteminer.Blacklist;
-import com.iamkaf.liteminer.Liteminer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -15,12 +14,11 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
-public class TunnelWalker implements Walker {
-    public final Set<BlockPos> VISITED = new HashSet<>();
-
+public class ThreeByThreeWalker implements Walker {
     public static @NotNull BlockHitResult raytrace(Level level, Player player) {
         Vec3 eyePosition = player.getEyePosition();
         Vec3 rotation = player.getViewVector(1);
@@ -37,7 +35,7 @@ public class TunnelWalker implements Walker {
 
     @Override
     public String toString() {
-        return "Small Tunnel";
+        return "3x3";
     }
 
     public HashSet<BlockPos> walk(Level level, Player player, BlockPos origin) {
@@ -51,29 +49,42 @@ public class TunnelWalker implements Walker {
         }
 
         searchBlocks(level, origin, origin, potentialBrokenBlocks, originState.getBlock(), direction);
-        VISITED.clear();
 
         return potentialBrokenBlocks;
     }
 
     private void searchBlocks(Level level, BlockPos myPos, BlockPos absoluteOrigin,
             HashSet<BlockPos> blocksToCollapse, Block originBlock, Direction direction) {
-        if (VISITED.size() >= Liteminer.CONFIG.blockBreakLimit.get()) return;
-        if (VISITED.contains(myPos)) return;
+        if (!shouldMine(level, myPos)) return;
 
-        BlockState state = level.getBlockState(myPos);
+        List<BlockPos> positions = new ArrayList<>();
 
-        if (state.is(Blocks.AIR) || Blacklist.isBlacklistedBlock(state)) return;
+        if (direction.equals(Direction.UP) || direction.equals(Direction.DOWN)) {
+            positions.add(myPos.north());
+            positions.add(myPos.north().east());
+            positions.add(myPos.north().west());
+            positions.add(myPos.east());
+            positions.add(myPos);
+            positions.add(myPos.west());
+            positions.add(myPos.south());
+            positions.add(myPos.south().east());
+            positions.add(myPos.south().west());
+        } else {
+            positions.add(myPos.relative(direction.getCounterClockWise()).above());
+            positions.add(myPos.above());
+            positions.add(myPos.relative(direction.getClockWise()).above());
+            positions.add(myPos.relative(direction.getCounterClockWise()));
+            positions.add(myPos);
+            positions.add(myPos.relative(direction.getClockWise()));
+            positions.add(myPos.relative(direction.getCounterClockWise()).below());
+            positions.add(myPos.below());
+            positions.add(myPos.relative(direction.getClockWise()).below());
+        }
 
-        BlockPos cursor = myPos;
-
-        while (blocksToCollapse.size() < Liteminer.CONFIG.blockBreakLimit.get()) {
-            boolean shouldMineCursor = shouldMine(level, cursor);
-            if (!shouldMineCursor) {
-                break;
+        for (var position : positions) {
+            if (shouldMine(level, position)) {
+                blocksToCollapse.add(position);
             }
-            blocksToCollapse.add(cursor);
-            cursor = cursor.relative(direction);
         }
 
         blocksToCollapse.add(myPos);

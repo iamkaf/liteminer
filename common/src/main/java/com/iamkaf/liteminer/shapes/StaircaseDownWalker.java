@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashSet;
 import java.util.Set;
 
-public class TunnelWalker implements Walker {
+public class StaircaseDownWalker implements Walker {
     public final Set<BlockPos> VISITED = new HashSet<>();
 
     public static @NotNull BlockHitResult raytrace(Level level, Player player) {
@@ -37,11 +37,11 @@ public class TunnelWalker implements Walker {
 
     @Override
     public String toString() {
-        return "Small Tunnel";
+        return "Staircase Down";
     }
 
     public HashSet<BlockPos> walk(Level level, Player player, BlockPos origin) {
-        Direction direction = raytrace(level, player).getDirection().getOpposite();
+        Direction direction = player.getDirection();
         HashSet<BlockPos> potentialBrokenBlocks = new HashSet<>();
 
         BlockState originState = level.getBlockState(origin);
@@ -63,17 +63,23 @@ public class TunnelWalker implements Walker {
 
         BlockState state = level.getBlockState(myPos);
 
-        if (state.is(Blocks.AIR) || Blacklist.isBlacklistedBlock(state)) return;
+        if (Blacklist.isBlacklistedBlock(state)) return;
 
         BlockPos cursor = myPos;
 
         while (blocksToCollapse.size() < Liteminer.CONFIG.blockBreakLimit.get()) {
             boolean shouldMineCursor = shouldMine(level, cursor);
-            if (!shouldMineCursor) {
+            boolean shouldMineBelowCursor = shouldMine(level, cursor.below());
+            if (!shouldMineCursor && !shouldMineBelowCursor) {
                 break;
             }
-            blocksToCollapse.add(cursor);
-            cursor = cursor.relative(direction);
+            if (shouldMineCursor) {
+                blocksToCollapse.add(cursor);
+            }
+            if (shouldMineBelowCursor) {
+                blocksToCollapse.add(cursor.below());
+            }
+            cursor = cursor.relative(direction).below();
         }
 
         blocksToCollapse.add(myPos);
