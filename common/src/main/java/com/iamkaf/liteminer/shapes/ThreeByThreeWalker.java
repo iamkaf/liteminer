@@ -48,14 +48,14 @@ public class ThreeByThreeWalker implements Walker {
             return HashSet.newHashSet(0);
         }
 
-        searchBlocks(level, origin, origin, potentialBrokenBlocks, originState.getBlock(), direction);
+        searchBlocks(player, level, origin, origin, potentialBrokenBlocks, originState.getBlock(), direction);
 
         return potentialBrokenBlocks;
     }
 
-    private void searchBlocks(Level level, BlockPos myPos, BlockPos absoluteOrigin,
+    private void searchBlocks(Player player, Level level, BlockPos myPos, BlockPos absoluteOrigin,
             HashSet<BlockPos> blocksToCollapse, Block originBlock, Direction direction) {
-        if (!shouldMine(level, myPos)) return;
+        if (!shouldMine(player, level, myPos)) return;
 
         List<BlockPos> positions = new ArrayList<>();
 
@@ -82,7 +82,7 @@ public class ThreeByThreeWalker implements Walker {
         }
 
         for (var position : positions) {
-            if (shouldMine(level, position)) {
+            if (shouldMine(player, level, position)) {
                 blocksToCollapse.add(position);
             }
         }

@@ -2,7 +2,7 @@
   "key.liteminer.veinmine": "Vein Mine",
   "key.categories.liteminer": "Liteminer",
 
-  "hud.liteminer.selected_blocks": "%s Blocks Selected",
+  "hud.liteminer.selected_blocks": "%s Blocks",
 
   "liteminer.configuration.title": "Liteminer Configuration",
   "liteminer.configuration.section.liteminer.common.toml.title": "Liteminer Configuration",
@@ -12,6 +12,8 @@
 
   "liteminer.config.block_break_limit": "Block Break Limit",
   "liteminer.config.block_break_limit.tooltip": "Upper limit to how many blocks can be broken at a time.",
+
+  "liteminer.config.require_correct_tool_enabled": "Require Correct Tool",
 
   "liteminer.config.harvest_time_per_block_modifier_enabled": "Increased Harvesting Time",
   "liteminer.config.harvest_time_per_block_modifier_enabled.tooltip": "Increases the time it takes to break a block when vein mining.",

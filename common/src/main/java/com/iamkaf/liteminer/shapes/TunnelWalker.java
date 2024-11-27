@@ -50,13 +50,13 @@ public class TunnelWalker implements Walker {
             return HashSet.newHashSet(0);
         }
 
-        searchBlocks(level, origin, origin, potentialBrokenBlocks, originState.getBlock(), direction);
+        searchBlocks(player, level, origin, origin, potentialBrokenBlocks, originState.getBlock(), direction);
         VISITED.clear();
 
         return potentialBrokenBlocks;
     }
 
-    private void searchBlocks(Level level, BlockPos myPos, BlockPos absoluteOrigin,
+    private void searchBlocks(Player player, Level level, BlockPos myPos, BlockPos absoluteOrigin,
             HashSet<BlockPos> blocksToCollapse, Block originBlock, Direction direction) {
         if (VISITED.size() >= Liteminer.CONFIG.blockBreakLimit.get()) return;
         if (VISITED.contains(myPos)) return;
@@ -68,7 +68,7 @@ public class TunnelWalker implements Walker {
         BlockPos cursor = myPos;
 
         while (blocksToCollapse.size() < Liteminer.CONFIG.blockBreakLimit.get()) {
-            boolean shouldMineCursor = shouldMine(level, cursor);
+            boolean shouldMineCursor = shouldMine(player, level, cursor);
             if (!shouldMineCursor) {
                 break;
             }

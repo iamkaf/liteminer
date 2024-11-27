@@ -3,6 +3,7 @@ package com.iamkaf.liteminer.config;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class LiteminerConfig {
+    public final ModConfigSpec.ConfigValue<Boolean> requireCorrectToolEnabled;
     public final ModConfigSpec.ConfigValue<Boolean> preventToolBreaking;
     public final ModConfigSpec.ConfigValue<Integer> blockBreakLimit;
     public final ModConfigSpec.ConfigValue<Boolean> harvestTimePerBlockModifierEnabled;
@@ -19,6 +20,8 @@ public final class LiteminerConfig {
     public LiteminerConfig(ModConfigSpec.Builder builder) {
         preventToolBreaking = builder.translation("liteminer.config.prevent_tool_breaking")
                 .define("prevent_tool_breaking", true);
+        requireCorrectToolEnabled = builder.translation("liteminer.config.require_correct_tool_enabled")
+                .define("require_correct_tool_enabled", false);
 
         blockBreakLimit = builder.translation("liteminer.config.block_break_limit")
                 .defineInRange("block_break_limit", 64, 1, 2048);

@@ -73,7 +73,6 @@ public class ShapelessWalker implements Walker {
             HashSet<BlockPos> blocksToCollapse, Block originBlock) {
         if (VISITED.size() >= Liteminer.CONFIG.blockBreakLimit.get()) return;
         if (VISITED.contains(myPos)) return;
-//        if (!level.getBlockState(myPos).is(originBlock)) return;
         if (!NeighborPredicate.matches(originBlock, level.getBlockState(myPos).getBlock())) return;
 
         blocksToCollapse.add(myPos);

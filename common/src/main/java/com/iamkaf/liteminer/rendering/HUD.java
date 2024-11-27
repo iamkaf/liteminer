@@ -17,6 +17,10 @@ public class HUD {
             return;
         }
 
+        if (Minecraft.getInstance().options.hideGui) {
+            return;
+        }
+
         int selectedBlockCount = LiteminerClient.selectedBlocks.size();
 
         if (selectedBlockCount == 0) {
