@@ -2,6 +2,10 @@
 
 See the full changelog at https://github.com/iamkaf/liteminer/commits/main
 
+## 0.3.0-hotfix-beta.3
+
+- fix: added a missing translation
+
 ## 0.3.0-beta.2
 
 - feat: added a client config section with __Key Mode__ and __Show HUD__ options.
