@@ -66,7 +66,6 @@ public class HUD {
 
     public static EventResult onMouseScroll(Minecraft minecraft, double x, double y) {
         if (LiteminerClient.isVeinMining()) {
-            Liteminer.LOGGER.info("Scroll: {} {}", x, y);
             if (y != 0) {
                 if (y > 0) {
                     LiteminerClient.shapes.previousItem();
