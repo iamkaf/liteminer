@@ -5,11 +5,11 @@ See the full changelog at https://github.com/iamkaf/liteminer/commits/main
 ## 0.3.0-beta.2
 
 - feat: added a client config section with __Key Mode__ and __Show HUD__ options.
-- feat: added shapes feature, the current modes are: Shapeless, Small Tunnel, Large Tunnel, 3x3, Staircase Up, Staircase Down.
+- feat: added shapes feature, the current modes are: Shapeless, Small Tunnel, 3x3, Staircase Up, Staircase Down.
 - feat: added a HUD to show how many blocks you're breaking and in what shape.
 - feat: added feature to right-click the blocks with your tools (useful for stripping, pathing and hoeing).
 - fix: fixed a bug where sometimes air would be highlighted
-- fix: player heads will not be mined since their texture is not retained (might be fixed later)
+- fix: player heads will not be mined since their textures are not retained (might be fixed later)
 
 ![Mining Shapes](https://raw.githubusercontent.com/iamkaf/modresources/refs/heads/main/pages/liteminer/screenshot1.png)
 
