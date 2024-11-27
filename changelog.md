@@ -11,6 +11,14 @@ See the full changelog at https://github.com/iamkaf/liteminer/commits/main
 - fix: fixed a bug where sometimes air would be highlighted
 - fix: player heads will not be mined since their texture is not retained (might be fixed later)
 
+![Mining Shapes](https://raw.githubusercontent.com/iamkaf/modresources/refs/heads/main/pages/liteminer/screenshot1.png)
+
+![Mining Shapes](https://raw.githubusercontent.com/iamkaf/modresources/refs/heads/main/pages/liteminer/screenshot2.png)
+
+![Mining Shapes](https://raw.githubusercontent.com/iamkaf/modresources/refs/heads/main/pages/liteminer/screenshot3.png)
+
+![Mining Shapes](https://raw.githubusercontent.com/iamkaf/modresources/refs/heads/main/pages/liteminer/screenshot4.png)
+
 ## 0.2.2-beta.1
 
 - fix: resolved a server side crash
