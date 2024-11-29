@@ -2,7 +2,6 @@ package com.iamkaf.liteminer.event;
 
 import com.iamkaf.liteminer.Liteminer;
 import com.iamkaf.liteminer.LiteminerPlayerState;
-import com.iamkaf.liteminer.shapes.ShapelessWalker;
 import com.iamkaf.liteminer.shapes.Walker;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.BlockEvent;
@@ -10,11 +9,14 @@ import dev.architectury.utils.value.IntValue;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.IceBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
@@ -22,6 +24,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
+import java.util.Objects;
 
 import static com.iamkaf.liteminer.Liteminer.WALKERS;
 
@@ -89,6 +92,12 @@ public class OnBlockBreak {
                             .withParameter(LootContextParams.BLOCK_STATE, state)
                             .withParameter(LootContextParams.THIS_ENTITY, player);
 
+                    if (state.hasBlockEntity()) {
+                        builder = builder.withParameter(LootContextParams.BLOCK_ENTITY,
+                                Objects.requireNonNull(level.getBlockEntity(block))
+                        );
+                    }
+
                     state.spawnAfterBreak((ServerLevel) level, absoluteOrigin, tool, true);
 
                     for (var stack : state.getDrops(builder)) {
@@ -104,7 +113,23 @@ public class OnBlockBreak {
                         level.addFreshEntity(itemEntity);
                     }
                 }
+
                 level.setBlockAndUpdate(block, Blocks.AIR.defaultBlockState());
+
+                // pray that mojang doesn't add more ice, or I'll have to come back here
+                if (state.getBlock() instanceof IceBlock ice) {
+                    if (!EnchantmentHelper.hasTag(tool, EnchantmentTags.PREVENTS_ICE_MELTING)) {
+                        if (level.dimensionType().ultraWarm()) {
+                            level.removeBlock(block, false);
+                            continue;
+                        }
+
+                        BlockState below = level.getBlockState(block.below());
+                        if (below.blocksMotion() || below.liquid()) {
+                            level.setBlockAndUpdate(block, IceBlock.meltsInto());
+                        }
+                    }
+                }
             }
         }
 

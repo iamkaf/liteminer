@@ -10,6 +10,9 @@
   "liteminer.config.key_mode": "Key Mode",
   "liteminer.config.key_mode.tooltip": "In Hold mode you must keep holding the key to mine. In toggle mode you have to hit the key to toggle.",
 
+  "liteminer.config.show_hud": "Show HUD",
+  "liteminer.config.show_hud.tooltip": "Enables the text showing how many blocks you have selected and your mining shape.",
+
   "liteminer.config.block_break_limit": "Block Break Limit",
   "liteminer.config.block_break_limit.tooltip": "Upper limit to how many blocks can be broken at a time.",
 
