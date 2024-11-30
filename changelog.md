@@ -4,7 +4,7 @@ See the full changelog at https://github.com/iamkaf/liteminer/commits/main
 
 ## 0.3.1-beta.4
 
-- fix: liteminer no longer breaks bedrock 😂
+- fix: liteminer no longer breaks bedrock 😂 [#3](https://github.com/iamkaf/mod-issues/issues/3)
 - fix: ice now melts correctly
 - fix: fixed a bug where player heads didn't retain their skin (and quite possibly other block entity related bugs)
 - fix: added missing Show HUD translation
