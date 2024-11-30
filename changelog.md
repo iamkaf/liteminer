@@ -2,6 +2,12 @@
 
 See the full changelog at https://github.com/iamkaf/liteminer/commits/main
 
+## 0.3.2-beta.5
+
+- feat: added a hud scale in the client config
+- fix: fixed the text in the hud when selecting 1 block, it is no longer plural
+- fix: stopped the hotbar from scrolling when changing shapes on NeoForge
+
 ## 0.3.1-beta.4
 
 - fix: liteminer no longer breaks bedrock 😂 [#3](https://github.com/iamkaf/mod-issues/issues/3)

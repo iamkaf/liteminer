@@ -1,7 +1,6 @@
 package com.iamkaf.liteminer.rendering;
 
 import com.iamkaf.amber.api.player.FeedbackHelper;
-import com.iamkaf.liteminer.Liteminer;
 import com.iamkaf.liteminer.LiteminerClient;
 import com.iamkaf.liteminer.networking.LiteminerNetwork;
 import dev.architectury.event.EventResult;
@@ -34,20 +33,26 @@ public class HUD {
         Font font = LiteminerClient.mc.font;
 
         int lineHeight = 10;
+        float scale = LiteminerClient.CONFIG.hud_scale.get().floatValue();
 
         int width = guiGraphics.guiWidth();
         int height = guiGraphics.guiHeight();
 
-        int centerWidth = width / 2;
-        int centerHeight = height / 2;
+        int centerWidth = (int) (width / 2f / scale);
+        int centerHeight = (int) (height / 2f / scale);
 
-        int xOffset = 5;
-        int yOffset = -10;
+        int xOffset = (int) (5 / scale);
+        int yOffset = (int) (-10 / scale);
 
-        String selectedBlocksLabel =
-                Component.translatable("hud.liteminer.selected_blocks", selectedBlockCount).getString();
+        String selectedBlocksLabel = Component.translatable(
+                selectedBlockCount > 1 ? "hud.liteminer.selected_blocks" : "hud.liteminer" +
+                        ".selected_blocks_singular",
+                selectedBlockCount
+        ).getString();
 
-        font.width(selectedBlocksLabel);
+        var pose = guiGraphics.pose();
+        pose.pushPose();
+        pose.scale(scale, scale, 1f);
 
         guiGraphics.drawString(font,
                 selectedBlocksLabel,
@@ -61,7 +66,8 @@ public class HUD {
                 centerHeight + yOffset + lineHeight,
                 0xFFFFFF
         );
-        guiGraphics.bufferSource().endBatch();
+
+        pose.popPose();
     }
 
     public static EventResult onMouseScroll(Minecraft minecraft, double x, double y) {
@@ -78,25 +84,14 @@ public class HUD {
             }
             if (!LiteminerClient.CONFIG.showHUD.get()) {
                 assert minecraft.player != null;
-                FeedbackHelper.actionBarMessage(
-                        minecraft.player,
-                        Component.literal(String.format(
-                                "Changed Shape [%s]",
-                                LiteminerClient.shapes.getCurrentItem().toString()
-                        ))
-                );
+                FeedbackHelper.actionBarMessage(minecraft.player, Component.translatable(
+                        "hud.liteminer.changed_shape",
+                        LiteminerClient.shapes.getCurrentItem().toString()
+                ));
             }
-            return EventResult.interruptTrue();
+            return EventResult.interruptFalse();
         }
 
         return EventResult.pass();
-    }
-
-    enum HUD_ANCHOR {
-        TOP_LEFT,
-        TOP_RIGHT,
-        BOTTOM_LEFT,
-        BOTTOM_RIGHT,
-        CENTER
     }
 }
