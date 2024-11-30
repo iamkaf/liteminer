@@ -17,6 +17,12 @@ public interface Walker {
     @SuppressWarnings("deprecation")
     default boolean shouldMine(Player player, Level level, BlockPos pos) {
         BlockState state = level.getBlockState(pos);
+
+        // unbreakable blocks
+        if (state.getDestroySpeed(level, pos) < 0 && !player.isCreative()) {
+            return false;
+        }
+
         ItemStack tool = player.getMainHandItem();
         boolean isValidTool =
                 !Liteminer.CONFIG.requireCorrectToolEnabled.get() || (!tool.isEmpty() && tool.isCorrectToolForDrops(

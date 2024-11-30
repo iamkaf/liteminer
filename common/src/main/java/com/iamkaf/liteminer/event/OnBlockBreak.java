@@ -125,7 +125,7 @@ public class OnBlockBreak {
                         }
 
                         BlockState below = level.getBlockState(block.below());
-                        if (below.blocksMotion() || below.liquid()) {
+                        if (shouldMelt(below)) {
                             level.setBlockAndUpdate(block, IceBlock.meltsInto());
                         }
                     }
@@ -134,5 +134,11 @@ public class OnBlockBreak {
         }
 
         return EventResult.pass();
+    }
+
+    // it's okay, i'll fix it if mojang breaks it
+    @SuppressWarnings("deprecation")
+    private static boolean shouldMelt(BlockState below) {
+        return below.blocksMotion() || below.liquid();
     }
 }
