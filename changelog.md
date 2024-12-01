@@ -2,6 +2,13 @@
 
 See the full changelog at https://github.com/iamkaf/liteminer/commits/main
 
+## 0.4.0-beta.6
+
+- feat: ported to fabric 1.20.1
+- feat: ported to forge 1.20.1
+- feat: slightly changed the outlines
+- chore: add description for require_correct_tool_enabled config option
+
 ## 0.3.2-beta.5
 
 - feat: added a hud scale in the client config

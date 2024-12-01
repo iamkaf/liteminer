@@ -111,14 +111,6 @@ public class BlockHighlightRenderer {
 
         MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
 
-        VertexConsumer vertexBuilder = buffers.getBuffer(LINES_NORMAL);
-
-        orShapes(shapes).forAllEdges((x1, y1, z1, x2, y2, z2) -> {
-            vertexBuilder.addVertex(matrix, (float) x1, (float) y1, (float) z1).setColor(1f, 1f, 1f, 1f);
-            vertexBuilder.addVertex(matrix, (float) x2, (float) y2, (float) z2).setColor(1f, 1f, 1f, 1f);
-        });
-        buffers.endBatch(LINES_NORMAL);
-
         VertexConsumer vertexBuilder2 = buffers.getBuffer(LINES_TRANSPARENT);
 
         orShapes(shapes).forAllEdges((x1, y1, z1, x2, y2, z2) -> {
@@ -139,6 +131,14 @@ public class BlockHighlightRenderer {
                     .setNormal(pose, nx, ny, nz);
         });
         buffers.endBatch(LINES_TRANSPARENT);
+
+        VertexConsumer vertexBuilder = buffers.getBuffer(LINES_NORMAL);
+
+        orShapes(shapes).forAllEdges((x1, y1, z1, x2, y2, z2) -> {
+            vertexBuilder.addVertex(matrix, (float) x1, (float) y1, (float) z1).setColor(1f, 1f, 1f, 1f);
+            vertexBuilder.addVertex(matrix, (float) x2, (float) y2, (float) z2).setColor(1f, 1f, 1f, 1f);
+        });
+        buffers.endBatch(LINES_NORMAL);
 
         poseStack.popPose();
         return false;

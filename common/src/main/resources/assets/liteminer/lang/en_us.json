@@ -22,6 +22,7 @@
   "liteminer.config.block_break_limit.tooltip": "Upper limit to how many blocks can be broken at a time.",
 
   "liteminer.config.require_correct_tool_enabled": "Require Correct Tool",
+  "liteminer.config.require_correct_tool_enabled.tooltip": "If enabled, blocks can only be broken if holding the correct tool.",
 
   "liteminer.config.harvest_time_per_block_modifier_enabled": "Increased Harvesting Time",
   "liteminer.config.harvest_time_per_block_modifier_enabled.tooltip": "Increases the time it takes to break a block when vein mining.",
