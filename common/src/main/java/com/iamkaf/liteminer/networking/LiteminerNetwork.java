@@ -6,7 +6,6 @@ import dev.architectury.networking.simple.BaseC2SMessage;
 import dev.architectury.networking.simple.MessageType;
 import dev.architectury.networking.simple.SimpleNetworkManager;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.function.Supplier;
@@ -40,12 +39,7 @@ public class LiteminerNetwork {
             }
 
             @Override
-            public void write(RegistryFriendlyByteBuf buf) {
-                buf.writeBoolean(keybindState);
-                buf.writeInt(shape);
-            }
-
-            public void encode(FriendlyByteBuf buf) {
+            public void write(FriendlyByteBuf buf) {
                 buf.writeBoolean(keybindState);
                 buf.writeInt(shape);
             }
@@ -53,13 +47,6 @@ public class LiteminerNetwork {
             @Override
             public void handle(NetworkManager.PacketContext context) {
                 Liteminer.instance.onKeymappingStateChange((ServerPlayer) context.getPlayer(), keybindState, shape);
-            }
-
-            public void apply(Supplier<NetworkManager.PacketContext> context) {
-                Liteminer.instance.onKeymappingStateChange((ServerPlayer) context.get().getPlayer(),
-                        keybindState,
-                        shape
-                );
             }
         }
     }

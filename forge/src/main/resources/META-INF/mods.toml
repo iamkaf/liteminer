@@ -12,29 +12,29 @@ description = "${mod_description}"
 logoFile = "assets/${mod_id}/icon.png"
 
 [[dependencies.${mod_id}]]
-modId = "neoforge"
-type = "required"
-versionRange = "[${min_neoforge_version},)"
+modId = "forge"
+mandatory = true
+versionRange = "[${min_forge_version},)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.${mod_id}]]
 modId = "minecraft"
-type = "required"
-versionRange = "[1.21,1.21.1]"
+mandatory = true
+versionRange = "1.20.1"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.${mod_id}]]
 modId = "architectury"
-type = "required"
+mandatory = true
 versionRange = "[${architectury_api_version},)"
 ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.${mod_id}]]
 modId = "amber"
-type = "required"
+mandatory = true
 versionRange = "[${amber_version},)"
 ordering = "AFTER"
 side = "BOTH"
@@ -43,4 +43,4 @@ side = "BOTH"
 config = "${mod_id}.mixins.json"
 
 [[mixins]]
-config = "${mod_id}.neoforge.mixins.json"
+config = "${mod_id}.forge.mixins.json"

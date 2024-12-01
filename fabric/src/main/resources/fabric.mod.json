@@ -28,8 +28,8 @@
   ],
   "depends": {
     "fabricloader": ">=${fabric_loader_version}",
-    "minecraft": ["1.21", "1.21.1"],
-    "java": ">=21",
+    "minecraft": "1.20.1",
+    "java": ">=17",
     "architectury": ">=${architectury_api_version}",
     "fabric-api": "*",
     "amber": ">=${amber_version}"

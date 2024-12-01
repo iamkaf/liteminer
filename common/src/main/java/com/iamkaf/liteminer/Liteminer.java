@@ -8,7 +8,7 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 
@@ -21,7 +21,7 @@ public final class Liteminer {
     public static final String MOD_ID = "liteminer";
     public static final Logger LOGGER = LogUtils.getLogger();
     public static final LiteminerConfig CONFIG;
-    public static final ModConfigSpec CONFIG_SPEC;
+    public static final ForgeConfigSpec CONFIG_SPEC;
     public static final List<Walker> WALKERS = List.of(new ShapelessWalker(),
             new TunnelWalker(),
             new StaircaseUpWalker(),
@@ -31,8 +31,8 @@ public final class Liteminer {
     public static Liteminer instance;
 
     static {
-        Pair<LiteminerConfig, ModConfigSpec> pair =
-                new ModConfigSpec.Builder().configure(LiteminerConfig::new);
+        Pair<LiteminerConfig, ForgeConfigSpec> pair =
+                new ForgeConfigSpec.Builder().configure(LiteminerConfig::new);
         CONFIG = pair.getLeft();
         CONFIG_SPEC = pair.getRight();
     }
@@ -54,7 +54,7 @@ public final class Liteminer {
      * Creates resource location in the mod namespace with the given path.
      */
     public static ResourceLocation resource(String path) {
-        return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
+        return new ResourceLocation(MOD_ID, path);
     }
 
     public static float getScaledBreakSpeedModifier(int blockCount) {

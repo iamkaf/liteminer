@@ -14,7 +14,7 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.HitResult;
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
 import org.lwjgl.glfw.GLFW;
 
@@ -28,16 +28,16 @@ public class LiteminerClient {
             "key.categories.liteminer"
     );
     public static final LiteminerClientConfig CONFIG;
-    public static final ModConfigSpec CONFIG_SPEC;
-    public static HashSet<BlockPos> selectedBlocks = HashSet.newHashSet(0);
+    public static final ForgeConfigSpec CONFIG_SPEC;
+    public static HashSet<BlockPos> selectedBlocks = new HashSet<>();
     public static Minecraft mc;
     public static Cycler<Walker> shapes = new Cycler<>(Liteminer.WALKERS);
     private static boolean currentState = false;
     private static long lastChange = System.currentTimeMillis();
 
     static {
-        Pair<LiteminerClientConfig, ModConfigSpec> pair =
-                new ModConfigSpec.Builder().configure(LiteminerClientConfig::new);
+        Pair<LiteminerClientConfig, ForgeConfigSpec> pair =
+                new ForgeConfigSpec.Builder().configure(LiteminerClientConfig::new);
         CONFIG = pair.getLeft();
         CONFIG_SPEC = pair.getRight();
     }

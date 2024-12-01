@@ -4,14 +4,13 @@ import com.iamkaf.amber.api.player.FeedbackHelper;
 import com.iamkaf.liteminer.LiteminerClient;
 import com.iamkaf.liteminer.networking.LiteminerNetwork;
 import dev.architectury.event.EventResult;
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
 public class HUD {
-    public static void onRenderHUD(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
+    public static void onRenderHUD(GuiGraphics guiGraphics, float deltaTracker) {
         if (!LiteminerClient.CONFIG.showHUD.get()) {
             return;
         }
@@ -70,7 +69,7 @@ public class HUD {
         pose.popPose();
     }
 
-    public static EventResult onMouseScroll(Minecraft minecraft, double x, double y) {
+    public static EventResult onMouseScroll(Minecraft minecraft, double y) {
         if (LiteminerClient.isVeinMining()) {
             if (y != 0) {
                 if (y > 0) {

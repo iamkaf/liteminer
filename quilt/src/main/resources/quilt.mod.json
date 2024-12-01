@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "quilt_loader": {
+    "group": "${mod_group}",
+    "id": "${mod_id}",
+    "version": "${mod_version}",
+    "metadata": {
+      "name": "${mod_name}",
+      "description": "${mod_description}",
+      "contributors": {
+        "${mod_author}": "Author"
+      },
+      "icon": "assets/${mod_id}/icon.png"
+    },
+    "intermediate_mappings": "net.fabricmc:intermediary",
+    "entrypoints": {
+      "init": [
+        "${main_entrypoint_quilt}"
+      ],
+      "client_init": [
+        "${client_entrypoint_quilt}"
+      ]
+    },
+    "depends": [
+      {
+        "id": "quilt_loader",
+        "version": "*"
+      },
+      {
+        "id": "quilt_base",
+        "version": "*"
+      },
+      {
+        "id": "minecraft",
+        "version": "1.20.1"
+      },
+      {
+        "id": "architectury",
+        "version": ">=${architectury_api_version}"
+      }
+    ]
+  },
+  "mixin": [
+    "${mod_id}.mixins.json"
+  ]
+}

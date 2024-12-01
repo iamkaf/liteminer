@@ -74,7 +74,7 @@ public class OnBlockInteraction {
 
             item.useOn(new UseOnContext(player,
                     hand,
-                    new BlockHitResult(block.getBottomCenter(), direction, block, false)
+                    new BlockHitResult(block.getCenter(), direction, block, false)
             ));
 
             boolean exhaustionEnabled = Liteminer.CONFIG.foodExhaustionEnabled.get();

@@ -9,11 +9,10 @@ import dev.architectury.utils.value.IntValue;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.EnchantmentTags;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.IceBlock;
@@ -71,7 +70,9 @@ public class OnBlockBreak {
                         break;
                     } else {
                         if (state.getDestroySpeed(level, block) != 0.0f) {
-                            tool.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
+//                            tool.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
+                            tool.hurtAndBreak(1, player, player1 -> {
+                            });
                         }
                     }
                 }
@@ -118,7 +119,7 @@ public class OnBlockBreak {
 
                 // pray that mojang doesn't add more ice, or I'll have to come back here
                 if (state.getBlock() instanceof IceBlock ice) {
-                    if (!EnchantmentHelper.hasTag(tool, EnchantmentTags.PREVENTS_ICE_MELTING)) {
+                    if (EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SILK_TOUCH, tool) == 0) {
                         if (level.dimensionType().ultraWarm()) {
                             level.removeBlock(block, false);
                             continue;

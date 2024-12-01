@@ -1,6 +1,6 @@
 {
   "required": true,
-  "package": "com.iamkaf.liteminer.neoforge.mixin",
+  "package": "com.iamkaf.liteminer.forge.mixin",
   "compatibilityLevel": "JAVA_21",
   "minVersion": "0.8",
   "client": [

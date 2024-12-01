@@ -25,7 +25,9 @@ public class ShapelessWalker implements Walker {
     public static @NotNull BlockHitResult raytrace(Level level, Player player) {
         Vec3 eyePosition = player.getEyePosition();
         Vec3 rotation = player.getViewVector(1);
-        double reach = player.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE);
+//        double d = (double)this.minecraft.gameMode.getPickRange();
+        // Same as Item.getPlayerPOVHitResult()
+        double reach = 5.0d;
         Vec3 combined = eyePosition.add(rotation.x * reach, rotation.y * reach, rotation.z * reach);
 
         return level.clip(new ClipContext(eyePosition,
@@ -60,7 +62,7 @@ public class ShapelessWalker implements Walker {
         BlockState originState = level.getBlockState(origin);
 
         if (Blacklist.isBlacklistedBlock(originState) || originState.is(Blocks.AIR)) {
-            return HashSet.newHashSet(0);
+            return new HashSet<>();
         }
 
         searchBlocks(level, origin, origin, potentialBrokenBlocks, originState.getBlock());

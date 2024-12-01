@@ -111,14 +111,6 @@ public class BlockHighlightRenderer {
 
         MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
 
-        VertexConsumer vertexBuilder = buffers.getBuffer(LINES_NORMAL);
-
-        orShapes(shapes).forAllEdges((x1, y1, z1, x2, y2, z2) -> {
-            vertexBuilder.addVertex(matrix, (float) x1, (float) y1, (float) z1).setColor(1f, 1f, 1f, 1f);
-            vertexBuilder.addVertex(matrix, (float) x2, (float) y2, (float) z2).setColor(1f, 1f, 1f, 1f);
-        });
-        buffers.endBatch(LINES_NORMAL);
-
         VertexConsumer vertexBuilder2 = buffers.getBuffer(LINES_TRANSPARENT);
 
         orShapes(shapes).forAllEdges((x1, y1, z1, x2, y2, z2) -> {
@@ -131,14 +123,28 @@ public class BlockHighlightRenderer {
             final float ny = (float) (dy * invMag);
             final float nz = (float) (dz * invMag);
             PoseStack.Pose pose = poseStack.last();
-            vertexBuilder2.addVertex(matrix, (float) x1, (float) y1, (float) z1)
-                    .setColor(10, 206, 245, 180)
-                    .setNormal(pose, nx, ny, nz);
-            vertexBuilder2.addVertex(matrix, (float) x2, (float) y2, (float) z2)
-                    .setColor(10, 206, 245, 180)
-                    .setNormal(pose, nx, ny, nz);
+            vertexBuilder2.vertex(matrix, (float) x1, (float) y1, (float) z1)
+                    .color(10, 206, 245, 180)
+                    .normal(pose.normal(), nx, ny, nz)
+                    .endVertex();
+            vertexBuilder2.vertex(matrix, (float) x2, (float) y2, (float) z2)
+                    .color(10, 206, 245, 180)
+                    .normal(pose.normal(), nx, ny, nz)
+                    .endVertex();
         });
         buffers.endBatch(LINES_TRANSPARENT);
+
+        VertexConsumer vertexBuilder = buffers.getBuffer(LINES_NORMAL);
+
+        orShapes(shapes).forAllEdges((x1, y1, z1, x2, y2, z2) -> {
+            vertexBuilder.vertex(matrix, (float) x1, (float) y1, (float) z1)
+                    .color(1f, 1f, 1f, 1f)
+                    .endVertex();
+            vertexBuilder.vertex(matrix, (float) x2, (float) y2, (float) z2)
+                    .color(1f, 1f, 1f, 1f)
+                    .endVertex();
+        });
+        buffers.endBatch(LINES_NORMAL);
 
         poseStack.popPose();
         return false;
