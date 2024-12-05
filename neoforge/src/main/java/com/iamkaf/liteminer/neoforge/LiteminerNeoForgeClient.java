@@ -22,7 +22,7 @@ public class LiteminerNeoForgeClient {
     }
 
     @EventBusSubscriber(modid = Liteminer.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
-    public class Events {
+    public static class Events {
         @SubscribeEvent
         public static void renderBlockHighlights(RenderHighlightEvent.Block event) {
             event.setCanceled(!BlockHighlightRenderer.renderLiteminerHighlight(event.getPoseStack()));

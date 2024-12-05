@@ -9,6 +9,6 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:$fabric_api_version"
 
     modImplementation "com.iamkaf.amber:amber-fabric:$rootProject.amber_version"
-    modRuntimeOnly("dev.emi:emi-fabric:${rootProject.emi_version}")
+//    modRuntimeOnly("dev.emi:emi-fabric:${rootProject.emi_version}")
     modApi "fuzs.forgeconfigapiport:forgeconfigapiport-fabric:$rootProject.forge_config_api_port_version"
 }

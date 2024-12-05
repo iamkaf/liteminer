@@ -9,10 +9,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DiggerItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TieredItem;
+import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
@@ -24,35 +26,34 @@ public class OnBlockInteraction {
         InteractionEvent.RIGHT_CLICK_BLOCK.register(OnBlockInteraction::onBlockInteracted);
     }
 
-    private static EventResult onBlockInteracted(Player player, InteractionHand hand, BlockPos blockPos,
-            Direction direction) {
+    private static InteractionResult onBlockInteracted(Player player, InteractionHand hand,
+            BlockPos blockPos, Direction direction) {
         Level level = player.level();
 
         if (level.isClientSide) {
-            return EventResult.pass();
+            return EventResult.pass().asMinecraft();
         }
 
-        if (hand.equals(InteractionHand.OFF_HAND) && player.getMainHandItem()
-                .getItem() instanceof TieredItem) {
-            return EventResult.pass();
+        if (hand.equals(InteractionHand.OFF_HAND) && isTieredItem(player.getMainHandItem().getItem())) {
+            return EventResult.pass().asMinecraft();
         }
 
         ItemStack tool = player.getItemInHand(hand);
         Item item = tool.getItem();
 
-        if (!(item instanceof TieredItem)) {
-            return EventResult.pass();
+        if (!isTieredItem(item)) {
+            return EventResult.pass().asMinecraft();
         }
 
         LiteminerPlayerState playerState = Liteminer.instance.getPlayerState((ServerPlayer) player);
 
         if (!playerState.getKeymappingState()) {
-            return EventResult.pass();
+            return EventResult.pass().asMinecraft();
         }
 
         // 1 durability left on the tool
         if (tool.isDamageableItem() && (tool.getMaxDamage() - tool.getDamageValue()) == 1) {
-            return EventResult.pass();
+            return EventResult.pass().asMinecraft();
         }
 
         Walker walker = WALKERS.get(playerState.getShape());
@@ -84,6 +85,10 @@ public class OnBlockInteraction {
             }
         }
 
-        return EventResult.pass();
+        return EventResult.pass().asMinecraft();
+    }
+
+    private static boolean isTieredItem(Item item) {
+        return item instanceof DiggerItem || item instanceof SwordItem;
     }
 }

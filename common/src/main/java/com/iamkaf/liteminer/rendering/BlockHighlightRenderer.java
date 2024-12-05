@@ -10,7 +10,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.CoreShaders;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
@@ -39,7 +39,7 @@ public class BlockHighlightRenderer {
             false,
             false,
             RenderType.CompositeState.builder()
-                    .setShaderState(new ShaderStateShard(GameRenderer::getPositionColorShader))
+                    .setShaderState(new ShaderStateShard(CoreShaders.POSITION_COLOR))
                     .setLineState(new LineStateShard(OptionalDouble.empty()))
                     .setLayeringState(NO_LAYERING)
                     .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
@@ -55,7 +55,7 @@ public class BlockHighlightRenderer {
             false,
             false,
             RenderType.CompositeState.builder()
-                    .setShaderState(new ShaderStateShard(GameRenderer::getPositionColorShader))
+                    .setShaderState(new ShaderStateShard(CoreShaders.POSITION_COLOR))
                     .setLineState(new LineStateShard(OptionalDouble.empty()))
                     .setLayeringState(NO_LAYERING)
                     .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
