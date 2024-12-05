@@ -2,6 +2,10 @@
 
 See the full changelog at https://github.com/iamkaf/liteminer/commits/main
 
+## 0.5.0-beta.7+1.21.4
+
+- feat: ported to minecraft 1.21.4
+
 ## 0.4.0-beta.6
 
 - feat: ported to fabric 1.20.1
