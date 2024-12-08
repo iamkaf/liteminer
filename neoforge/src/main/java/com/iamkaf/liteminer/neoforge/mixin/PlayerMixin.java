@@ -23,8 +23,8 @@ public abstract class PlayerMixin extends LivingEntity {
         throw new IllegalStateException("wat?");
     }
 
-    @Inject(method = "getDigSpeed", at = @At("TAIL"), cancellable = true)
-    public void liteminer$getDestroySpeed(BlockState state, BlockPos pos, CallbackInfoReturnable<Float> cir) {
+    @Inject(method = "getDestroySpeed(Lnet/minecraft/world/level/block/state/BlockState;)F", at = @At("TAIL"), cancellable = true)
+    public void liteminer$getDestroySpeed(BlockState state, CallbackInfoReturnable<Float> cir) {
         if (!Liteminer.CONFIG.harvestTimePerBlockModifierEnabled.get()) {
             return;
         }
