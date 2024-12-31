@@ -2,11 +2,15 @@
 
 See the full changelog at https://github.com/iamkaf/liteminer/commits/main
 
-## 0.5.1-beta.8+1.21.4
+## 0.5.2-beta.9
+
+- fix: added a missing mod to the dependency list
+
+## 0.5.1-beta.8
 
 - fix: fixed a mixin failing to apply
 
-## 0.5.0-beta.7+1.21.4
+## 0.5.0-beta.7
 
 - feat: ported to minecraft 1.21.4
 
