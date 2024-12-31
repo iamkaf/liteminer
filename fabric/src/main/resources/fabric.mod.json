@@ -32,6 +32,7 @@
     "java": ">=21",
     "architectury": ">=${architectury_api_version}",
     "fabric-api": "*",
-    "amber": ">=${amber_version}"
+    "amber": ">=${amber_version}",
+    "forgeconfigapiport": "*"
   }
 }
