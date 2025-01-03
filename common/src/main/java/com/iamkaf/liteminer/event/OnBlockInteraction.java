@@ -19,6 +19,8 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 
+import java.util.Comparator;
+
 import static com.iamkaf.liteminer.Liteminer.WALKERS;
 
 public class OnBlockInteraction {
@@ -26,14 +28,15 @@ public class OnBlockInteraction {
         InteractionEvent.RIGHT_CLICK_BLOCK.register(OnBlockInteraction::onBlockInteracted);
     }
 
-    private static InteractionResult onBlockInteracted(Player player, InteractionHand hand,
-            BlockPos blockPos, Direction direction) {
+    private static InteractionResult onBlockInteracted(Player player, InteractionHand hand, BlockPos blockPos,
+            Direction direction) {
         Level level = player.level();
 
         if (level.isClientSide) {
             return EventResult.pass().asMinecraft();
         }
 
+        // Prevents off-hand from interacting when the main hand is already handling this event
         if (hand.equals(InteractionHand.OFF_HAND) && isTieredItem(player.getMainHandItem().getItem())) {
             return EventResult.pass().asMinecraft();
         }
@@ -58,7 +61,10 @@ public class OnBlockInteraction {
 
         Walker walker = WALKERS.get(playerState.getShape());
 
-        var blocks = walker.walk(level, player, blockPos).stream().toList();
+        var blocks = walker.walk(level, player, blockPos)
+                .stream()
+                .sorted(Comparator.comparingInt(p -> p.distManhattan(blockPos)))
+                .toList();
 
         for (var block : blocks) {
             if (block.equals(blockPos)) {
@@ -73,10 +79,7 @@ public class OnBlockInteraction {
                 }
             }
 
-            item.useOn(new UseOnContext(player,
-                    hand,
-                    new BlockHitResult(block.getBottomCenter(), direction, block, false)
-            ));
+            item.useOn(new UseOnContext(player, hand, new BlockHitResult(block.getBottomCenter(), direction, block, false)));
 
             boolean exhaustionEnabled = Liteminer.CONFIG.foodExhaustionEnabled.get();
             float exhaustion = Liteminer.CONFIG.foodExhaustion.get().floatValue();

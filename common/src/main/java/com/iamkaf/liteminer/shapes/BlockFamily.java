@@ -1,4 +1,4 @@
-package com.iamkaf.liteminer.walker;
+package com.iamkaf.liteminer.shapes;
 
 import net.minecraft.world.level.block.*;
 
@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class NeighborPredicate {
+public class BlockFamily {
     private static final Map<Block, Set<Block>> BLOCK_MATCHES = new HashMap<>();
 
     static {

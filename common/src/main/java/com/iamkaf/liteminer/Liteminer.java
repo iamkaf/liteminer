@@ -4,6 +4,7 @@ import com.iamkaf.liteminer.config.LiteminerConfig;
 import com.iamkaf.liteminer.event.Events;
 import com.iamkaf.liteminer.networking.LiteminerNetwork;
 import com.iamkaf.liteminer.shapes.*;
+import com.iamkaf.liteminer.tags.TagHelper;
 import com.mojang.logging.LogUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -48,6 +49,7 @@ public final class Liteminer {
 
         LiteminerNetwork.init();
         Events.init();
+        TagHelper.init();
     }
 
     /**
