@@ -1,7 +1,7 @@
 package com.iamkaf.liteminer.shapes;
 
-import com.iamkaf.liteminer.Blacklist;
 import com.iamkaf.liteminer.Liteminer;
+import com.iamkaf.liteminer.tags.TagHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -27,12 +27,7 @@ public class TunnelWalker implements Walker {
         double reach = player.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE);
         Vec3 combined = eyePosition.add(rotation.x * reach, rotation.y * reach, rotation.z * reach);
 
-        return level.clip(new ClipContext(eyePosition,
-                combined,
-                ClipContext.Block.OUTLINE,
-                ClipContext.Fluid.NONE,
-                player
-        ));
+        return level.clip(new ClipContext(eyePosition, combined, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, player));
     }
 
     @Override
@@ -44,10 +39,16 @@ public class TunnelWalker implements Walker {
         Direction direction = raytrace(level, player).getDirection().getOpposite();
         HashSet<BlockPos> potentialBrokenBlocks = new HashSet<>();
 
+        potentialBrokenBlocks.add(origin);
+
         BlockState originState = level.getBlockState(origin);
 
-        if (Blacklist.isBlacklistedBlock(originState) || originState.is(Blocks.AIR)) {
-            return HashSet.newHashSet(0);
+        if (originState.is(Blocks.AIR)) {
+            return new HashSet<>(0);
+        }
+
+        if (TagHelper.isExcludedBlock(originState)) {
+            return potentialBrokenBlocks;
         }
 
         searchBlocks(player, level, origin, origin, potentialBrokenBlocks, originState.getBlock(), direction);
@@ -63,7 +64,7 @@ public class TunnelWalker implements Walker {
 
         BlockState state = level.getBlockState(myPos);
 
-        if (state.is(Blocks.AIR) || Blacklist.isBlacklistedBlock(state)) return;
+        if (state.is(Blocks.AIR) || TagHelper.isExcludedBlock(state)) return;
 
         BlockPos cursor = myPos;
 
