@@ -1,11 +1,9 @@
 package com.iamkaf.liteminer.shapes;
 
-import com.iamkaf.liteminer.Blacklist;
 import com.iamkaf.liteminer.Liteminer;
-import com.iamkaf.liteminer.walker.NeighborPredicate;
+import com.iamkaf.liteminer.tags.TagHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
@@ -30,17 +28,7 @@ public class ShapelessWalker implements Walker {
         double reach = 5.0d;
         Vec3 combined = eyePosition.add(rotation.x * reach, rotation.y * reach, rotation.z * reach);
 
-        return level.clip(new ClipContext(eyePosition,
-                combined,
-                ClipContext.Block.OUTLINE,
-                ClipContext.Fluid.NONE,
-                player
-        ));
-    }
-
-    @Override
-    public String toString() {
-        return "Shapeless";
+        return level.clip(new ClipContext(eyePosition, combined, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, player));
     }
 
     public static @NotNull BlockPos raytraceBlock(Level level, Player player) {
@@ -56,32 +44,44 @@ public class ShapelessWalker implements Walker {
         };
     }
 
+    @Override
+    public String toString() {
+        return "Shapeless";
+    }
+
     public HashSet<BlockPos> walk(Level level, Player player, BlockPos origin) {
         HashSet<BlockPos> potentialBrokenBlocks = new HashSet<>();
 
+        potentialBrokenBlocks.add(origin);
+
         BlockState originState = level.getBlockState(origin);
 
-        if (Blacklist.isBlacklistedBlock(originState) || originState.is(Blocks.AIR)) {
-            return new HashSet<>();
+        if (originState.is(Blocks.AIR)) {
+            return new HashSet<>(0);
         }
 
-        searchBlocks(level, origin, origin, potentialBrokenBlocks, originState.getBlock());
+        if (TagHelper.isExcludedBlock(originState)) {
+            return potentialBrokenBlocks;
+        }
+
+        searchBlocks(player, level, origin, origin, potentialBrokenBlocks, originState.getBlock());
         VISITED.clear();
 
         return potentialBrokenBlocks;
     }
 
-    private void searchBlocks(Level level, BlockPos myPos, BlockPos absoluteOrigin,
+    private void searchBlocks(Player player, Level level, BlockPos myPos, BlockPos absoluteOrigin,
             HashSet<BlockPos> blocksToCollapse, Block originBlock) {
         if (VISITED.size() >= Liteminer.CONFIG.blockBreakLimit.get()) return;
         if (VISITED.contains(myPos)) return;
-        if (!NeighborPredicate.matches(originBlock, level.getBlockState(myPos).getBlock())) return;
+        if (!BlockFamily.matches(originBlock, level.getBlockState(myPos).getBlock())) return;
+        if (!shouldMine(player, level, myPos)) return;
 
         blocksToCollapse.add(myPos);
         VISITED.add(myPos);
 
         for (var neighborPos : getNeighbors(myPos, absoluteOrigin)) {
-            searchBlocks(level, neighborPos, absoluteOrigin, blocksToCollapse, originBlock);
+            searchBlocks(player, level, neighborPos, absoluteOrigin, blocksToCollapse, originBlock);
         }
     }
 

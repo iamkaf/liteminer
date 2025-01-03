@@ -2,6 +2,21 @@
 
 See the full changelog at https://github.com/iamkaf/liteminer/commits/main
 
+## 1.0.0
+
+The first stable release of Liteminer!
+
+I've completed all the features I wanted to add to the mod when I started the project, and I'm happy with how it turned out. The next steps are fixing bugs that might come up and adding new features that I think of or that are requested by the community starting with the Forge port.
+
+- feat: added tags for blacklisting blocks and tools
+    - Item Tags:
+        - `liteminer:excluded_tools` - items in this tag can't be used for litemining
+        - `liteminer:included_tools` - if `require_correct_tool_enabled` is true in common config, by default only "tool" items can be used (tiered items with durability); this can be used to allow extra items
+    - Block Tags
+        - `liteminer:excluded_blocks` - blocks in this tag may never be litemined
+        - `liteminer:block_whitelist` - if this tag is non-empty, then _only_ blocks in this tag may be litemined
+    - Note: these tags are compatible with the FTB Ultimine tags, so you can use the same tags for both mods if you already have a setup you like.
+
 ## 0.5.2-beta.9
 
 - fix: added a missing mod to the dependency list

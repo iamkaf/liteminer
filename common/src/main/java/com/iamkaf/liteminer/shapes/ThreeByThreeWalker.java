@@ -1,9 +1,8 @@
 package com.iamkaf.liteminer.shapes;
 
-import com.iamkaf.liteminer.Blacklist;
+import com.iamkaf.liteminer.tags.TagHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
@@ -19,19 +18,14 @@ import java.util.HashSet;
 import java.util.List;
 
 public class ThreeByThreeWalker implements Walker {
-    public static @NotNull BlockHitResult raytrace(Level level, Player player) {
+    private static @NotNull BlockHitResult raytrace(Level level, Player player) {
         Vec3 eyePosition = player.getEyePosition();
         Vec3 rotation = player.getViewVector(1);
         // Same as Item.getPlayerPOVHitResult()
         double reach = 5.0d;
         Vec3 combined = eyePosition.add(rotation.x * reach, rotation.y * reach, rotation.z * reach);
 
-        return level.clip(new ClipContext(eyePosition,
-                combined,
-                ClipContext.Block.OUTLINE,
-                ClipContext.Fluid.NONE,
-                player
-        ));
+        return level.clip(new ClipContext(eyePosition, combined, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, player));
     }
 
     @Override
@@ -43,10 +37,16 @@ public class ThreeByThreeWalker implements Walker {
         Direction direction = raytrace(level, player).getDirection().getOpposite();
         HashSet<BlockPos> potentialBrokenBlocks = new HashSet<>();
 
+        potentialBrokenBlocks.add(origin);
+
         BlockState originState = level.getBlockState(origin);
 
-        if (Blacklist.isBlacklistedBlock(originState) || originState.is(Blocks.AIR)) {
-            return new HashSet<>();
+        if (originState.is(Blocks.AIR)) {
+            return new HashSet<>(0);
+        }
+
+        if (TagHelper.isExcludedBlock(originState)) {
+            return potentialBrokenBlocks;
         }
 
         searchBlocks(player, level, origin, origin, potentialBrokenBlocks, originState.getBlock(), direction);

@@ -21,6 +21,9 @@
     ],
     "client": [
       "${client_entrypoint}"
+    ],
+    "fabric-datagen": [
+      "com.iamkaf.liteminer.fabric.LiteminerDatagen"
     ]
   },
   "mixins": [

@@ -10,12 +10,15 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DiggerItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TieredItem;
+import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
+
+import java.util.Comparator;
 
 import static com.iamkaf.liteminer.Liteminer.WALKERS;
 
@@ -32,15 +35,15 @@ public class OnBlockInteraction {
             return EventResult.pass();
         }
 
-        if (hand.equals(InteractionHand.OFF_HAND) && player.getMainHandItem()
-                .getItem() instanceof TieredItem) {
+        // Prevents off-hand from interacting when the main hand is already handling this event
+        if (hand.equals(InteractionHand.OFF_HAND) && isTieredItem(player.getMainHandItem().getItem())) {
             return EventResult.pass();
         }
 
         ItemStack tool = player.getItemInHand(hand);
         Item item = tool.getItem();
 
-        if (!(item instanceof TieredItem)) {
+        if (!isTieredItem(item)) {
             return EventResult.pass();
         }
 
@@ -57,7 +60,10 @@ public class OnBlockInteraction {
 
         Walker walker = WALKERS.get(playerState.getShape());
 
-        var blocks = walker.walk(level, player, blockPos).stream().toList();
+        var blocks = walker.walk(level, player, blockPos)
+                .stream()
+                .sorted(Comparator.comparingInt(p -> p.distManhattan(blockPos)))
+                .toList();
 
         for (var block : blocks) {
             if (block.equals(blockPos)) {
@@ -72,10 +78,7 @@ public class OnBlockInteraction {
                 }
             }
 
-            item.useOn(new UseOnContext(player,
-                    hand,
-                    new BlockHitResult(block.getCenter(), direction, block, false)
-            ));
+            item.useOn(new UseOnContext(player, hand, new BlockHitResult(block.getCenter(), direction, block, false)));
 
             boolean exhaustionEnabled = Liteminer.CONFIG.foodExhaustionEnabled.get();
             float exhaustion = Liteminer.CONFIG.foodExhaustion.get().floatValue();
@@ -85,5 +88,9 @@ public class OnBlockInteraction {
         }
 
         return EventResult.pass();
+    }
+
+    private static boolean isTieredItem(Item item) {
+        return item instanceof DiggerItem || item instanceof SwordItem;
     }
 }
