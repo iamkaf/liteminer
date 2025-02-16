@@ -20,7 +20,7 @@
   "liteminer.config.harvest_time_per_block_modifier_enabled.tooltip": "Aumenta o tempo necessário para quebrar um bloco ao minerar em veia.",
   "liteminer.config.harvest_time_per_block_modifier": "Modificador de Tempo de Colheita",
   "liteminer.config.harvest_time_per_block_modifier.tooltip": "Modificador usado para escalar o tempo que ele precisa minerar um bloco. Valores maiores significam mais vezes para o meu.",
-  "liteminer.config.food_exhaustion_enabled": "Exausção de Comida",
+  "liteminer.config.food_exhaustion_enabled": "Exaustão de Comida",
   "liteminer.config.food_exhaustion_enabled.tooltip": "Faz com que sua fome desça por bloco minerado.",
   "liteminer.config.food_exhaustion": "Quantidade de Exausção de Comida",
   "liteminer.config.food_exhaustion.tooltip": "Quanta exaustão de alimentos causa por bloco quebrado.",
