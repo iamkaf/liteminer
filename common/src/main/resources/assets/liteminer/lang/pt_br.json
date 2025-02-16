@@ -1,8 +1,8 @@
 {
-  "key.liteminer.veinmine": "Mina da Veia",
+  "key.liteminer.veinmine": "Minerar",
   "key.categories.liteminer": "Liteminer",
-  "hud.liteminer.selected_blocks": "Blocos %s",
-  "hud.liteminer.selected_blocks_singular": "1 bloco",
+  "hud.liteminer.selected_blocks": "%s Blocos",
+  "hud.liteminer.selected_blocks_singular": "1 Bloco",
   "hud.liteminer.changed_shape": "Forma Alterada [%s]",
   "liteminer.configuration.title": "Configuração do Liteminer",
   "liteminer.configuration.section.liteminer.common.toml.title": "Configuração do Liteminer",
