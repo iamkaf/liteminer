@@ -6,7 +6,7 @@
   "hud.liteminer.changed_shape": "Forma Alterada [%s]",
   "liteminer.configuration.title": "Configuração do Liteminer",
   "liteminer.configuration.section.liteminer.common.toml.title": "Configuração do Liteminer",
-  "liteminer.config.key_mode": "Modo",
+  "liteminer.config.key_mode": "Modo de Ativação",
   "liteminer.config.key_mode.tooltip": "No modo Segurar, você deve continuar segurando a tecla para minerar. No modo Alternado você precisa apertar a tecla para alternar.",
   "liteminer.config.show_hud": "Mostrar HUD",
   "liteminer.config.show_hud.tooltip": "Habilita o texto mostrando quantos blocos você selecionou e sua forma de mineração.",
