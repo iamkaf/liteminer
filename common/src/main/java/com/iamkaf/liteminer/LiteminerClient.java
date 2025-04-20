@@ -30,7 +30,6 @@ public class LiteminerClient {
     public static final LiteminerClientConfig CONFIG;
     public static final ModConfigSpec CONFIG_SPEC;
     public static HashSet<BlockPos> selectedBlocks = HashSet.newHashSet(0);
-    public static Minecraft mc;
     public static Cycler<Walker> shapes = new Cycler<>(Liteminer.WALKERS);
     private static boolean currentState = false;
     private static long lastChange = System.currentTimeMillis();
@@ -43,7 +42,6 @@ public class LiteminerClient {
     }
 
     public static void init() {
-        mc = Minecraft.getInstance();
         KeyMappingRegistry.register(KEY_MAPPING);
         ClientTickEvent.CLIENT_POST.register(LiteminerClient::onPostTick);
         ClientGuiEvent.RENDER_HUD.register(HUD::onRenderHUD);
@@ -93,7 +91,7 @@ public class LiteminerClient {
     }
 
     public static boolean isTargetingABlock() {
-        HitResult result = mc.hitResult;
+        HitResult result = Minecraft.getInstance().hitResult;
         return result != null && result.getType() == HitResult.Type.BLOCK;
     }
 }

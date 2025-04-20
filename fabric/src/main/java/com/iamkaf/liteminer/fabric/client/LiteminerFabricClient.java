@@ -3,8 +3,8 @@ package com.iamkaf.liteminer.fabric.client;
 import com.iamkaf.liteminer.Liteminer;
 import com.iamkaf.liteminer.LiteminerClient;
 import com.iamkaf.liteminer.rendering.BlockHighlightRenderer;
-import fuzs.forgeconfigapiport.fabric.api.neoforge.v4.NeoForgeConfigRegistry;
-import fuzs.forgeconfigapiport.fabric.api.neoforge.v4.client.ConfigScreenFactoryRegistry;
+import fuzs.forgeconfigapiport.fabric.api.v5.ConfigRegistry;
+import fuzs.forgeconfigapiport.fabric.api.v5.client.ConfigScreenFactoryRegistry;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.neoforged.fml.config.ModConfig;
@@ -19,6 +19,6 @@ public final class LiteminerFabricClient implements ClientModInitializer {
                 worldRenderContext.matrixStack()));
 
         ConfigScreenFactoryRegistry.INSTANCE.register(Liteminer.MOD_ID, ConfigurationScreen::new);
-        NeoForgeConfigRegistry.INSTANCE.register(Liteminer.MOD_ID, ModConfig.Type.CLIENT, LiteminerClient.CONFIG_SPEC);
+        ConfigRegistry.INSTANCE.register(Liteminer.MOD_ID, ModConfig.Type.CLIENT, LiteminerClient.CONFIG_SPEC);
     }
 }

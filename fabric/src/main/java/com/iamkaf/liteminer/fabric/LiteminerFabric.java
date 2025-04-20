@@ -1,6 +1,6 @@
 package com.iamkaf.liteminer.fabric;
 
-import fuzs.forgeconfigapiport.fabric.api.neoforge.v4.NeoForgeConfigRegistry;
+import fuzs.forgeconfigapiport.fabric.api.v5.ConfigRegistry;
 import net.fabricmc.api.ModInitializer;
 
 import com.iamkaf.liteminer.Liteminer;
@@ -11,6 +11,6 @@ public final class LiteminerFabric implements ModInitializer {
     public void onInitialize() {
         new Liteminer();
         Liteminer.init();
-        NeoForgeConfigRegistry.INSTANCE.register(Liteminer.MOD_ID, ModConfig.Type.COMMON, Liteminer.CONFIG_SPEC);
+        ConfigRegistry.INSTANCE.register(Liteminer.MOD_ID, ModConfig.Type.COMMON, Liteminer.CONFIG_SPEC);
     }
 }

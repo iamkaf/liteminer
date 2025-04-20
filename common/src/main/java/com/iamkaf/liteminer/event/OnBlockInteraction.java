@@ -7,14 +7,13 @@ import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.InteractionEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.DiggerItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
@@ -92,6 +91,8 @@ public class OnBlockInteraction {
     }
 
     private static boolean isTieredItem(Item item) {
-        return item instanceof DiggerItem || item instanceof SwordItem;
+        // the toolness of the tools now comes from a tool data component
+        var tool = item.getDefaultInstance().get(DataComponents.TOOL);
+        return tool != null;
     }
 }

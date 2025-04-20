@@ -30,7 +30,7 @@ public class HUD {
             return;
         }
 
-        Font font = LiteminerClient.mc.font;
+        Font font = Minecraft.getInstance().font;
 
         int lineHeight = 10;
         float scale = LiteminerClient.CONFIG.hud_scale.get().floatValue();
