@@ -4,6 +4,10 @@ plugins {
 
 apply from: "https://raw.githubusercontent.com/iamkaf/modresources/refs/heads/main/gradle/${minecraft_version}/neoforge.gradle"
 
+remapJar {
+    atAccessWideners.add "liteminer.accesswidener"
+}
+
 dependencies {
     neoForge "net.neoforged:neoforge:$rootProject.neoforge_version"
 
