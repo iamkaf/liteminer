@@ -11,6 +11,6 @@ pluginManagement {
 
 include 'common'
 include 'fabric'
-include 'forge'
+//include 'forge'
 
-apply from: "https://raw.githubusercontent.com/iamkaf/modresources/main/gradle/${minecraft_version}/settings.gradle"
+apply from: "https://raw.githubusercontent.com/iamkaf/modresources/main/gradle/1.20.1/settings.gradle"

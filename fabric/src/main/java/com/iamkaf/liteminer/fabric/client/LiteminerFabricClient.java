@@ -17,6 +17,7 @@ public final class LiteminerFabricClient implements ClientModInitializer {
                 worldRenderContext.matrixStack()));
 
 //        ConfigScreenFactoryRegistry.INSTANCE.register(Liteminer.MOD_ID, ConfigurationScreen::new);
+
         ForgeConfigRegistry.INSTANCE.register(
                 Liteminer.MOD_ID,
                 ModConfig.Type.CLIENT,

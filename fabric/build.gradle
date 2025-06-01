@@ -2,7 +2,7 @@ plugins {
     id "com.hypherionmc.modutils.modpublisher" version "2.1.6"
 }
 
-apply from: "https://raw.githubusercontent.com/iamkaf/modresources/refs/heads/main/gradle/${minecraft_version}/fabric.gradle"
+apply from: "https://raw.githubusercontent.com/iamkaf/modresources/refs/heads/main/gradle/1.20.1/fabric.gradle"
 
 dependencies {
     // Fabric API. This is technically optional, but you probably want it anyway.
@@ -11,4 +11,5 @@ dependencies {
     modImplementation "com.iamkaf.amber:amber-fabric:$rootProject.amber_version"
     modRuntimeOnly("dev.emi:emi-fabric:${rootProject.emi_version}")
     modApi "fuzs.forgeconfigapiport:forgeconfigapiport-fabric:$rootProject.forge_config_api_port_version"
+    modLocalRuntime "fuzs.forgeconfigscreens:forgeconfigscreens-fabric:$rootProject.forge_config_screens_version"
 }

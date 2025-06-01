@@ -69,7 +69,7 @@ public class HUD {
         pose.popPose();
     }
 
-    public static EventResult onMouseScroll(Minecraft minecraft, double y) {
+    public static EventResult onMouseScroll(Minecraft minecraft, double x, double y) {
         if (LiteminerClient.isVeinMining()) {
             if (y != 0) {
                 if (y > 0) {
