@@ -2,6 +2,10 @@
 
 See the full changelog at https://github.com/iamkaf/liteminer/commits/main
 
+## 1.2.0
+
+- feat: ported to 1.21.6
+
 ## 1.1.0
 
 - feat: ported to 1.21.5

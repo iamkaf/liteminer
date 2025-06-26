@@ -15,7 +15,7 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
 
     @Override
     protected void addTags(HolderLookup.Provider provider) {
-        getOrCreateTagBuilder(LiteminerTags.Items.EXCLUDED_TOOLS);
-        getOrCreateTagBuilder(LiteminerTags.Items.INCLUDED_TOOLS);
+        valueLookupBuilder(LiteminerTags.Items.EXCLUDED_TOOLS);
+        valueLookupBuilder(LiteminerTags.Items.INCLUDED_TOOLS);
     }
 }

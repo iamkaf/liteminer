@@ -16,7 +16,7 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
 
     @Override
     protected void addTags(HolderLookup.Provider provider) {
-        getOrCreateTagBuilder(LiteminerTags.Blocks.BLOCK_WHITELIST);
-        getOrCreateTagBuilder(LiteminerTags.Blocks.EXCLUDED_BLOCKS).add(Blocks.BEDROCK);
+        valueLookupBuilder(LiteminerTags.Blocks.BLOCK_WHITELIST);
+        valueLookupBuilder(LiteminerTags.Blocks.EXCLUDED_BLOCKS).add(Blocks.BEDROCK);
     }
 }

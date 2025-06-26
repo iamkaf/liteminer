@@ -21,7 +21,7 @@ public class LiteminerNeoForgeClient {
         LiteminerClient.init();
     }
 
-    @EventBusSubscriber(modid = Liteminer.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
+    @EventBusSubscriber(modid = Liteminer.MOD_ID, value = Dist.CLIENT)
     public static class Events {
         @SubscribeEvent
         public static void renderBlockHighlights(RenderHighlightEvent.Block event) {

@@ -9,6 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import org.joml.Matrix3x2fStack;
 
 public class HUD {
     public static void onRenderHUD(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
@@ -50,24 +51,25 @@ public class HUD {
                 selectedBlockCount
         ).getString();
 
-        var pose = guiGraphics.pose();
-        pose.pushPose();
-        pose.scale(scale, scale, 1f);
+        Matrix3x2fStack pose = guiGraphics.pose();
+//        pose.pushPose();
+        pose.pushMatrix();
+        pose.scale(scale, scale);
 
         guiGraphics.drawString(font,
                 selectedBlocksLabel,
                 centerWidth + xOffset,
                 centerHeight + yOffset,
-                0xFFFFFF
+                0xFFFFFFFF
         );
         guiGraphics.drawString(font,
                 LiteminerClient.shapes.getCurrentItem().toString(),
                 centerWidth + xOffset,
                 centerHeight + yOffset + lineHeight,
-                0xFFFFFF
+                0xFFFFFFFF
         );
 
-        pose.popPose();
+        pose.popMatrix();
     }
 
     public static EventResult onMouseScroll(Minecraft minecraft, double x, double y) {

@@ -38,11 +38,11 @@ public class BlockHighlightRenderer {
 
     // for this to work I had to add some access wideners
     private static final RenderPipeline TRANSPARENT_LINES_PIPELINE =
-            RenderPipelines.register(RenderPipeline.builder(RenderPipelines.MATRICES_COLOR_FOG_SNIPPET)
+            RenderPipelines.register(RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET)
                     .withVertexShader("core/rendertype_lines")
                     .withFragmentShader("core/rendertype_lines")
-                    .withUniform("LineWidth", UniformType.FLOAT)
-                    .withUniform("ScreenSize", UniformType.VEC2)
+                    .withUniform("LineWidth", UniformType.UNIFORM_BUFFER)
+                    .withUniform("ScreenSize", UniformType.UNIFORM_BUFFER)
                     .withBlend(BlendFunction.TRANSLUCENT)
                     .withCull(false)
                     .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
