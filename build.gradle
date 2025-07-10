@@ -6,7 +6,7 @@ plugins {
 
 println("Mod Resources: ${System.getenv("MOD_RESOURCES")}")
 
-apply from: "https://raw.githubusercontent.com/iamkaf/modresources/refs/heads/main/gradle/${minecraft_version}/main.gradle"
+apply from: "https://raw.githubusercontent.com/iamkaf/modresources/refs/heads/main/gradle/1.21.7/main.gradle"
 
 allprojects {
     repositories {
