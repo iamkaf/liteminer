@@ -13,4 +13,4 @@ include 'common'
 include 'fabric'
 include 'neoforge'
 
-apply from: "https://raw.githubusercontent.com/iamkaf/modresources/main/gradle/${minecraft_version}/settings.gradle"
+apply from: "https://raw.githubusercontent.com/iamkaf/modresources/main/gradle/1.21.7/settings.gradle"

@@ -2,7 +2,7 @@ plugins {
     id "com.hypherionmc.modutils.modpublisher" version "2.1.6"
 }
 
-apply from: "https://raw.githubusercontent.com/iamkaf/modresources/refs/heads/main/gradle/${minecraft_version}/neoforge.gradle"
+apply from: "https://raw.githubusercontent.com/iamkaf/modresources/refs/heads/main/gradle/1.21.7/neoforge.gradle"
 
 remapJar {
     atAccessWideners.add "liteminer.accesswidener"
