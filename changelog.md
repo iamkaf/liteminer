@@ -1,104 +1,120 @@
-# Liteminer Changelog
+# Changelog
 
-See the full changelog at https://github.com/iamkaf/liteminer/commits/main
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## 2.0.0
+
+### Added
+- Complete rewrite on multiloader setup.
+
+## Changed
+- Updated to Amber v6.
+
+## Removed
+- Removed Architectury API.
 
 ## 1.2.1
 
-- chore: ported to Minecraft 1.21.7 & 1.21.8
+### Added
+- Ported to Minecraft 1.21.7.
 
 ## 1.2.0
 
-- feat: ported to 1.21.6
+### Added
+- Ported to Minecraft 1.21.6.
 
 ## 1.1.0
 
-- feat: ported to 1.21.5
-
-## 1.0.0
-
-The first stable release of Liteminer!
-
-I've completed all the features I wanted to add to the mod when I started the project, and I'm happy with how it turned out. The next steps are fixing bugs that might come up and adding new features that I think of or that are requested by the community starting with the Forge port.
-
-- feat: added tags for blacklisting blocks and tools
-  - Item Tags:
-    - `liteminer:excluded_tools` - items in this tag can't be used for litemining
-    - `liteminer:included_tools` - if `require_correct_tool_enabled` is true in common config, by default only "tool" items can be used (tiered items with durability); this can be used to allow extra items
-  - Block Tags
-    - `liteminer:excluded_blocks` - blocks in this tag may never be litemined
-    - `liteminer:block_whitelist` - if this tag is non-empty, then _only_ blocks in this tag may be litemined
-  - Note: these tags are compatible with the FTB Ultimine tags, so you can use the same tags for both mods if you already have a setup you like.
+### Added
+- Ported to Minecraft 1.21.5.
 
 ## 0.5.2-beta.9
 
-- fix: added a missing mod to the dependency list
+### Fixed
+- Added a missing mod to the dependency list.
 
 ## 0.5.1-beta.8
 
-- fix: fixed a mixin failing to apply
+### Fixed
+- A mixin failing to apply.
 
 ## 0.5.0-beta.7
 
-- feat: ported to minecraft 1.21.4
+### Added
+- Ported to Minecraft 1.21.4.
 
 ## 0.4.0-beta.6
 
-- feat: ported to fabric 1.20.1
-- feat: ported to forge 1.20.1
-- feat: slightly changed the outlines
-- chore: add description for require_correct_tool_enabled config option
+### Added
+- Ported to Fabric 1.20.1.
+- Ported to Forge 1.20.1.
+- Description for `require_correct_tool_enabled` config option.
+
+### Changed
+- Slightly changed the outlines.
 
 ## 0.3.2-beta.5
 
-- feat: added a hud scale in the client config
-- fix: fixed the text in the hud when selecting 1 block, it is no longer plural
-- fix: stopped the hotbar from scrolling when changing shapes on NeoForge
+### Added
+- A HUD scale in the client config.
+
+### Fixed
+- The text in the HUD when selecting 1 block is no longer plural.
+- Stopped the hotbar from scrolling when changing shapes on NeoForge.
 
 ## 0.3.1-beta.4
 
-- fix: liteminer no longer breaks bedrock 😂 [#3](https://github.com/iamkaf/mod-issues/issues/3)
-- fix: ice now melts correctly
-- fix: fixed a bug where player heads didn't retain their skin (and quite possibly other block entity related bugs)
-- fix: added missing Show HUD translation
+### Fixed
+- Liteminer no longer breaks bedrock.
+- Ice now melts correctly.
+- A bug where player heads didn't retain their skin.
+- Added missing "Show HUD" translation.
 
 ## 0.3.0-hotfix-beta.3
 
-- fix: added a missing translation
+### Fixed
+- Added a missing translation.
 
 ## 0.3.0-beta.2
 
-- feat: added a client config section with __Key Mode__ and __Show HUD__ options.
-- feat: added shapes feature, the current modes are: Shapeless, Small Tunnel, 3x3, Staircase Up, Staircase Down.
-- feat: added a HUD to show how many blocks you're breaking and in what shape.
-- feat: added feature to right-click the blocks with your tools (useful for stripping, pathing and hoeing).
-- fix: fixed a bug where sometimes air would be highlighted
-- fix: player heads will not be mined since their textures are not retained (might be fixed later)
+### Added
+- A client config section with **Key Mode** and **Show HUD** options.
+- Shapes feature with the following modes: Shapeless, Small Tunnel, 3x3, Staircase Up, Staircase Down.
+- A HUD to show how many blocks are being broken and in what shape.
+- Feature to right-click blocks with your tools.
 
-![Mining Shapes](https://raw.githubusercontent.com/iamkaf/modresources/refs/heads/main/pages/liteminer/screenshot1.png)
-
-![Mining Shapes](https://raw.githubusercontent.com/iamkaf/modresources/refs/heads/main/pages/liteminer/screenshot2.png)
-
-![Mining Shapes](https://raw.githubusercontent.com/iamkaf/modresources/refs/heads/main/pages/liteminer/screenshot3.png)
-
-![Mining Shapes](https://raw.githubusercontent.com/iamkaf/modresources/refs/heads/main/pages/liteminer/screenshot4.png)
+### Fixed
+- A bug where sometimes air would be highlighted.
+- Player heads will not be mined to prevent texture loss.
 
 ## 0.2.2-beta.1
 
-- fix: resolved a server side crash
+### Fixed
+- Resolved a server-side crash.
 
 ## 0.2.1-beta.1
 
-- fix: the mod wasn't loading in 1.21 even though it was compatible
+### Fixed
+- The mod not loading in 1.21.
 
 ## 0.2.0-beta.1
 
-- feat: added a configuration file.
-- feat: added a config for key mode (HOLD/TOGGLE).
-- feat: added a config for preventing tool breaking.
-- feat: added a config for the block break limit.
-- feat: added a config for increased harvest time.
-- feat: added a config for food exhaustion.
+### Added
+- A configuration file.
+- A config for key mode (HOLD/TOGGLE).
+- A config for preventing tool breaking.
+- A config for the block break limit.
+- A config for increased harvest time.
+- A config for food exhaustion.
 
 ## 0.1.0-alpha.2
 
-- initial release
+### Added
+- Initial release.
+## 2.0.0+1.21.8
+
+Initial Implementation
+

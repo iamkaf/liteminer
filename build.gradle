@@ -1,43 +1,31 @@
 plugins {
-    id 'dev.architectury.loom' version '1.10-SNAPSHOT' apply false
-    id 'architectury-plugin' version '3.4-SNAPSHOT'
-    id 'com.github.johnrengelman.shadow' version '8.1.1' apply false
+    // see https://fabricmc.net/develop/ for new versions
+    id 'fabric-loom' version '1.10-SNAPSHOT' apply false
+    // see https://projects.neoforged.net/neoforged/moddevgradle for new versions
+    id 'net.neoforged.moddev' version '2.0.97' apply false
+
+    id "com.hypherionmc.modutils.modpublisher" version "2.1.6" apply false
 }
 
-println("Mod Resources: ${System.getenv("MOD_RESOURCES")}")
+/**
+ * Extracts:
+ *  – the intro/header                (everything before the first version heading)
+ *  – the newest version section      (## <semver> … until the next version OR non-numeric heading)
+ *  – the footer                      (from '## Types of changes' to EOF)
+ */
+static String extractHeaderLatestFooterFromChangelog(String completeChangelog) {
 
-apply from: "https://raw.githubusercontent.com/iamkaf/modresources/refs/heads/main/gradle/1.21.7/main.gradle"
+    // 1) header: up to the first version heading
+    def header = (completeChangelog =~ /(?ms)\A.*?(?=^## \d+\.\d+\.\d+)/)[0]
 
-allprojects {
-    repositories {
-        maven {
-            name = "Fuzs Mod Resources"
-            url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/"
-        }
-    }
-}
+    // 2) latest version block: from that heading until
+    //    – the next version heading  OR
+    //    – the first non-numeric heading (e.g. 'Types of changes')  OR
+    //    – end of file
+    def latest = (completeChangelog =~ /(?ms)^## \d+\.\d+\.\d+[\s\S]*?(?=^## (?:\d+\.\d+\.\d+|[^0-9]|$))/)[0]
 
-subprojects {
-    // Configure Maven publishing.
-    publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                groupId = "${mod_group}"
-                artifactId = "${mod_id}-${project.name}"
-                from components.java
-            }
-        }
+    // 3) footer: everything from '## Types of changes' (or any other marker you prefer)
+    def footer = (completeChangelog =~ /(?ms)^## Types of changes[\s\S]*/)[0]
 
-        // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
-        repositories {
-            // Add repositories to publish to here.
-            // Notice: This block does NOT have the same function as the block in the top level.
-            // The repositories here will be used for publishing your artifact, not for
-            // retrieving dependencies.
-            maven {
-                // change to point to your repo, e.g. http://my.org/repo
-                url = file(System.getenv("MOD_RESOURCES").concat(File.separator).concat("maven"))
-            }
-        }
-    }
+    return header + latest + footer
 }

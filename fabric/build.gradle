@@ -1,15 +1,123 @@
 plugins {
-    id "com.hypherionmc.modutils.modpublisher" version "2.1.6"
+    id 'multiloader-loader'
+    id 'fabric-loom'
+    id "com.hypherionmc.modutils.modpublisher"
 }
 
-apply from: "https://raw.githubusercontent.com/iamkaf/modresources/refs/heads/main/gradle/1.21.7/fabric.gradle"
-
 dependencies {
-    // Fabric API. This is technically optional, but you probably want it anyway.
-    modImplementation "net.fabricmc.fabric-api:fabric-api:$fabric_api_version"
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings loom.layered {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${parchment_minecraft}:${parchment_version}@zip")
+    }
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+    modImplementation "com.terraformersmc:modmenu:${mod_menu_version}"
+    // Uncomment the next line if you want to use Amber
+    modImplementation "com.iamkaf.amber:amber-fabric:${amber_version}"
+}
 
-    modImplementation "com.iamkaf.amber:amber-fabric:$rootProject.amber_version"
-    modImplementation "dev.architectury:architectury-fabric:$architectury_api_version"
-//    modRuntimeOnly("dev.emi:emi-fabric:${rootProject.emi_version}")
-    modApi "fuzs.forgeconfigapiport:forgeconfigapiport-fabric:$rootProject.forge_config_api_port_version"
+sourceSets.main.resources.srcDir('src/generated/resources')
+
+fabricApi {
+    configureDataGeneration {
+        client = true
+    }
+}
+
+loom {
+    def aw = project(':common').file("src/main/resources/${mod_id}.accesswidener")
+    if (aw.exists()) {
+        accessWidenerPath.set(aw)
+    }
+    mixin {
+        defaultRefmapName.set("${mod_id}.refmap.json")
+    }
+    runs {
+        client {
+            client()
+            setConfigName('Fabric Client')
+            ideConfigGenerated(true)
+            runDir('runs/client')
+        }
+        server {
+            server()
+            setConfigName('Fabric Server')
+            ideConfigGenerated(true)
+            runDir('runs/server')
+        }
+    }
+}
+
+publisher {
+    // Setup the required API keys. You only need to define the keys for
+    // the platforms you plan on uploading to
+    apiKeys {
+        // Modrinth Token
+        modrinth System.getenv("MODRINTH_TOKEN")
+        // Curseforge Token
+        curseforge System.getenv("CURSEFORGE_TOKEN")
+    }
+
+    // Enable Debug mode. When enabled, no files will actually be uploaded
+    setDebug(Boolean.valueOf(dry_run))
+
+    // Curseforge Project ID
+    setCurseID(curse_id)
+
+    // Modrinth Project ID
+    setModrinthID(modrinth_id)
+
+    // Type of release. beta, alpha or release
+    // You can also use VersionType.BETA, VersionType.ALPHA or VersionType.RELEASE
+    setVersionType(release_type)
+
+    setChangelog(extractHeaderLatestFooterFromChangelog(file('../changelog.md').text))
+
+    // Required for Modrinth/GitHub
+    setProjectVersion(rootProject.version)
+
+    // Fancy display name for the upload.
+    // Will default to the project version if not set
+    setDisplayName("$mod_id-$project.name-$project.version")
+
+    // The supported game versions
+    setGameVersions(game_versions.split(','))
+
+    // The modloaders your upload supports.
+    // This can also be an Enum from ModLoader,
+    // like setLoaders(ModLoader.FABRIC, ModLoader.FORGE)
+    setLoaders("fabric")
+
+    // The new Curseforge Environment tag. Optional
+    // Valid values are "server", "client" or "both"
+    // You can also use CurseEnvironment.BOTH, or CurseEnvironment.SERVER or CurseEnvironment.CLIENT
+    setCurseEnvironment(mod_environment)
+
+    // Upload the release, but keep it "private" until you are ready
+    // Unreleased feature on CurseForge, working on Modrinth
+    setIsManualRelease(false)
+
+    // The file to be uploaded. This can be a file, task, or string.
+    // setArtifact("build/libs/mymod.jar")
+    // setArtifact(jar.getArchiveFile().get())
+    // If this is a task, the task specified will be executed before publishing
+    setArtifact("build/libs/${mod_id}-${project.name}-${project.version}.jar")
+    setDisableEmptyJarCheck(false)
+
+    // Add supported java versions. Currently only used by CurseForge
+    // Supports anything that can be parsed using JavaVersion.toVersion()
+    setJavaVersions(JavaVersion.VERSION_21, JavaVersion.VERSION_22)
+
+    if (mod_modrinth_depends?.trim()) {
+        modrinthDepends {
+            required(mod_modrinth_depends.split(','))
+        }
+    }
+
+    if (mod_curse_depends?.trim()) {
+        curseDepends {
+            required(mod_curse_depends.split(','))
+        }
+    }
 }
