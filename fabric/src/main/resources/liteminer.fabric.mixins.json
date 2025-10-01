@@ -1,11 +1,13 @@
 {
   "required": true,
-  "package": "${mod_group}.mixin",
+  "package": "com.iamkaf.liteminer.fabric.mixin",
   "compatibilityLevel": "JAVA_21",
   "minVersion": "0.8",
+  "refmap": "liteminer-fabric-1.21.9-fabric-refmap.json",
   "client": [
   ],
   "mixins": [
+    "PlayerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
