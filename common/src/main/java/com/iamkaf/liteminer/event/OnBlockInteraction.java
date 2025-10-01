@@ -1,10 +1,9 @@
 package com.iamkaf.liteminer.event;
 
+import com.iamkaf.amber.api.event.v1.events.common.BlockEvents;
 import com.iamkaf.liteminer.Liteminer;
 import com.iamkaf.liteminer.LiteminerPlayerState;
 import com.iamkaf.liteminer.shapes.Walker;
-import dev.architectury.event.EventResult;
-import dev.architectury.event.events.common.InteractionEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
@@ -24,38 +23,38 @@ import static com.iamkaf.liteminer.Liteminer.WALKERS;
 
 public class OnBlockInteraction {
     public static void init() {
-        InteractionEvent.RIGHT_CLICK_BLOCK.register(OnBlockInteraction::onBlockInteracted);
+        BlockEvents.BLOCK_INTERACT.register(OnBlockInteraction::onBlockInteracted);
     }
 
-    private static InteractionResult onBlockInteracted(Player player, InteractionHand hand, BlockPos blockPos,
-            Direction direction) {
-        Level level = player.level();
+    private static InteractionResult onBlockInteracted(Player player, Level level, InteractionHand hand, BlockHitResult blockHitResult) {
+        Direction direction = blockHitResult.getDirection();
+        BlockPos blockPos = blockHitResult.getBlockPos();
 
-        if (level.isClientSide) {
-            return EventResult.pass().asMinecraft();
+        if (level.isClientSide()) {
+            return InteractionResult.PASS;
         }
 
         // Prevents off-hand from interacting when the main hand is already handling this event
         if (hand.equals(InteractionHand.OFF_HAND) && isTieredItem(player.getMainHandItem().getItem())) {
-            return EventResult.pass().asMinecraft();
+            return InteractionResult.PASS;
         }
 
         ItemStack tool = player.getItemInHand(hand);
         Item item = tool.getItem();
 
         if (!isTieredItem(item)) {
-            return EventResult.pass().asMinecraft();
+            return InteractionResult.PASS;
         }
 
         LiteminerPlayerState playerState = Liteminer.instance.getPlayerState((ServerPlayer) player);
 
         if (!playerState.getKeymappingState()) {
-            return EventResult.pass().asMinecraft();
+            return InteractionResult.PASS;
         }
 
         // 1 durability left on the tool
         if (tool.isDamageableItem() && (tool.getMaxDamage() - tool.getDamageValue()) == 1) {
-            return EventResult.pass().asMinecraft();
+            return InteractionResult.PASS;
         }
 
         Walker walker = WALKERS.get(playerState.getShape());
@@ -87,7 +86,7 @@ public class OnBlockInteraction {
             }
         }
 
-        return EventResult.pass().asMinecraft();
+        return InteractionResult.PASS;
     }
 
     private static boolean isTieredItem(Item item) {

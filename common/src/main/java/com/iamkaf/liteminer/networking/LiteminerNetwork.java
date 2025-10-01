@@ -1,66 +1,34 @@
 package com.iamkaf.liteminer.networking;
 
+import com.iamkaf.amber.api.networking.v1.NetworkChannel;
+import com.iamkaf.amber.api.networking.v1.Packet;
 import com.iamkaf.liteminer.Liteminer;
-import dev.architectury.networking.NetworkManager;
-import dev.architectury.networking.simple.BaseC2SMessage;
-import dev.architectury.networking.simple.MessageType;
-import dev.architectury.networking.simple.SimpleNetworkManager;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.server.level.ServerPlayer;
-
-import java.util.function.Supplier;
+import net.minecraft.resources.ResourceLocation;
 
 public class LiteminerNetwork {
-    public static final SimpleNetworkManager NET = SimpleNetworkManager.create(Liteminer.MOD_ID);
-    public static MessageType VEINMINE_KEYBIND_CHANGE =
-            NET.registerC2S("veinmine_keybind_change", Messages.C2SVeinmineKeybindChange::new);
+    public static final NetworkChannel NET =
+            NetworkChannel.create(ResourceLocation.fromNamespaceAndPath(Liteminer.MOD_ID, "main"));
+
+    private static final boolean initialized = false;
 
     public static void init() {
+        if (initialized) {
+            Liteminer.LOGGER.debug("Liteminer network already initialized");
+            return;
+        }
+
+        // Register client to server keybind state change packet
+        NET.register(
+                C2SVeinmineKeybindChange.class,
+                C2SVeinmineKeybindChange.ENCODER,
+                C2SVeinmineKeybindChange.DECODER,
+                C2SVeinmineKeybindChange.HANDLER
+        );
+
+        Liteminer.LOGGER.info("Liteminer network initialized");
     }
 
-    public static class Messages {
-        public static class C2SVeinmineKeybindChange extends BaseC2SMessage {
-            private final boolean keybindState;
-            private final int shape;
-
-            public C2SVeinmineKeybindChange(boolean keybindState, int shape) {
-                this.keybindState = keybindState;
-                this.shape = shape;
-            }
-
-            public C2SVeinmineKeybindChange(FriendlyByteBuf buf) {
-                this.keybindState = buf.readBoolean();
-                this.shape = buf.readInt();
-            }
-
-            @Override
-            public MessageType getType() {
-                return VEINMINE_KEYBIND_CHANGE;
-            }
-
-            @Override
-            public void write(RegistryFriendlyByteBuf buf) {
-                buf.writeBoolean(keybindState);
-                buf.writeInt(shape);
-            }
-
-            public void encode(FriendlyByteBuf buf) {
-                buf.writeBoolean(keybindState);
-                buf.writeInt(shape);
-            }
-
-            @Override
-            public void handle(NetworkManager.PacketContext context) {
-                Liteminer.instance.onKeymappingStateChange((ServerPlayer) context.getPlayer(), keybindState, shape);
-            }
-
-            public void apply(Supplier<NetworkManager.PacketContext> context) {
-                Liteminer.instance.onKeymappingStateChange((ServerPlayer) context.get().getPlayer(),
-                        keybindState,
-                        shape
-                );
-            }
-        }
+    public static <T extends Packet<T>> void sendToServer(T packet) {
+        NET.sendToServer(packet);
     }
 }

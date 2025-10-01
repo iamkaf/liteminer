@@ -4,7 +4,6 @@ import com.iamkaf.liteminer.config.LiteminerConfig;
 import com.iamkaf.liteminer.event.Events;
 import com.iamkaf.liteminer.networking.LiteminerNetwork;
 import com.iamkaf.liteminer.shapes.*;
-import com.iamkaf.liteminer.tags.TagHelper;
 import com.mojang.logging.LogUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -23,7 +22,8 @@ public final class Liteminer {
     public static final Logger LOGGER = LogUtils.getLogger();
     public static final LiteminerConfig CONFIG;
     public static final ModConfigSpec CONFIG_SPEC;
-    public static final List<Walker> WALKERS = List.of(new ShapelessWalker(),
+    public static final List<Walker> WALKERS = List.of(
+            new ShapelessWalker(),
             new TunnelWalker(),
             new StaircaseUpWalker(),
             new StaircaseDownWalker(),
@@ -32,8 +32,7 @@ public final class Liteminer {
     public static Liteminer instance;
 
     static {
-        Pair<LiteminerConfig, ModConfigSpec> pair =
-                new ModConfigSpec.Builder().configure(LiteminerConfig::new);
+        Pair<LiteminerConfig, ModConfigSpec> pair = new ModConfigSpec.Builder().configure(LiteminerConfig::new);
         CONFIG = pair.getLeft();
         CONFIG_SPEC = pair.getRight();
     }
@@ -49,7 +48,6 @@ public final class Liteminer {
 
         LiteminerNetwork.init();
         Events.init();
-        TagHelper.init();
     }
 
     /**

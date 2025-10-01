@@ -1,23 +1,24 @@
 package com.iamkaf.liteminer.event;
 
+import com.iamkaf.amber.api.event.v1.events.common.BlockEvents;
 import com.iamkaf.liteminer.Liteminer;
 import com.iamkaf.liteminer.LiteminerPlayerState;
 import com.iamkaf.liteminer.shapes.Walker;
 import com.iamkaf.liteminer.tags.TagHelper;
-import dev.architectury.event.EventResult;
-import dev.architectury.event.events.common.BlockEvent;
-import dev.architectury.utils.value.IntValue;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.EnchantmentTags;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.IceBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
@@ -31,29 +32,29 @@ import static com.iamkaf.liteminer.Liteminer.WALKERS;
 
 public class OnBlockBreak {
     public static void init() {
-        BlockEvent.BREAK.register(OnBlockBreak::onBlockBreak);
+        BlockEvents.BLOCK_BREAK_BEFORE.register(OnBlockBreak::onBlockBreak);
     }
 
-    private static EventResult onBlockBreak(Level level, BlockPos absoluteOrigin, BlockState blockState,
-            ServerPlayer player, @Nullable IntValue intValue) {
-        if (level.isClientSide) {
-            return EventResult.pass();
+    private static InteractionResult onBlockBreak(Level level, Player player, BlockPos absoluteOrigin, BlockState blockState,
+            @Nullable BlockEntity blockEntity) {
+        if (level.isClientSide()) {
+            return InteractionResult.PASS;
         }
 
-        LiteminerPlayerState playerState = Liteminer.instance.getPlayerState(player);
+        LiteminerPlayerState playerState = Liteminer.instance.getPlayerState((ServerPlayer) player);
         if (!playerState.getKeymappingState()) {
-            return EventResult.pass();
+            return InteractionResult.PASS;
         }
 
         ItemStack tool = player.getMainHandItem();
 
         if (TagHelper.isExcludedTool(tool)) {
-            return EventResult.pass();
+            return InteractionResult.PASS;
         }
 
         // 1 durability left on the tool
         if (tool.isDamageableItem() && (tool.getMaxDamage() - tool.getDamageValue()) == 1) {
-            return EventResult.pass();
+            return InteractionResult.PASS;
         }
 
         Walker walker = WALKERS.get(playerState.getShape());
@@ -93,7 +94,8 @@ public class OnBlockBreak {
 
             if (!skipDrops) {
                 LootParams.Builder builder =
-                        new LootParams.Builder((ServerLevel) level).withParameter(LootContextParams.ORIGIN,
+                        new LootParams.Builder((ServerLevel) level).withParameter(
+                                        LootContextParams.ORIGIN,
                                         Vec3.atCenterOf(block)
                                 )
                                 .withParameter(LootContextParams.TOOL, tool)
@@ -101,7 +103,8 @@ public class OnBlockBreak {
                                 .withParameter(LootContextParams.THIS_ENTITY, player);
 
                 if (state.hasBlockEntity()) {
-                    builder = builder.withParameter(LootContextParams.BLOCK_ENTITY,
+                    builder = builder.withParameter(
+                            LootContextParams.BLOCK_ENTITY,
                             Objects.requireNonNull(level.getBlockEntity(block))
                     );
                 }
@@ -109,7 +112,8 @@ public class OnBlockBreak {
                 state.spawnAfterBreak((ServerLevel) level, absoluteOrigin, tool, true);
 
                 for (var stack : state.getDrops(builder)) {
-                    var itemEntity = new ItemEntity(level,
+                    var itemEntity = new ItemEntity(
+                            level,
                             absoluteOrigin.getX(),
                             absoluteOrigin.getY(),
                             absoluteOrigin.getZ(),
@@ -140,8 +144,7 @@ public class OnBlockBreak {
             }
         }
 
-
-        return EventResult.pass();
+        return InteractionResult.PASS;
     }
 
     // it's okay, i'll fix it if mojang breaks it

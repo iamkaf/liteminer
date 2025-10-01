@@ -30,7 +30,7 @@ public abstract class PlayerMixin extends LivingEntity {
         }
 
         Float originalSpeed = cir.getReturnValue();
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             var speedModifier = Liteminer.instance.onBreakSpeed((ServerPlayer) (Object) this, originalSpeed);
             if (speedModifier != originalSpeed) {
                 cir.setReturnValue(originalSpeed * speedModifier);

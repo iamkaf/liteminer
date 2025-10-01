@@ -1,4 +1,4 @@
-apply from: "https://raw.githubusercontent.com/iamkaf/modresources/main/gradle/1.21.7/common.gradle"
+apply from: "https://raw.githubusercontent.com/iamkaf/modresources/main/gradle/1.21.9/common.gradle"
 
 dependencies {
     modImplementation "com.iamkaf.amber:amber-common:$rootProject.amber_version"

@@ -21,15 +21,8 @@ side = "BOTH"
 [[dependencies.${mod_id}]]
 modId = "minecraft"
 type = "required"
-versionRange = "1.21.7"
+versionRange = "[1.21.9,)"
 ordering = "NONE"
-side = "BOTH"
-
-[[dependencies.${mod_id}]]
-modId = "architectury"
-type = "required"
-versionRange = "[${architectury_api_version},)"
-ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.${mod_id}]]

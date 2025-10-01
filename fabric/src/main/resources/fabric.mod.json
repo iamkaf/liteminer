@@ -31,9 +31,8 @@
   ],
   "depends": {
     "fabricloader": ">=${fabric_loader_version}",
-    "minecraft": ">=1.21.8",
+    "minecraft": ">=1.21.9",
     "java": ">=21",
-    "architectury": ">=${architectury_api_version}",
     "fabric-api": "*",
     "amber": ">=${amber_version}",
     "forgeconfigapiport": "*"

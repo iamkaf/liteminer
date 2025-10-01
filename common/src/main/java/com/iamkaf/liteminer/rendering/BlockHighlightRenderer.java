@@ -7,7 +7,6 @@ import com.iamkaf.liteminer.shapes.Walker;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.DepthTestFunction;
-import com.mojang.blaze3d.shaders.UniformType;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -19,9 +18,12 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
@@ -36,45 +38,45 @@ import java.util.OptionalDouble;
 public class BlockHighlightRenderer {
     private static final RenderType LINES_NORMAL = RenderType.lines();
 
-    // for this to work I had to add some access wideners
+    // Create a custom pipeline based on vanilla's LINES_SNIPPET but with NO_DEPTH_TEST
+    // The GLOBALS_SNIPPET provides LineWidth and ScreenSize uniforms automatically
     private static final RenderPipeline TRANSPARENT_LINES_PIPELINE =
-            RenderPipelines.register(RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET)
+            RenderPipelines.register(RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET, RenderPipelines.GLOBALS_SNIPPET)
                     .withVertexShader("core/rendertype_lines")
                     .withFragmentShader("core/rendertype_lines")
-                    .withUniform("LineWidth", UniformType.UNIFORM_BUFFER)
-                    .withUniform("ScreenSize", UniformType.UNIFORM_BUFFER)
                     .withBlend(BlendFunction.TRANSLUCENT)
                     .withCull(false)
                     .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
-                    .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.DEBUG_LINES)
-                    .withLocation("pipeline/transparent_lines")
+                    .withDepthWrite(false)
+                    .withVertexFormat(DefaultVertexFormat.POSITION_COLOR_NORMAL, VertexFormat.Mode.LINES)
+                    .withLocation("pipeline/liteminer_transparent_lines")
                     .build());
 
     private static final RenderType LINES_TRANSPARENT = RenderType.create(
-            "lines",
+            "liteminer_transparent_lines",
             1536, TRANSPARENT_LINES_PIPELINE,
             RenderType.CompositeState.builder()
                     .setLineState(new RenderStateShard.LineStateShard(OptionalDouble.empty()))
-                    .setLayeringState(RenderType.NO_LAYERING)
+                    .setLayeringState(RenderType.VIEW_OFFSET_Z_LAYERING)
                     .setOutputState(RenderType.ITEM_ENTITY_TARGET)
                     .createCompositeState(false)
     );
 
-    public static boolean renderLiteminerHighlight(PoseStack poseStack) {
+    public static InteractionResult renderLiteminerHighlight(Camera camera, MultiBufferSource multiBufferSource, PoseStack poseStack, BlockHitResult blockHitResult, BlockPos blockPos, BlockState blockState) {
         Minecraft mc = Minecraft.getInstance();
         Level level = mc.level;
         Player player = mc.player;
         if (level == null || player == null) {
-            return true;
+            return InteractionResult.PASS;
         }
 
         if (!LiteminerClient.isVeinMining()) {
-            return true;
+            return InteractionResult.PASS;
         }
 
         HitResult result = mc.hitResult;
         if (result == null || result.getType() != HitResult.Type.BLOCK) {
-            return true;
+            return InteractionResult.PASS;
         }
 
         Walker walker = LiteminerClient.shapes.getCurrentItem();
@@ -85,7 +87,7 @@ public class BlockHighlightRenderer {
                 walker.walk(level, player, ShapelessWalker.raytrace(level, player).getBlockPos());
         LiteminerClient.selectedBlocks = blocksToHighlight;
         if (blocksToHighlight.isEmpty()) {
-            return true;
+            return InteractionResult.PASS;
         }
 
         Camera renderInfo = mc.gameRenderer.getMainCamera();
@@ -149,7 +151,7 @@ public class BlockHighlightRenderer {
         buffers.endBatch(LINES_NORMAL);
 
         poseStack.popPose();
-        return false;
+        return InteractionResult.PASS;
     }
 
     static VoxelShape orShapes(Collection<VoxelShape> shapes) {

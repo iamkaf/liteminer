@@ -2,13 +2,14 @@ package com.iamkaf.liteminer.rendering;
 
 import com.iamkaf.amber.api.player.FeedbackHelper;
 import com.iamkaf.liteminer.LiteminerClient;
+import com.iamkaf.liteminer.networking.C2SVeinmineKeybindChange;
 import com.iamkaf.liteminer.networking.LiteminerNetwork;
-import dev.architectury.event.EventResult;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionResult;
 import org.joml.Matrix3x2fStack;
 
 public class HUD {
@@ -45,24 +46,19 @@ public class HUD {
         int xOffset = (int) (5 / scale);
         int yOffset = (int) (-10 / scale);
 
-        String selectedBlocksLabel = Component.translatable(
-                selectedBlockCount > 1 ? "hud.liteminer.selected_blocks" : "hud.liteminer" +
-                        ".selected_blocks_singular",
+        Component selectedBlocksLabel = Component.translatable(
+                selectedBlockCount > 1 ? "hud.liteminer.selected_blocks" : "hud.liteminer" + ".selected_blocks_singular",
                 selectedBlockCount
-        ).getString();
+        );
 
         Matrix3x2fStack pose = guiGraphics.pose();
 //        pose.pushPose();
         pose.pushMatrix();
         pose.scale(scale, scale);
 
-        guiGraphics.drawString(font,
-                selectedBlocksLabel,
-                centerWidth + xOffset,
-                centerHeight + yOffset,
-                0xFFFFFFFF
-        );
-        guiGraphics.drawString(font,
+        guiGraphics.drawString(font, selectedBlocksLabel, centerWidth + xOffset, centerHeight + yOffset, 0xFFFFFFFF);
+        guiGraphics.drawString(
+                font,
                 LiteminerClient.shapes.getCurrentItem().toString(),
                 centerWidth + xOffset,
                 centerHeight + yOffset + lineHeight,
@@ -72,28 +68,33 @@ public class HUD {
         pose.popMatrix();
     }
 
-    public static EventResult onMouseScroll(Minecraft minecraft, double x, double y) {
+    public static InteractionResult onMouseScroll(double mouseX, double mouseY, double scrollX, double scrollY) {
         if (LiteminerClient.isVeinMining()) {
-            if (y != 0) {
-                if (y > 0) {
+            Minecraft minecraft = Minecraft.getInstance();
+            if (scrollY != 0) {
+                if (scrollY > 0) {
                     LiteminerClient.shapes.previousItem();
-                } else if (y < 0) {
+                } else if (scrollY < 0) {
                     LiteminerClient.shapes.nextItem();
                 }
-                new LiteminerNetwork.Messages.C2SVeinmineKeybindChange(LiteminerClient.isVeinMining(),
+                LiteminerNetwork.sendToServer(new C2SVeinmineKeybindChange(
+                        LiteminerClient.isVeinMining(),
                         LiteminerClient.shapes.getCurrentIndex()
-                ).sendToServer();
+                ));
             }
             if (!LiteminerClient.CONFIG.showHUD.get()) {
                 assert minecraft.player != null;
-                FeedbackHelper.actionBarMessage(minecraft.player, Component.translatable(
-                        "hud.liteminer.changed_shape",
-                        LiteminerClient.shapes.getCurrentItem().toString()
-                ));
+                FeedbackHelper.actionBarMessage(
+                        minecraft.player,
+                        Component.translatable(
+                                "hud.liteminer.changed_shape",
+                                LiteminerClient.shapes.getCurrentItem().toString()
+                        )
+                );
             }
-            return EventResult.interruptFalse();
+            return InteractionResult.CONSUME;
         }
 
-        return EventResult.pass();
+        return InteractionResult.PASS;
     }
 }

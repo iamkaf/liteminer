@@ -2,9 +2,14 @@
 
 See the full changelog at https://github.com/iamkaf/liteminer/commits/main
 
+## 1.3.0
+
+- feat: ported to Minecraft 1.21.9
+- fix: reduced lines squiggliness
+
 ## 1.2.1
 
-- chore: ported to Minecraft 1.21.7 & 1.21.8
+- feat: ported to Minecraft 1.21.7 & 1.21.8
 
 ## 1.2.0
 
