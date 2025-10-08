@@ -2,6 +2,13 @@
 
 See the full changelog at https://github.com/iamkaf/liteminer/commits/main
 
+## 1.4.0
+
+- feat: ported to Minecraft 1.21.10
+- fix: fixed a bug that would prevent you from changing shapes on NeoForge
+
+**Note:** Remember to update **Amber**!
+
 ## 1.3.0
 
 - feat: ported to Minecraft 1.21.9
