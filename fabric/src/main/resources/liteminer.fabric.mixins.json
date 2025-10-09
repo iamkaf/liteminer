@@ -3,7 +3,7 @@
   "package": "com.iamkaf.liteminer.fabric.mixin",
   "compatibilityLevel": "JAVA_21",
   "minVersion": "0.8",
-  "refmap": "liteminer-fabric-1.21.9-fabric-refmap.json",
+  "refmap": "liteminer-fabric-1.21.10-fabric-refmap.json",
   "client": [
   ],
   "mixins": [
