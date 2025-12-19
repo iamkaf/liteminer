@@ -1,12 +1,12 @@
 plugins {
-    id 'dev.architectury.loom' version '1.11-SNAPSHOT' apply false
+    id 'dev.architectury.loom' version '1.13-SNAPSHOT' apply false
     id 'architectury-plugin' version '3.4-SNAPSHOT'
     id 'com.gradleup.shadow' version '8.3.6' apply false
 }
 
 println("Mod Resources: ${System.getenv("MOD_RESOURCES")}")
 
-apply from: "https://raw.githubusercontent.com/iamkaf/modresources/refs/heads/main/gradle/1.21.9/main.gradle"
+apply from: "https://raw.githubusercontent.com/iamkaf/modresources/refs/heads/main/gradle/1.21.11/main.gradle"
 
 allprojects {
     repositories {

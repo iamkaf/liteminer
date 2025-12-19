@@ -16,7 +16,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.HitResult;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
@@ -27,7 +27,7 @@ import java.util.HashSet;
 public class LiteminerClient {
     public static final int PACKET_DELAY = 125;
     public static final KeyMapping.Category KEY_CATEGORY =
-            KeyMapping.Category.register(ResourceLocation.fromNamespaceAndPath("liteminer", "liteminer"));
+            KeyMapping.Category.register(Identifier.fromNamespaceAndPath("liteminer", "liteminer"));
     public static final KeyMapping KEY_MAPPING =
             new KeyMapping("key.liteminer.veinmine", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_GRAVE_ACCENT, KEY_CATEGORY);
     public static final LiteminerClientConfig CONFIG;

@@ -18,6 +18,7 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.IceBlock;
+import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootParams;
@@ -129,9 +130,12 @@ public class OnBlockBreak {
             level.setBlockAndUpdate(block, Blocks.AIR.defaultBlockState());
 
             // pray that mojang doesn't add more ice, or I'll have to come back here
+            // The comment above doesn't help me at all. What the heck, Kaf??? What does this do??? - Kaf, 2025-12-18
             if (state.getBlock() instanceof IceBlock ice) {
                 if (!EnchantmentHelper.hasTag(tool, EnchantmentTags.PREVENTS_ICE_MELTING)) {
-                    if (level.dimensionType().ultraWarm()) {
+                    var waterEvaporatesEntry = level.dimensionType().attributes().get(EnvironmentAttributes.WATER_EVAPORATES);
+                    boolean waterEvaporates = waterEvaporatesEntry != null && (Boolean) waterEvaporatesEntry.argument();
+                    if (waterEvaporates) {
                         level.removeBlock(block, false);
                         continue;
                     }

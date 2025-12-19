@@ -3,11 +3,11 @@ package com.iamkaf.liteminer.networking;
 import com.iamkaf.amber.api.networking.v1.NetworkChannel;
 import com.iamkaf.amber.api.networking.v1.Packet;
 import com.iamkaf.liteminer.Liteminer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class LiteminerNetwork {
     public static final NetworkChannel NET =
-            NetworkChannel.create(ResourceLocation.fromNamespaceAndPath(Liteminer.MOD_ID, "main"));
+            NetworkChannel.create(Identifier.fromNamespaceAndPath(Liteminer.MOD_ID, "main"));
 
     private static final boolean initialized = false;
 

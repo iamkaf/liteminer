@@ -2,6 +2,10 @@
 
 See the full changelog at https://github.com/iamkaf/liteminer/commits/main
 
+## 1.5.0
+
+- feat: ported to Minecraft 1.21.11
+
 ## 1.4.1
 
 - fix: fixed a startup crash on Fabric

@@ -5,7 +5,7 @@ import com.iamkaf.liteminer.event.Events;
 import com.iamkaf.liteminer.networking.LiteminerNetwork;
 import com.iamkaf.liteminer.shapes.*;
 import com.mojang.logging.LogUtils;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.common.ModConfigSpec;
@@ -53,8 +53,8 @@ public final class Liteminer {
     /**
      * Creates resource location in the mod namespace with the given path.
      */
-    public static ResourceLocation resource(String path) {
-        return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
+    public static Identifier resource(String path) {
+        return Identifier.fromNamespaceAndPath(MOD_ID, path);
     }
 
     public static float getScaledBreakSpeedModifier(int blockCount) {

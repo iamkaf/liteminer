@@ -11,12 +11,14 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.ShapeRenderer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.RenderStateShard;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderSetup;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -29,38 +31,39 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.joml.Matrix4f;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.OptionalDouble;
 
 public class BlockHighlightRenderer {
-    private static final RenderType LINES_NORMAL = RenderType.lines();
+    private static final RenderType LINES_NORMAL = RenderTypes.lines();
 
-    // Create a custom pipeline based on vanilla's LINES_SNIPPET but with NO_DEPTH_TEST
-    // The GLOBALS_SNIPPET provides LineWidth and ScreenSize uniforms automatically
-    private static final RenderPipeline TRANSPARENT_LINES_PIPELINE =
-            RenderPipelines.register(RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET, RenderPipelines.GLOBALS_SNIPPET)
-                    .withVertexShader("core/rendertype_lines")
-                    .withFragmentShader("core/rendertype_lines")
-                    .withBlend(BlendFunction.TRANSLUCENT)
-                    .withCull(false)
-                    .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
-                    .withDepthWrite(false)
-                    .withVertexFormat(DefaultVertexFormat.POSITION_COLOR_NORMAL, VertexFormat.Mode.LINES)
-                    .withLocation("pipeline/liteminer_transparent_lines")
-                    .build());
+    // Custom RenderType with NO_DEPTH_TEST for translucent lines that show through blocks
+    public static final RenderType LINES_TRANSLUCENT_NO_DEPTH_TEST = createLinesTranslucentNoDepthTestRenderType();
 
-    private static final RenderType LINES_TRANSPARENT = RenderType.create(
-            "liteminer_transparent_lines",
-            1536, TRANSPARENT_LINES_PIPELINE,
-            RenderType.CompositeState.builder()
-                    .setLineState(new RenderStateShard.LineStateShard(OptionalDouble.empty()))
-                    .setLayeringState(RenderType.VIEW_OFFSET_Z_LAYERING)
-                    .setOutputState(RenderType.ITEM_ENTITY_TARGET)
-                    .createCompositeState(false)
-    );
+    // Huge shoutout to ChampionAsh5357
+    // https://github.com/neoforged/.github/blob/main/primers/1.21.11/index.md
+    private static RenderType createLinesTranslucentNoDepthTestRenderType() {
+        // Pipeline definition - creating from scratch with NO_DEPTH_TEST because there are no LINES render types with NO_DEPTH_TEST
+        RenderPipeline.Snippet snippet = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET, RenderPipelines.GLOBALS_SNIPPET)
+            .withVertexShader("core/rendertype_lines")
+            .withFragmentShader("core/rendertype_lines")
+            .withBlend(BlendFunction.TRANSLUCENT)
+            .withCull(false)
+            .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+            .withVertexFormat(DefaultVertexFormat.POSITION_COLOR_NORMAL_LINE_WIDTH, VertexFormat.Mode.LINES)
+            .buildSnippet();
+
+        RenderPipeline pipeline = RenderPipeline.builder(snippet)
+            .withLocation("pipeline/lines_translucent_no_depth")
+            .build();
+
+        RenderSetup setup = RenderSetup.builder(pipeline)
+            .useLightmap()
+            .createRenderSetup();
+
+        return RenderType.create("lines_translucent_no_depth_test", setup);
+    }
 
     public static InteractionResult renderLiteminerHighlight(Camera camera, MultiBufferSource multiBufferSource, PoseStack poseStack, BlockHitResult blockHitResult, BlockPos blockPos, BlockState blockState) {
         Minecraft mc = Minecraft.getInstance();
@@ -91,7 +94,7 @@ public class BlockHighlightRenderer {
         }
 
         Camera renderInfo = mc.gameRenderer.getMainCamera();
-        Vec3 projectedView = renderInfo.getPosition();
+        Vec3 projectedView = renderInfo.position();
         assert poseStack != null;
         poseStack.pushPose();
         poseStack.translate(
@@ -99,7 +102,6 @@ public class BlockHighlightRenderer {
                 origin.getY() - projectedView.y,
                 origin.getZ() - projectedView.z
         );
-        Matrix4f matrix = poseStack.last().pose();
 
         Collection<VoxelShape> shapes = new HashSet<>();
         for (AABB aabb : BoundingBoxMerger.merge(blocksToHighlight.stream().toList(), origin)) {
@@ -107,47 +109,25 @@ public class BlockHighlightRenderer {
         }
 
         MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
+        float lineWidth = mc.getWindow().getAppropriateLineWidth();
 
-        VertexConsumer vertexBuilder2 = buffers.getBuffer(LINES_TRANSPARENT);
+        VoxelShape combinedShape = orShapes(shapes);
 
-        orShapes(shapes).forAllEdges((x1, y1, z1, x2, y2, z2) -> {
-            final double dx = x2 - x1;
-            final double dy = y2 - y1;
-            final double dz = z2 - z1;
+        // Render cyan translucent lines with NO_DEPTH_TEST so they show through blocks
+        VertexConsumer translucentBuilder = buffers.getBuffer(LINES_TRANSLUCENT_NO_DEPTH_TEST);
+        // ARGB format: A=0x4B (75%), R=0x0A (10), G=0xCE (206), B=0xF5 (245)
+        int cyanColor = (0x4B << 24) | (0x0A << 16) | (0xCE << 8) | 0xF5;
+        ShapeRenderer.renderShape(poseStack, translucentBuilder, combinedShape,
+                0.0, 0.0, 0.0, cyanColor, lineWidth);
 
-            final double invMag = 1.0 / Math.sqrt(dx * dx + dy * dy + dz * dz);
-            final float nx = (float) (dx * invMag);
-            final float ny = (float) (dy * invMag);
-            final float nz = (float) (dz * invMag);
-            PoseStack.Pose pose = poseStack.last();
-            vertexBuilder2.addVertex(matrix, (float) x1, (float) y1, (float) z1)
-                    .setColor(10, 206, 245, 180)
-                    .setNormal(pose, nx, ny, nz);
-            vertexBuilder2.addVertex(matrix, (float) x2, (float) y2, (float) z2)
-                    .setColor(10, 206, 245, 180)
-                    .setNormal(pose, nx, ny, nz);
-        });
-        buffers.endBatch(LINES_TRANSPARENT);
+        // Render white opaque lines that respect depth testing
+        VertexConsumer opaqueBuilder = buffers.getBuffer(LINES_NORMAL);
+        // ARGB format: A=0xFF (100%), R=0xFF, G=0xFF, B=0xFF
+        int whiteColor = (0xFF << 24) | (0xFF << 16) | (0xFF << 8) | 0xFF;
+        ShapeRenderer.renderShape(poseStack, opaqueBuilder, combinedShape,
+                0.0, 0.0, 0.0, whiteColor, lineWidth);
 
-        VertexConsumer vertexBuilder = buffers.getBuffer(LINES_NORMAL);
-
-        orShapes(shapes).forAllEdges((x1, y1, z1, x2, y2, z2) -> {
-            final double dx = x2 - x1;
-            final double dy = y2 - y1;
-            final double dz = z2 - z1;
-
-            final double invMag = 1.0 / Math.sqrt(dx * dx + dy * dy + dz * dz);
-            final float nx = (float) (dx * invMag);
-            final float ny = (float) (dy * invMag);
-            final float nz = (float) (dz * invMag);
-            PoseStack.Pose pose = poseStack.last();
-            vertexBuilder.addVertex(matrix, (float) x1, (float) y1, (float) z1)
-                    .setColor(1f, 1f, 1f, 1f)
-                    .setNormal(pose, nx, ny, nz);
-            vertexBuilder.addVertex(matrix, (float) x2, (float) y2, (float) z2)
-                    .setColor(1f, 1f, 1f, 1f)
-                    .setNormal(pose, nx, ny, nz);
-        });
+        buffers.endBatch(LINES_TRANSLUCENT_NO_DEPTH_TEST);
         buffers.endBatch(LINES_NORMAL);
 
         poseStack.popPose();
