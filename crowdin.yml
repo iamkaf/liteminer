@@ -1,3 +1,0 @@
-files:
-  - source: /common/src/main/resources/assets/liteminer/lang/en_us.json
-    translation: /common/src/main/resources/assets/liteminer/lang/%locale%.json
