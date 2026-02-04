@@ -1,0 +1,39 @@
+{
+  "key.liteminer.veinmine": "Vein Mine",
+  "key.categories.liteminer": "Liteminer",
+
+  "hud.liteminer.selected_blocks": "%s Blocks",
+  "hud.liteminer.selected_blocks_singular": "1 Block",
+  "hud.liteminer.changed_shape": "Changed Shape [%s]",
+
+  "liteminer.configuration.title": "Liteminer Configuration",
+  "liteminer.configuration.section.liteminer.common.toml.title": "Liteminer Configuration",
+
+  "liteminer.config.key_mode": "Key Mode",
+  "liteminer.config.key_mode.tooltip": "In Hold mode you must keep holding the key to mine. In toggle mode you have to hit the key to toggle.",
+
+  "liteminer.config.show_hud": "Show HUD",
+  "liteminer.config.show_hud.tooltip": "Enables the text showing how many blocks you have selected and your mining shape.",
+
+  "liteminer.config.hud_scale": "HUD Scale",
+  "liteminer.config.hud_scale.tooltip": "Changes how big the HUD elements are.",
+
+  "liteminer.config.block_break_limit": "Block Break Limit",
+  "liteminer.config.block_break_limit.tooltip": "Upper limit to how many blocks can be broken at a time.",
+
+  "liteminer.config.require_correct_tool_enabled": "Require Correct Tool",
+  "liteminer.config.require_correct_tool_enabled.tooltip": "If enabled, blocks can only be broken if holding the correct tool.",
+
+  "liteminer.config.harvest_time_per_block_modifier_enabled": "Increased Harvesting Time",
+  "liteminer.config.harvest_time_per_block_modifier_enabled.tooltip": "Increases the time it takes to break a block when vein mining.",
+  "liteminer.config.harvest_time_per_block_modifier": "Harvesting Time Modifier",
+  "liteminer.config.harvest_time_per_block_modifier.tooltip": "Modifier used to scale up the time it needs to mine a block. Higher values mean longer times to mine.",
+
+  "liteminer.config.food_exhaustion_enabled": "Food Exhaustion",
+  "liteminer.config.food_exhaustion_enabled.tooltip": "Causes your hunger to go down per block mined.",
+  "liteminer.config.food_exhaustion": "Food Exhaustion Amount",
+  "liteminer.config.food_exhaustion.tooltip": "How much food exhaustion to cause per block broken.",
+
+  "liteminer.config.prevent_tool_breaking": "Prevent Tool Breaking",
+  "liteminer.config.prevent_tool_breaking.tooltip": "Stops vein mining when the durability of the tool gets to 1."
+}
