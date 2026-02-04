@@ -1,0 +1,31 @@
+{
+    "schemaVersion": 1,
+    "id": "${mod_id}",
+    "version": "${version}",
+    "name": "${mod_name}",
+    "description": "${description}",
+    "authors": [
+        "${mod_author}"
+    ],
+    "contact": {
+        "homepage": "https://example.com",
+        "sources": "https://github.com/example/template"
+    },
+    "license": "${license}",
+    "environment": "*",
+    "entrypoints": {
+        "main": [
+            "com.example.template.TemplateFabric"
+        ]
+    },
+    "depends": {
+        "fabricloader": ">=${fabric_loader_version}",
+        "fabric-api": "*",
+        "minecraft": "${fabric_version_range}",
+        "java": ">=${java_version}",
+        "amber": ">=${amber_version}"
+    },
+    "suggests": {
+        "modmenu": ">=${mod_menu_version}"
+    }
+}

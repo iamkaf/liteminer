@@ -1,0 +1,30 @@
+plugins {
+    alias(libs.plugins.fabric.loom) apply false
+    alias(libs.plugins.neoforge.moddev) apply false
+    alias(libs.plugins.forgegradle) apply false
+    alias(libs.plugins.mixin) apply false
+    alias(libs.plugins.modpublisher) apply false
+}
+
+/**
+ * Extracts:
+ *  – the intro/header                (everything before the first version heading)
+ *  – the newest version section      (## <semver> … until the next version OR non-numeric heading)
+ *  – the footer                      (from '## Types of changes' to EOF)
+ */
+static String extractHeaderLatestFooterFromChangelog(String completeChangelog) {
+
+    // 1) header: up to the first version heading
+    def header = (completeChangelog =~ /(?ms)\A.*?(?=^## \d+\.\d+\.\d+)/)[0]
+
+    // 2) latest version block: from that heading until
+    //    – the next version heading  OR
+    //    – the first non-numeric heading (e.g. 'Types of changes')  OR
+    //    – end of file
+    def latest = (completeChangelog =~ /(?ms)^## \d+\.\d+\.\d+[\s\S]*?(?=^## (?:\d+\.\d+\.\d+|[^0-9]|$))/)[0]
+
+    // 3) footer: everything from '## Types of changes' (or any other marker you prefer)
+    def footer = (completeChangelog =~ /(?ms)^## Types of changes[\s\S]*/)[0]
+
+    return header + latest + footer
+}

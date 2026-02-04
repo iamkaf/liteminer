@@ -1,0 +1,118 @@
+plugins {
+    id 'multiloader-loader'
+    id 'net.neoforged.moddev'
+    id 'com.hypherionmc.modutils.modpublisher'
+}
+
+dependencies {
+    // Amber integration
+    implementation libs.amber.neoforge
+}
+
+neoForge {
+    version = libs.neoforge.get().version.toString()
+    // Automatically enable neoforge AccessTransformers if the file exists
+    def at = project(':common').file('src/main/resources/META-INF/accesstransformer.cfg')
+    if (at.exists()) {
+        accessTransformers.from(at.absolutePath)
+    }
+    parchment {
+        minecraftVersion = libs.versions.parchment.minecraft.get()
+        mappingsVersion = libs.parchment.get().version.toString()
+    }
+    runs {
+        configureEach {
+            systemProperty('neoforge.enabledGameTestNamespaces', mod_id)
+            ideName = "NeoForge ${it.name.capitalize()} (${project.path})" // Unify the run config names with fabric
+        }
+        client {
+            client()
+        }
+        data {
+            client()
+        }
+        server {
+            server()
+        }
+    }
+    mods {
+        "${mod_id}" {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+//sourceSets.main.resources.srcDir('src/generated/resources')
+
+publisher {
+    // Setup the required API keys. You only need to define the keys for
+    // the platforms you plan on uploading to
+    apiKeys {
+        // Modrinth Token
+        modrinth System.getenv("MODRINTH_TOKEN")
+        // Curseforge Token
+        curseforge System.getenv("CURSEFORGE_TOKEN")
+    }
+
+    // Enable Debug mode. When enabled, no files will actually be uploaded
+    setDebug(Boolean.valueOf(dry_run))
+
+    // Curseforge Project ID
+    setCurseID(curse_id)
+
+    // Modrinth Project ID
+    setModrinthID(modrinth_id)
+
+    // Type of release. beta, alpha or release
+    // You can also use VersionType.BETA, VersionType.ALPHA or VersionType.RELEASE
+    setVersionType(release_type)
+
+    setChangelog(extractHeaderLatestFooterFromChangelog(file('../../changelog.md').text))
+
+    // Required for Modrinth/GitHub
+    setProjectVersion(rootProject.version)
+
+    // Fancy display name for the upload.
+    // Will default to the project version if not set
+    setDisplayName("$mod_id-$project.name-$project.version")
+
+    // The supported game versions
+    setGameVersions(game_versions.split(','))
+
+    // The modloaders your upload supports.
+    // This can also be an Enum from ModLoader,
+    // like setLoaders(ModLoader.FABRIC, ModLoader.FORGE)
+    setLoaders("neoforge")
+
+    // The new Curseforge Environment tag. Optional
+    // Valid values are "server", "client" or "both"
+    // You can also use CurseEnvironment.BOTH, or CurseEnvironment.SERVER or CurseEnvironment.CLIENT
+    setCurseEnvironment(mod_environment)
+
+    // Upload the release, but keep it "private" until you are ready
+    // Unreleased feature on CurseForge, working on Modrinth
+    setIsManualRelease(false)
+
+    // The file to be uploaded. This can be a file, task, or string.
+    // setArtifact("build/libs/mymod.jar")
+    // setArtifact(jar.getArchiveFile().get())
+    // If this is a task, the task specified will be executed before publishing
+    setArtifact("build/libs/${mod_id}-${project.name}-${project.version}.jar")
+    setDisableEmptyJarCheck(false)
+
+    // Add supported java versions. Currently only used by CurseForge
+    // Supports anything that can be parsed using JavaVersion.toVersion()
+    setJavaVersions(JavaVersion.VERSION_21, JavaVersion.VERSION_22)
+
+    if (mod_modrinth_depends?.trim()) {
+        modrinthDepends {
+            required(mod_modrinth_depends.split(','))
+        }
+    }
+
+    if (mod_curse_depends?.trim()) {
+        curseDepends {
+            required(mod_curse_depends.split(','))
+        }
+    }
+}
