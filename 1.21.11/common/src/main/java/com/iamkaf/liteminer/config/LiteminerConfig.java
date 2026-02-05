@@ -10,12 +10,7 @@ public final class LiteminerConfig {
     public final ModConfigSpec.ConfigValue<Double> harvestTimePerBlockModifier;
     public final ModConfigSpec.ConfigValue<Boolean> foodExhaustionEnabled;
     public final ModConfigSpec.ConfigValue<Double> foodExhaustion;
-
-//    public final ModConfigSpec.ConfigValue<Boolean> requireFood;
-//    public final ModConfigSpec.ConfigValue<Boolean> useToolWhitelist;
-//    public final ModConfigSpec.ConfigValue<List<ResourceLocation>> toolWhitelist;
-//    public final ModConfigSpec.ConfigValue<Boolean> useBlockWhitelist;
-//    public final ModConfigSpec.ConfigValue<List<Block>> blockWhitelist;
+    public final ModConfigSpec.ConfigValue<Boolean> distinguishGrownCrops;
 
     public LiteminerConfig(ModConfigSpec.Builder builder) {
         preventToolBreaking = builder.translation("liteminer.config.prevent_tool_breaking")
@@ -43,5 +38,9 @@ public final class LiteminerConfig {
         foodExhaustion = builder.translation("liteminer.config.food_exhaustion")
                 .comment(":)")
                 .defineInRange("food_exhaustion", 0.2d, 0.0d, 1d);
+
+        distinguishGrownCrops = builder.translation("liteminer.config.distinguish_grown_crops")
+                .comment(":)")
+                .define("distinguish_grown_crops", true);
     }
 }

@@ -1,9 +1,14 @@
 package com.iamkaf.liteminer.shapes;
 
+import com.iamkaf.liteminer.Liteminer;
 import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.block.state.properties.Property;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public class BlockFamily {
@@ -40,6 +45,46 @@ public class BlockFamily {
         }
 
         return false;
+    }
+
+    public static boolean matches(BlockState from, BlockState to) {
+        if (!matches(from.getBlock(), to.getBlock())) {
+            return false;
+        }
+
+        if (!Liteminer.CONFIG.distinguishGrownCrops.get()) {
+            return true;
+        }
+
+        if (!from.getBlock().equals(to.getBlock())) {
+            return true;
+        }
+
+        Optional<IntegerProperty> growthProperty = getGrowthProperty(from);
+        if (growthProperty.isEmpty()) {
+            return true;
+        }
+
+        IntegerProperty property = growthProperty.get();
+        return isGrown(from, property) == isGrown(to, property);
+    }
+
+    private static boolean isGrown(BlockState state, IntegerProperty property) {
+        int value = state.getValue(property);
+        int max = property.getPossibleValues().stream().mapToInt(Integer::intValue).max().orElse(value);
+        return value >= max;
+    }
+
+    private static Optional<IntegerProperty> getGrowthProperty(BlockState state) {
+        for (Property<?> property : state.getProperties()) {
+            if (property instanceof IntegerProperty integerProperty) {
+                String name = integerProperty.getName();
+                if ("age".equals(name) || "stage".equals(name)) {
+                    return Optional.of(integerProperty);
+                }
+            }
+        }
+        return Optional.empty();
     }
 
     /**

@@ -8,7 +8,6 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -68,24 +67,24 @@ public class ShapelessWalker implements Walker {
             return potentialBrokenBlocks;
         }
 
-        searchBlocks(player, level, origin, origin, potentialBrokenBlocks, originState.getBlock());
+        searchBlocks(player, level, origin, origin, potentialBrokenBlocks, originState);
         VISITED.clear();
 
         return potentialBrokenBlocks;
     }
 
     private void searchBlocks(Player player, Level level, BlockPos myPos, BlockPos absoluteOrigin,
-            HashSet<BlockPos> blocksToCollapse, Block originBlock) {
+            HashSet<BlockPos> blocksToCollapse, BlockState originState) {
         if (VISITED.size() >= Liteminer.CONFIG.blockBreakLimit.get()) return;
         if (VISITED.contains(myPos)) return;
-        if (!BlockFamily.matches(originBlock, level.getBlockState(myPos).getBlock())) return;
+        if (!BlockFamily.matches(originState, level.getBlockState(myPos))) return;
         if (!shouldMine(player, level, myPos)) return;
 
         blocksToCollapse.add(myPos);
         VISITED.add(myPos);
 
         for (var neighborPos : getNeighbors(myPos, absoluteOrigin)) {
-            searchBlocks(player, level, neighborPos, absoluteOrigin, blocksToCollapse, originBlock);
+            searchBlocks(player, level, neighborPos, absoluteOrigin, blocksToCollapse, originState);
         }
     }
 
