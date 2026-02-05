@@ -1,6 +1,8 @@
 package com.iamkaf.liteminer.shapes;
 
 import com.iamkaf.liteminer.Liteminer;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
@@ -15,9 +17,16 @@ public class BlockFamily {
     private static final Map<Block, Set<Block>> BLOCK_MATCHES = new HashMap<>();
 
     static {
+        // Vanilla ore variants
         makeFamily(Blocks.RAW_IRON_BLOCK, Blocks.IRON_ORE, Blocks.DEEPSLATE_IRON_ORE);
         makeFamily(Blocks.RAW_GOLD_BLOCK, Blocks.GOLD_ORE, Blocks.DEEPSLATE_GOLD_ORE);
         makeFamily(Blocks.RAW_COPPER_BLOCK, Blocks.COPPER_ORE, Blocks.DEEPSLATE_COPPER_ORE);
+
+        makeFamily(Blocks.COAL_ORE, Blocks.DEEPSLATE_COAL_ORE);
+        makeFamily(Blocks.DIAMOND_ORE, Blocks.DEEPSLATE_DIAMOND_ORE);
+        makeFamily(Blocks.EMERALD_ORE, Blocks.DEEPSLATE_EMERALD_ORE);
+        makeFamily(Blocks.LAPIS_ORE, Blocks.DEEPSLATE_LAPIS_ORE);
+        makeFamily(Blocks.REDSTONE_ORE, Blocks.DEEPSLATE_REDSTONE_ORE);
     }
 
     /**
@@ -32,6 +41,10 @@ public class BlockFamily {
      */
     public static boolean matches(Block from, Block to) {
         if (to.equals(from)) {
+            return true;
+        }
+
+        if (Liteminer.CONFIG.matchDeepslateOreVariants.get() && matchesDeepslateOreVariant(from, to)) {
             return true;
         }
 
@@ -85,6 +98,36 @@ public class BlockFamily {
             }
         }
         return Optional.empty();
+    }
+
+    private static boolean matchesDeepslateOreVariant(Block from, Block to) {
+        Identifier fromId = BuiltInRegistries.BLOCK.getKey(from);
+        Identifier toId = BuiltInRegistries.BLOCK.getKey(to);
+
+        // If either ID is missing, don't try to be clever.
+        if (fromId == null || toId == null) {
+            return false;
+        }
+
+        String fromPath = fromId.getPath();
+        String toPath = toId.getPath();
+
+        // Rule: <name>_ore === deepslate_<name>_ore
+        if (!fromPath.endsWith("_ore") || !toPath.endsWith("_ore")) {
+            return false;
+        }
+
+        String fromBase = fromPath.startsWith("deepslate_") ? fromPath.substring("deepslate_".length()) : fromPath;
+        String toBase = toPath.startsWith("deepslate_") ? toPath.substring("deepslate_".length()) : toPath;
+
+        if (!fromBase.equals(toBase)) {
+            return false;
+        }
+
+        boolean fromIsDeepslate = fromPath.startsWith("deepslate_");
+        boolean toIsDeepslate = toPath.startsWith("deepslate_");
+
+        return fromIsDeepslate != toIsDeepslate;
     }
 
     /**

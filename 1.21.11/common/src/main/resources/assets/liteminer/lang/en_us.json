@@ -26,6 +26,10 @@
     "liteminer.config.food_exhaustion.tooltip": "How much food exhaustion to cause per block broken.",
     "liteminer.config.distinguish_grown_crops": "Distinguish Grown Crops",
     "liteminer.config.distinguish_grown_crops.tooltip": "If enabled, vein mining crops will only select crops that are grown (or only select crops that are still growing).",
+
+    "liteminer.config.match_deepslate_ore_variants": "Match Deepslate Ore Variants",
+    "liteminer.config.match_deepslate_ore_variants.tooltip": "If enabled, vein mining will treat <name>_ore and deepslate_<name>_ore as the same block.",
+
     "liteminer.config.prevent_tool_breaking": "Prevent Tool Breaking",
     "liteminer.config.prevent_tool_breaking.tooltip": "Stops vein mining when the durability of the tool gets to 1."
 }
