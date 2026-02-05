@@ -32,7 +32,7 @@
     ],
     "accessWidener": "${mod_id}.accesswidener",
     "depends": {
-        "fabricloader": ">=${fabric_loader_version}",
+        "fabricloader": "*",
         "fabric-api": "*",
         "minecraft": "${fabric_version_range}",
         "java": ">=${java_version}",

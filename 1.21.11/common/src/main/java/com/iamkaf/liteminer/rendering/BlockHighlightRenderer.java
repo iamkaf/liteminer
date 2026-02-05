@@ -113,19 +113,17 @@ public class BlockHighlightRenderer {
 
         VoxelShape combinedShape = orShapes(shapes);
 
-        // Render cyan translucent lines with NO_DEPTH_TEST so they show through blocks
+        // Render see-through translucent lines with NO_DEPTH_TEST so they show through blocks
         VertexConsumer translucentBuilder = buffers.getBuffer(LINES_TRANSLUCENT_NO_DEPTH_TEST);
-        // ARGB format: A=0x4B (75%), R=0x0A (10), G=0xCE (206), B=0xF5 (245)
-        int cyanColor = (0x4B << 24) | (0x0A << 16) | (0xCE << 8) | 0xF5;
+        int translucentColor = LiteminerClient.CONFIG.highlightSeeThroughLineColor.get().argb(0x4B);
         ShapeRenderer.renderShape(poseStack, translucentBuilder, combinedShape,
-                0.0, 0.0, 0.0, cyanColor, lineWidth);
+                0.0, 0.0, 0.0, translucentColor, lineWidth);
 
-        // Render white opaque lines that respect depth testing
+        // Render foreground opaque lines that respect depth testing
         VertexConsumer opaqueBuilder = buffers.getBuffer(LINES_NORMAL);
-        // ARGB format: A=0xFF (100%), R=0xFF, G=0xFF, B=0xFF
-        int whiteColor = (0xFF << 24) | (0xFF << 16) | (0xFF << 8) | 0xFF;
+        int opaqueColor = LiteminerClient.CONFIG.highlightForegroundLineColor.get().argb(0xFF);
         ShapeRenderer.renderShape(poseStack, opaqueBuilder, combinedShape,
-                0.0, 0.0, 0.0, whiteColor, lineWidth);
+                0.0, 0.0, 0.0, opaqueColor, lineWidth);
 
         buffers.endBatch(LINES_TRANSLUCENT_NO_DEPTH_TEST);
         buffers.endBatch(LINES_NORMAL);
