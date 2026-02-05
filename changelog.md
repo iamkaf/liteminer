@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Fixed
+- Vein mining crops now distinguishes **grown** vs **growing** crops, so harvesting mature crops won’t break nearby immature crops.
+
+### Added
+- New config option: `distinguish_grown_crops` (default: enabled) to toggle the grown-vs-growing crop selection behavior.
+
 ## 1.5.0
 
 ### Added
