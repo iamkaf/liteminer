@@ -14,11 +14,34 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
 
 public class ShapelessWalker implements Walker {
-    public final Set<BlockPos> VISITED = new HashSet<>();
     public final int RANGE = 64;
+
+    // Pre-allocated neighbor offsets for better performance (26 neighbors)
+    private static final BlockPos[] NEIGHBOR_OFFSETS = new BlockPos[]{
+            // 6 cardinal directions
+            new BlockPos(0, 1, 0), new BlockPos(0, -1, 0),
+            new BlockPos(0, 0, -1), new BlockPos(0, 0, 1),
+            new BlockPos(1, 0, 0), new BlockPos(-1, 0, 0),
+            // 4 horizontal diagonals (same Y)
+            new BlockPos(1, 0, -1), new BlockPos(-1, 0, -1),
+            new BlockPos(1, 0, 1), new BlockPos(-1, 0, 1),
+            // 8 above diagonals
+            new BlockPos(0, 1, -1), new BlockPos(0, 1, 1),
+            new BlockPos(1, 1, 0), new BlockPos(-1, 1, 0),
+            new BlockPos(1, 1, -1), new BlockPos(-1, 1, -1),
+            new BlockPos(1, 1, 1), new BlockPos(-1, 1, 1),
+            // 8 below diagonals
+            new BlockPos(0, -1, -1), new BlockPos(0, -1, 1),
+            new BlockPos(1, -1, 0), new BlockPos(-1, -1, 0),
+            new BlockPos(1, -1, -1), new BlockPos(-1, -1, -1),
+            new BlockPos(1, -1, 1), new BlockPos(-1, -1, 1)
+    };
 
     public static @NotNull BlockHitResult raytrace(Level level, Player player) {
         Vec3 eyePosition = player.getEyePosition();
@@ -67,61 +90,37 @@ public class ShapelessWalker implements Walker {
             return potentialBrokenBlocks;
         }
 
-        searchBlocks(player, level, origin, origin, potentialBrokenBlocks, originState);
-        VISITED.clear();
+        HashSet<BlockPos> visited = new HashSet<>();
+        searchBlocks(player, level, origin, origin, potentialBrokenBlocks, originState, visited);
 
         return potentialBrokenBlocks;
     }
 
     private void searchBlocks(Player player, Level level, BlockPos myPos, BlockPos absoluteOrigin,
-            HashSet<BlockPos> blocksToCollapse, BlockState originState) {
-        if (VISITED.size() >= Liteminer.CONFIG.blockBreakLimit.get()) return;
-        if (VISITED.contains(myPos)) return;
+            HashSet<BlockPos> blocksToCollapse, BlockState originState, HashSet<BlockPos> visited) {
+        if (visited.size() >= Liteminer.CONFIG.blockBreakLimit.get()) return;
+        if (visited.contains(myPos)) return;
         if (!BlockFamily.matches(originState, level.getBlockState(myPos))) return;
         if (!shouldMine(player, level, myPos)) return;
 
         blocksToCollapse.add(myPos);
-        VISITED.add(myPos);
+        visited.add(myPos);
 
         for (var neighborPos : getNeighbors(myPos, absoluteOrigin)) {
-            searchBlocks(player, level, neighborPos, absoluteOrigin, blocksToCollapse, originState);
+            searchBlocks(player, level, neighborPos, absoluteOrigin, blocksToCollapse, originState, visited);
         }
     }
 
     private List<BlockPos> getNeighbors(BlockPos myPos, BlockPos absoluteOrigin) {
-        List<BlockPos> blocks = new ArrayList<>();
+        // Use pre-allocated offsets to reduce object allocation
+        BlockPos[] neighbors = new BlockPos[NEIGHBOR_OFFSETS.length];
+        for (int i = 0; i < NEIGHBOR_OFFSETS.length; i++) {
+            neighbors[i] = myPos.offset(NEIGHBOR_OFFSETS[i]);
+        }
 
-        blocks.add(myPos.above());
-        blocks.add(myPos.below());
-        blocks.add(myPos.north());
-        blocks.add(myPos.south());
-        blocks.add(myPos.east());
-        blocks.add(myPos.west());
-        blocks.add(myPos.north().east());
-        blocks.add(myPos.north().west());
-        blocks.add(myPos.south().east());
-        blocks.add(myPos.south().west());
+        // Sort by distance to origin for more intuitive mining order
+        Arrays.sort(neighbors, Comparator.comparingInt(p -> p.distManhattan(absoluteOrigin)));
 
-        blocks.add(myPos.above().north());
-        blocks.add(myPos.above().south());
-        blocks.add(myPos.above().east());
-        blocks.add(myPos.above().west());
-        blocks.add(myPos.above().north().east());
-        blocks.add(myPos.above().north().west());
-        blocks.add(myPos.above().south().east());
-        blocks.add(myPos.above().south().west());
-
-        blocks.add(myPos.below().north());
-        blocks.add(myPos.below().south());
-        blocks.add(myPos.below().east());
-        blocks.add(myPos.below().west());
-        blocks.add(myPos.below().north().east());
-        blocks.add(myPos.below().north().west());
-        blocks.add(myPos.below().south().east());
-        blocks.add(myPos.below().south().west());
-
-        blocks.sort(Comparator.comparingInt(p -> p.distManhattan(absoluteOrigin)));
-
-        return blocks;
+        return Arrays.asList(neighbors);
     }
 }

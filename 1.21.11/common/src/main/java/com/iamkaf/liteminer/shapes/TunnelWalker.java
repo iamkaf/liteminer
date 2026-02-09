@@ -16,11 +16,8 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
-import java.util.Set;
 
 public class TunnelWalker implements Walker {
-    public final Set<BlockPos> VISITED = new HashSet<>();
-
     public static @NotNull BlockHitResult raytrace(Level level, Player player) {
         Vec3 eyePosition = player.getEyePosition();
         Vec3 rotation = player.getViewVector(1);
@@ -56,16 +53,16 @@ public class TunnelWalker implements Walker {
             return potentialBrokenBlocks;
         }
 
-        searchBlocks(player, level, origin, origin, potentialBrokenBlocks, originState.getBlock(), direction);
-        VISITED.clear();
+        HashSet<BlockPos> visited = new HashSet<>();
+        searchBlocks(player, level, origin, origin, potentialBrokenBlocks, originState.getBlock(), direction, visited);
 
         return potentialBrokenBlocks;
     }
 
     private void searchBlocks(Player player, Level level, BlockPos myPos, BlockPos absoluteOrigin,
-            HashSet<BlockPos> blocksToCollapse, Block originBlock, Direction direction) {
-        if (VISITED.size() >= Liteminer.CONFIG.blockBreakLimit.get()) return;
-        if (VISITED.contains(myPos)) return;
+            HashSet<BlockPos> blocksToCollapse, Block originBlock, Direction direction, HashSet<BlockPos> visited) {
+        if (visited.size() >= Liteminer.CONFIG.blockBreakLimit.get()) return;
+        if (visited.contains(myPos)) return;
 
         BlockState state = level.getBlockState(myPos);
 
