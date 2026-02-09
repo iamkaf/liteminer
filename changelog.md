@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Vein mining crops now distinguishes **grown** vs **growing** crops, so harvesting mature crops won't break nearby immature crops.
+- **NeoForge:** Experience orbs now drop from all blocks when vein mining, not just the first block.
+- **Block mining statistics** now track all blocks broken during vein mining.
 
 ### Added
 - New config option: `distinguish_grown_crops` (default: enabled) to toggle the grown-vs-growing crop selection behavior.
