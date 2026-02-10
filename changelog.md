@@ -5,15 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## 2.0.0
 
 ### Fixed
-- Vein mining crops now distinguishes **grown** vs **growing** crops, so harvesting mature crops won’t break nearby immature crops.
+- Vein mining crops now distinguishes **grown** vs **growing** crops, so harvesting mature crops won't break nearby immature crops.
+- **NeoForge:** Experience orbs now drop from all blocks when vein mining, not just the first block.
+- **Block mining statistics** now track all blocks broken during vein mining.
 
 ### Added
 - New config option: `distinguish_grown_crops` (default: enabled) to toggle the grown-vs-growing crop selection behavior.
 - New config option: `match_deepslate_ore_variants` (default: enabled) to treat `<name>_ore` and `deepslate_<name>_ore` as the same block for vein mining.
 - New client config options to customize highlight line colors (foreground + see-through) using the 16 Minecraft wool colors.
+- New client config option: `show_highlights` (default: enabled) to completely disable block highlights if desired.
+
+### Changed
+- Improved performance of block highlights, especially when using high block break limits
 
 ## 1.5.0
 

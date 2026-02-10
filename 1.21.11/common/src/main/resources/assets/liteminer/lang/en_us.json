@@ -12,6 +12,8 @@
     "liteminer.config.show_hud.tooltip": "Enables the text showing how many blocks you have selected and your mining shape.",
     "liteminer.config.hud_scale": "HUD Scale",
     "liteminer.config.hud_scale.tooltip": "Changes how big the HUD elements are.",
+    "liteminer.config.show_highlights": "Show Block Highlights",
+    "liteminer.config.show_highlights.tooltip": "Show visual highlights around blocks that will be mined.",
     "liteminer.config.block_break_limit": "Block Break Limit",
     "liteminer.config.block_break_limit.tooltip": "Upper limit to how many blocks can be broken at a time.",
     "liteminer.config.require_correct_tool_enabled": "Require Correct Tool",

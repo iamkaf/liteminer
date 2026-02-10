@@ -26,4 +26,17 @@ public class NeoForgePlatformHelper implements IPlatformHelper {
     public java.nio.file.Path getConfigDirectory() {
         return FMLPaths.CONFIGDIR.get();
     }
+
+    @Override
+    public int getBlockExperience(
+        net.minecraft.server.level.ServerLevel level,
+        net.minecraft.core.BlockPos pos,
+        net.minecraft.world.level.block.state.BlockState state,
+        net.minecraft.world.level.block.entity.BlockEntity blockEntity,
+        net.minecraft.world.entity.Entity breaker,
+        net.minecraft.world.item.ItemStack tool
+    ) {
+        // NeoForge has getExpDrop method on BlockState
+        return state.getExpDrop(level, pos, blockEntity, breaker, tool);
+    }
 }

@@ -1,27 +1,18 @@
 package com.iamkaf.liteminer.shapes;
 
 import com.iamkaf.liteminer.Liteminer;
-import com.iamkaf.liteminer.LiteminerClient;
 import com.iamkaf.liteminer.tags.TagHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
-import java.util.Set;
 
 public class StaircaseUpWalker implements Walker {
-    public final Set<BlockPos> VISITED = new HashSet<>();
-
     @Override
     public String toString() {
         return "Staircase Up";
@@ -43,16 +34,16 @@ public class StaircaseUpWalker implements Walker {
             return potentialBrokenBlocks;
         }
 
-        searchBlocks(player, level, origin, origin, potentialBrokenBlocks, originState.getBlock(), direction);
-        VISITED.clear();
+        HashSet<BlockPos> visited = new HashSet<>();
+        searchBlocks(player, level, origin, origin, potentialBrokenBlocks, originState.getBlock(), direction, visited);
 
         return potentialBrokenBlocks;
     }
 
     private void searchBlocks(Player player, Level level, BlockPos myPos, BlockPos absoluteOrigin,
-            HashSet<BlockPos> blocksToCollapse, Block originBlock, Direction direction) {
-        if (VISITED.size() >= Liteminer.CONFIG.blockBreakLimit.get()) return;
-        if (VISITED.contains(myPos)) return;
+            HashSet<BlockPos> blocksToCollapse, Block originBlock, Direction direction, HashSet<BlockPos> visited) {
+        if (visited.size() >= Liteminer.CONFIG.blockBreakLimit.get()) return;
+        if (visited.contains(myPos)) return;
 
         BlockState state = level.getBlockState(myPos);
 

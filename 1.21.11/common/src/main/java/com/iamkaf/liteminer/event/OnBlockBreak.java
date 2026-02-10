@@ -1,16 +1,20 @@
 package com.iamkaf.liteminer.event;
 
+import com.iamkaf.amber.api.platform.v1.Platform;
 import com.iamkaf.amber.api.event.v1.events.common.BlockEvents;
 import com.iamkaf.liteminer.Liteminer;
 import com.iamkaf.liteminer.LiteminerPlayerState;
+import com.iamkaf.liteminer.platform.Services;
 import com.iamkaf.liteminer.shapes.Walker;
 import com.iamkaf.liteminer.tags.TagHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.stats.Stats;
 import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -74,6 +78,7 @@ public class OnBlockBreak {
                 continue;
             }
             BlockState state = level.getBlockState(block);
+            player.awardStat(Stats.BLOCK_MINED.get(state.getBlock()));
             if (!tool.isEmpty() && tool.isDamageableItem()) {
                 boolean itemIsAboutToBreak = tool.getMaxDamage() - tool.getDamageValue() <= 2;
                 boolean preventFromBreaking = Liteminer.CONFIG.preventToolBreaking.get();
@@ -110,7 +115,23 @@ public class OnBlockBreak {
                     );
                 }
 
-                state.spawnAfterBreak((ServerLevel) level, absoluteOrigin, tool, true);
+                // Platform-specific XP handling
+                if (Platform.isNeoForge()) {
+                    // NeoForge: Call spawnAfterBreak without XP, then spawn XP manually
+                    state.spawnAfterBreak((ServerLevel) level, block, tool, false);
+
+                    // Get XP amount via platform helper (calls NeoForge's getExpDrop)
+                    int xp = Services.PLATFORM.getBlockExperience(
+                        (ServerLevel) level, block, state,
+                        level.getBlockEntity(block), player, tool
+                    );
+                    if (xp > 0) {
+                        ExperienceOrb.award((ServerLevel) level, Vec3.atCenterOf(block), xp);
+                    }
+                } else {
+                    // Fabric: Vanilla behavior works correctly
+                    state.spawnAfterBreak((ServerLevel) level, block, tool, true);
+                }
 
                 for (var stack : state.getDrops(builder)) {
                     var itemEntity = new ItemEntity(

@@ -14,9 +14,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 
 public class ThreeByThreeWalker implements Walker {
     private static @NotNull BlockHitResult raytrace(Level level, Player player) {
@@ -58,31 +56,32 @@ public class ThreeByThreeWalker implements Walker {
             HashSet<BlockPos> blocksToCollapse, Block originBlock, Direction direction) {
         if (!shouldMine(player, level, myPos)) return;
 
-        List<BlockPos> positions = new ArrayList<>();
+        // Pre-allocate fixed-size array to avoid ArrayList overhead
+        BlockPos[] positions = new BlockPos[9];
 
         if (direction.equals(Direction.UP) || direction.equals(Direction.DOWN)) {
-            positions.add(myPos.north());
-            positions.add(myPos.north().east());
-            positions.add(myPos.north().west());
-            positions.add(myPos.east());
-            positions.add(myPos);
-            positions.add(myPos.west());
-            positions.add(myPos.south());
-            positions.add(myPos.south().east());
-            positions.add(myPos.south().west());
+            positions[0] = myPos.north();
+            positions[1] = myPos.north().east();
+            positions[2] = myPos.north().west();
+            positions[3] = myPos.east();
+            positions[4] = myPos;
+            positions[5] = myPos.west();
+            positions[6] = myPos.south();
+            positions[7] = myPos.south().east();
+            positions[8] = myPos.south().west();
         } else {
-            positions.add(myPos.relative(direction.getCounterClockWise()).above());
-            positions.add(myPos.above());
-            positions.add(myPos.relative(direction.getClockWise()).above());
-            positions.add(myPos.relative(direction.getCounterClockWise()));
-            positions.add(myPos);
-            positions.add(myPos.relative(direction.getClockWise()));
-            positions.add(myPos.relative(direction.getCounterClockWise()).below());
-            positions.add(myPos.below());
-            positions.add(myPos.relative(direction.getClockWise()).below());
+            positions[0] = myPos.relative(direction.getCounterClockWise()).above();
+            positions[1] = myPos.above();
+            positions[2] = myPos.relative(direction.getClockWise()).above();
+            positions[3] = myPos.relative(direction.getCounterClockWise());
+            positions[4] = myPos;
+            positions[5] = myPos.relative(direction.getClockWise());
+            positions[6] = myPos.relative(direction.getCounterClockWise()).below();
+            positions[7] = myPos.below();
+            positions[8] = myPos.relative(direction.getClockWise()).below();
         }
 
-        for (var position : positions) {
+        for (BlockPos position : positions) {
             if (shouldMine(player, level, position)) {
                 blocksToCollapse.add(position);
             }
