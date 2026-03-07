@@ -1,6 +1,6 @@
 {
     "key.liteminer.veinmine": "Vein Mine",
-    "key.categories.liteminer": "Liteminer",
+    "key.category.liteminer.liteminer": "Liteminer",
     "hud.liteminer.selected_blocks": "%s Blocks",
     "hud.liteminer.selected_blocks_singular": "1 Block",
     "hud.liteminer.changed_shape": "Changed Shape [%s]",
