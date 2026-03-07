@@ -1,9 +1,9 @@
 {
     "key.liteminer.veinmine": "连锁采集",
-    "key.categories.liteminer": "Liteminer",
+    "key.categories.liteminer.liteminer": "Liteminer",
     "hud.liteminer.selected_blocks": "%s 方块",
     "hud.liteminer.selected_blocks_singular": "1 方块",
-    "hud.liteminer.changed_shape": "修改形状 [%s]",
+    "hud.liteminer.changed_shape": "形状 [%s]",
     "liteminer.configuration.title": "Liteminer 配置",
     "liteminer.configuration.section.liteminer.common.toml.title": "Liteminer 配置",
     "liteminer.config.key_mode": "按键模式",
