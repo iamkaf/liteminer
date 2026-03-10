@@ -1,0 +1,94 @@
+name: Publish Maven Artifacts
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Specific version directory to publish. Leave blank to publish all versions.
+        required: false
+        type: string
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  select-versions:
+    runs-on: ubuntu-latest
+    outputs:
+      versions: ${{ steps.set-versions.outputs.versions }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Select versions to publish
+        id: set-versions
+        run: |
+          set -euo pipefail
+
+          if [ -n "${{ inputs.version }}" ]; then
+            if [ ! -d "${{ inputs.version }}" ]; then
+              echo "Unknown version directory: ${{ inputs.version }}" >&2
+              exit 1
+            fi
+            versions="${{ inputs.version }}"
+          else
+            versions="$(ls -1d */ | sed 's:/$::' | grep -E '^[0-9]' | sort -V)"
+          fi
+
+          versions_json=$(echo "$versions" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "versions=$versions_json" >> "$GITHUB_OUTPUT"
+          echo "Publishing versions: $versions_json"
+
+  publish:
+    needs: select-versions
+    if: needs.select-versions.outputs.versions != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version: ${{ fromJson(needs.select-versions.outputs.versions) }}
+      fail-fast: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect Java version
+        id: java
+        run: |
+          v=$(sed -nE 's/^java_version=([0-9]+).*/\1/p' "${{ matrix.version }}/gradle.properties" | head -n1)
+          if [ -z "$v" ]; then
+            echo "java_version not found in ${{ matrix.version }}/gradle.properties" >&2
+            exit 1
+          fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "Using Java $v for ${{ matrix.version }}"
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ steps.java.outputs.version }}
+          cache: gradle
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Setup just
+        uses: taiki-e/install-action@just
+
+      - name: Make gradlew executable
+        working-directory: ${{ matrix.version }}
+        run: chmod +x gradlew
+
+      - name: Publish ${{ matrix.version }} to KafMaven
+        env:
+          MAVEN_PUBLISH_USERNAME: ${{ secrets.MAVEN_PUBLISH_USERNAME }}
+          MAVEN_PUBLISH_PASSWORD: ${{ secrets.MAVEN_PUBLISH_PASSWORD }}
+        run: just publish-version "${{ matrix.version }}"
