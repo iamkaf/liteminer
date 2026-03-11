@@ -14,30 +14,38 @@ versions: list-versions
 latest:
   @echo {{version}}
 
-# Check if a loader is included in a version's settings.gradle.
+# Check if a loader is enabled for a version via gradle.properties and project layout.
 loader-enabled version loader:
-  @if [ ! -f "{{version}}/settings.gradle" ]; then echo "false"; exit 0; fi
-  @if (command -v rg >/dev/null 2>&1 && rg -q "^[[:space:]]*include\\([\"']{{loader}}[\"']\\)|^[[:space:]]*include[[:space:]]+[\"']{{loader}}[\"']" "{{version}}/settings.gradle") || \
-     (! command -v rg >/dev/null 2>&1 && grep -Eq "^[[:space:]]*include\\([\"']{{loader}}[\"']\\)|^[[:space:]]*include[[:space:]]+[\"']{{loader}}[\"']" "{{version}}/settings.gradle"); then \
+  @if [ ! -f "{{version}}/gradle.properties" ] || [ ! -f "{{version}}/{{loader}}/build.gradle" ]; then echo "false"; exit 0; fi; \
+  enabled_loaders=$(sed -nE 's/^project\.enabled-loaders=(.*)$/\1/p' "{{version}}/gradle.properties" | head -n1); \
+  if [ -z "$enabled_loaders" ]; then \
+    echo "true"; \
+  elif printf '%s\n' "$enabled_loaders" | tr ',' '\n' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' | grep -Fxq "{{loader}}"; then \
     echo "true"; \
   else \
     echo "false"; \
   fi
 
 # Run Gradle inside a specific version folder, switching the JVM based on
-# `java_version=` in <version>/gradle.properties.
+# `project.build-java=` in <version>/gradle.properties, falling back to
+# `project.java=` when no dedicated build JVM is declared.
 #
 # We avoid calling `sdk use` because `sdk` is a shell function and is unreliable
 # in non-interactive shells; instead we set JAVA_HOME directly to SDKMAN's
 # installed candidates.
 with-java version *args:
   @cd "{{version}}"; \
-    java_version=$(sed -nE 's/^java_version=([0-9]+).*/\1/p' gradle.properties | head -n1); \
+    java_version=$(sed -nE 's/^project\.build-java=([0-9]+).*/\1/p' gradle.properties | head -n1); \
+    if [ -z "$java_version" ]; then \
+      java_version=$(sed -nE 's/^project\.java=([0-9]+).*/\1/p' gradle.properties | head -n1); \
+    fi; \
     sdkman_path=""; \
     case "$java_version" in \
+      8) sdkman_path="$HOME/.sdkman/candidates/java/8.0.452-tem" ;; \
+      17) sdkman_path="$HOME/.sdkman/candidates/java/17.0.15-tem" ;; \
       21) sdkman_path="$HOME/.sdkman/candidates/java/21.0.9-tem" ;; \
       25) sdkman_path="$HOME/.sdkman/candidates/java/25.0.2-tem" ;; \
-      *) echo "Unsupported or missing java_version=$java_version in {{version}}/gradle.properties"; exit 1 ;; \
+      *) echo "Unsupported or missing project.java=$java_version in {{version}}/gradle.properties"; exit 1 ;; \
     esac; \
     if [ -d "$sdkman_path" ]; then \
       export JAVA_HOME="$sdkman_path"; \
@@ -45,7 +53,7 @@ with-java version *args:
     elif [ -n "$JAVA_HOME" ] && [ -d "$JAVA_HOME" ]; then \
       echo "SDKMAN path not found; using existing JAVA_HOME=$JAVA_HOME"; \
     else \
-      echo "No valid Java installation found for java_version=$java_version"; exit 1; \
+      echo "No valid Java installation found for project.java=$java_version"; exit 1; \
     fi; \
     ./gradlew {{args}}
 
@@ -71,7 +79,7 @@ build version="":
         if [ "$(just loader-enabled "$v" "$loader")" = "true" ]; then \
           just with-java "$v" :$loader:build; \
         else \
-          echo "Skipping $v:$loader (not included in settings.gradle)"; \
+          echo "Skipping $v:$loader (not enabled or not present)"; \
         fi; \
       done; \
     done; \
@@ -81,7 +89,7 @@ build version="":
       if [ "$(just loader-enabled "{{version}}" "$loader")" = "true" ]; then \
         just with-java "{{version}}" :$loader:build; \
       else \
-        echo "Skipping {{version}}:$loader (not included in settings.gradle)"; \
+        echo "Skipping {{version}}:$loader (not enabled or not present)"; \
       fi; \
     done; \
   fi
@@ -107,23 +115,36 @@ publish version="":
   fi
 
 publish-version version:
-  @just publish-common "{{version}}"
+  @just with-java "{{version}}" publishingRelease
+
+maven-publish version="":
+  @if [ -z "{{version}}" ]; then \
+    for v in $(just list-versions); do \
+      echo "==> $v"; just maven-publish-version "$v"; \
+    done; \
+  else \
+    if [ ! -d "{{version}}" ]; then echo "Version {{version}} not found."; exit 1; fi; \
+    just maven-publish-version "{{version}}"; \
+  fi
+
+maven-publish-version version:
+  @just maven-publish-common "{{version}}"
   @for loader in fabric forge neoforge; do \
     if [ "$(just loader-enabled "{{version}}" "$loader")" = "true" ]; then \
-      just publish-loader "{{version}}" "$loader"; \
+      just maven-publish-loader "{{version}}" "$loader"; \
     else \
-      echo "Skipping {{version}}:$loader (not included in settings.gradle)"; \
+      echo "Skipping {{version}}:$loader (not enabled or not present)"; \
     fi; \
   done
 
-publish-common version *args:
+maven-publish-common version *args:
   @just with-java "{{version}}" :common:publishAllPublicationsToKafMavenRepository {{args}}
 
-publish-loader version loader *args:
+maven-publish-loader version loader *args:
   @if [ "$(just loader-enabled "{{version}}" "{{loader}}")" = "true" ]; then \
     just with-java "{{version}}" :{{loader}}:publishAllPublicationsToKafMavenRepository {{args}}; \
   else \
-    echo "Skipping {{version}}:{{loader}} (not included in settings.gradle)"; \
+    echo "Skipping {{version}}:{{loader}} (not enabled or not present)"; \
   fi
 
 changed base="origin/main":

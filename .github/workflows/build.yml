@@ -61,13 +61,16 @@ jobs:
       - name: Detect Java version
         id: java
         run: |
-          v=$(sed -nE 's/^java_version=([0-9]+).*/\1/p' "${{ matrix.version }}/gradle.properties" | head -n1)
+          v=$(sed -nE 's/^project\.build-java=([0-9]+).*/\1/p' "${{ matrix.version }}/gradle.properties" | head -n1)
           if [ -z "$v" ]; then
-            echo "java_version not found in ${{ matrix.version }}/gradle.properties" >&2
+            v=$(sed -nE 's/^project\.java=([0-9]+).*/\1/p' "${{ matrix.version }}/gradle.properties" | head -n1)
+          fi
+          if [ -z "$v" ]; then
+            echo "project.build-java/project.java not found in ${{ matrix.version }}/gradle.properties" >&2
             exit 1
           fi
           echo "version=$v" >> $GITHUB_OUTPUT
-          echo "Using Java $v for ${{ matrix.version }}"
+          echo "Using build Java $v for ${{ matrix.version }}"
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -120,13 +123,16 @@ jobs:
       - name: Detect Java version
         id: java
         run: |
-          v=$(sed -nE 's/^java_version=([0-9]+).*/\1/p' "${{ matrix.version }}/gradle.properties" | head -n1)
+          v=$(sed -nE 's/^project\.build-java=([0-9]+).*/\1/p' "${{ matrix.version }}/gradle.properties" | head -n1)
           if [ -z "$v" ]; then
-            echo "java_version not found in ${{ matrix.version }}/gradle.properties" >&2
+            v=$(sed -nE 's/^project\.java=([0-9]+).*/\1/p' "${{ matrix.version }}/gradle.properties" | head -n1)
+          fi
+          if [ -z "$v" ]; then
+            echo "project.build-java/project.java not found in ${{ matrix.version }}/gradle.properties" >&2
             exit 1
           fi
           echo "version=$v" >> "$GITHUB_OUTPUT"
-          echo "Using Java $v for ${{ matrix.version }}"
+          echo "Using build Java $v for ${{ matrix.version }}"
 
       - name: Setup Java
         uses: actions/setup-java@v4
