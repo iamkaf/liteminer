@@ -115,7 +115,7 @@ publish version="":
   fi
 
 publish-version version:
-  @just with-java "{{version}}" publishingRelease
+  @just maven-publish-version "{{version}}"
 
 maven-publish version="":
   @if [ -z "{{version}}" ]; then \
