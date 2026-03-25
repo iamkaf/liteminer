@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       versions: ${{ steps.set-versions.outputs.versions }}
+      build-matrix: ${{ steps.set-versions.outputs.build-matrix }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -40,18 +41,32 @@ jobs:
           fi
 
           versions_json=$(echo "$versions" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          build_matrix=$(printf '%s\n' "$versions" | while IFS= read -r version; do
+            [ -n "$version" ] || continue
+            props="$version/gradle.properties"
+            enabled_loaders=$(sed -nE 's/^project\.enabled-loaders=(.*)$/\1/p' "$props" | head -n1)
+
+            for loader in fabric forge neoforge; do
+              [ -f "$version/$loader/build.gradle" ] || continue
+
+              if [ -z "$enabled_loaders" ] || printf '%s\n' "$enabled_loaders" | tr ',' '\n' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' | grep -Fxq "$loader"; then
+                jq -cn --arg version "$version" --arg loader "$loader" '{version: $version, loader: $loader}'
+              fi
+            done
+          done | jq -s -c '.')
 
           echo "versions=$versions_json" >> "$GITHUB_OUTPUT"
+          echo "build-matrix=$build_matrix" >> "$GITHUB_OUTPUT"
           echo "Building versions: $versions_json"
+          echo "Build matrix: $build_matrix"
 
   build:
     needs: detect-changes
-    if: needs.detect-changes.outputs.versions != '[]'
+    if: needs.detect-changes.outputs.build-matrix != '[]'
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        version: ${{ fromJson(needs.detect-changes.outputs.versions) }}
-        loader: [fabric, forge, neoforge]
+        include: ${{ fromJson(needs.detect-changes.outputs.build-matrix) }}
       fail-fast: false
 
     steps:
@@ -88,16 +103,10 @@ jobs:
         working-directory: ${{ matrix.version }}
         run: chmod +x gradlew
 
-      - name: Check loader enabled
-        id: loader_enabled
-        run: echo "enabled=$(just loader-enabled ${{ matrix.version }} ${{ matrix.loader }})" >> "$GITHUB_OUTPUT"
-
       - name: Build ${{ matrix.loader }}
-        if: steps.loader_enabled.outputs.enabled == 'true'
         run: just build-loader ${{ matrix.version }} ${{ matrix.loader }}
 
       - name: Upload artifacts
-        if: steps.loader_enabled.outputs.enabled == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ github.event.repository.name }}-${{ matrix.version }}-${{ matrix.loader }}
@@ -105,7 +114,6 @@ jobs:
           if-no-files-found: error
 
       - name: Capture build scan
-        if: steps.loader_enabled.outputs.enabled == 'true'
         run: just build-loader ${{ matrix.version }} ${{ matrix.loader }} --scan
 
   test:
