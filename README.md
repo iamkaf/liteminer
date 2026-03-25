@@ -56,6 +56,8 @@ just test 1.21.11
 
 Built jars will be in `<version>/<loader>/build/libs/`
 
+Template follow-up: the `26.1` Fabric runtime currently needs `runtimeOnly libs.modmenu` when a mod expects a Mod Menu-backed config entry.
+
 ## 💻 Development
 
 ### Prerequisites

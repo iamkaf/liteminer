@@ -6,5 +6,6 @@ dependencies {
     compileOnly libs.amber
     implementation libs.fabric.api
     implementation libs.forgeconfigapiport.fabric
+    runtimeOnly libs.modmenu
     runtimeOnly libs.amber.fabric
 }
