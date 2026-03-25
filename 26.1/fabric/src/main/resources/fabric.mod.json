@@ -1,0 +1,39 @@
+{
+    "schemaVersion": 1,
+    "id": "${mod_id}",
+    "version": "${version}",
+    "name": "${mod_name}",
+    "description": "${description}",
+    "authors": [
+        "${mod_author}"
+    ],
+    "contact": {
+        "homepage": "https://github.com/iamkaf/mod-issues",
+        "issues": "https://github.com/iamkaf/mod-issues/issues",
+        "sources": "https://github.com/iamkaf/mod-issues"
+    },
+    "license": "${license}",
+    "icon": "assets/${mod_id}/icon.png",
+    "environment": "*",
+    "entrypoints": {
+        "main": [
+            "com.iamkaf.liteminer.fabric.LiteminerFabric"
+        ],
+        "client": [
+            "com.iamkaf.liteminer.fabric.client.LiteminerFabricClient"
+        ]
+    },
+    "mixins": [
+        "${mod_id}.mixins.json",
+        "${mod_id}.fabric.mixins.json"
+    ],
+    "accessWidener": "${mod_id}.accesswidener",
+    "depends": {
+        "fabricloader": "*",
+        "fabric-api": "*",
+        "minecraft": "${fabric_version_range}",
+        "java": ">=${java_version}",
+        "amber": ">=${amber_version}",
+        "forgeconfigapiport": "*"
+    }
+}

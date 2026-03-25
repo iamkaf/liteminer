@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "package": "com.iamkaf.liteminer.fabric.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "minVersion": "0.8",
+  "refmap": "${mod_id}.refmap.json",
+  "client": [
+  ],
+  "mixins": [
+    "PlayerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

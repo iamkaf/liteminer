@@ -1,0 +1,23 @@
+pluginManagement {
+    def multiloaderConventionsVersion = providers.gradleProperty('project.plugins').get()
+    repositories {
+        mavenLocal()
+        maven { url = uri('https://maven.kaf.sh') }
+        gradlePluginPortal()
+        mavenCentral()
+    }
+    plugins {
+        id 'com.iamkaf.multiloader.settings' version multiloaderConventionsVersion
+        id 'com.iamkaf.multiloader.root' version multiloaderConventionsVersion
+        id 'com.iamkaf.multiloader.common' version multiloaderConventionsVersion
+        id 'com.iamkaf.multiloader.fabric' version multiloaderConventionsVersion
+        id 'com.iamkaf.multiloader.forge' version multiloaderConventionsVersion
+        id 'com.iamkaf.multiloader.neoforge' version multiloaderConventionsVersion
+        id 'com.iamkaf.multiloader.publishing' version multiloaderConventionsVersion
+    }
+}
+
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+    id 'com.iamkaf.multiloader.settings'
+}
