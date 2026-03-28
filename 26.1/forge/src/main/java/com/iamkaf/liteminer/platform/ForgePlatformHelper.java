@@ -1,9 +1,9 @@
 package com.iamkaf.liteminer.platform;
 
 import com.iamkaf.liteminer.platform.services.IPlatformHelper;
-import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.fml.loading.LoadingModList;
 
 public class ForgePlatformHelper implements IPlatformHelper {
 
@@ -14,7 +14,7 @@ public class ForgePlatformHelper implements IPlatformHelper {
 
     @Override
     public boolean isModLoaded(String modId) {
-        return ModList.get().isLoaded(modId);
+        return LoadingModList.getModFileById(modId) != null;
     }
 
     @Override
@@ -45,6 +45,6 @@ public class ForgePlatformHelper implements IPlatformHelper {
             enchantments.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH),
             tool
         );
-        return state.getExpDrop(level, level.random, pos, fortuneLevel, silkTouchLevel);
+        return state.getExpDrop(level, level.getRandom(), pos, fortuneLevel, silkTouchLevel);
     }
 }
