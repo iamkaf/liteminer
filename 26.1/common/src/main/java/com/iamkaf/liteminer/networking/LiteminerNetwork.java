@@ -4,6 +4,7 @@ import com.iamkaf.amber.api.networking.v1.NetworkChannel;
 import com.iamkaf.amber.api.networking.v1.Packet;
 import com.iamkaf.liteminer.Liteminer;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
 
 public class LiteminerNetwork {
     public static final NetworkChannel NET =
@@ -24,11 +25,21 @@ public class LiteminerNetwork {
                 C2SVeinmineKeybindChange.DECODER,
                 C2SVeinmineKeybindChange.HANDLER
         );
+        NET.register(
+                S2CSetShape.class,
+                S2CSetShape.ENCODER,
+                S2CSetShape.DECODER,
+                S2CSetShape.HANDLER
+        );
 
         Liteminer.LOGGER.info("Liteminer network initialized");
     }
 
     public static <T extends Packet<T>> void sendToServer(T packet) {
         NET.sendToServer(packet);
+    }
+
+    public static <T extends Packet<T>> void sendToPlayer(T packet, ServerPlayer player) {
+        NET.sendToPlayer(packet, player);
     }
 }

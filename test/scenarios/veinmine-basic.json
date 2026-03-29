@@ -1,0 +1,154 @@
+{
+  "name": "liteminer-veinmine-basic",
+  "setup": [
+    {
+      "action": "command",
+      "command": "/tp @s 0 70 0"
+    },
+    {
+      "action": "clear_nearby_entities",
+      "radius": 8,
+      "entityType": "minecraft:item",
+      "timeoutMs": 5000
+    },
+    {
+      "action": "command",
+      "command": "/clear @s"
+    },
+    {
+      "action": "command",
+      "command": "/gamemode creative @s"
+    },
+    {
+      "action": "command",
+      "command": "/fill -3 69 0 3 69 4 minecraft:stone replace"
+    },
+    {
+      "action": "command",
+      "command": "/fill -3 70 0 3 73 4 minecraft:air replace"
+    },
+    {
+      "action": "command",
+      "command": "/setblock -1 70 2 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 0 70 2 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 1 70 2 minecraft:coal_ore"
+    },
+    {
+      "action": "assert_block",
+      "x": -1,
+      "y": 70,
+      "z": 2,
+      "blockId": "minecraft:coal_ore"
+    },
+    {
+      "action": "assert_block",
+      "x": 0,
+      "y": 70,
+      "z": 2,
+      "blockId": "minecraft:coal_ore"
+    },
+    {
+      "action": "assert_block",
+      "x": 1,
+      "y": 70,
+      "z": 2,
+      "blockId": "minecraft:coal_ore"
+    }
+  ],
+  "steps": [
+    {
+      "action": "wait_for_no_screen",
+      "timeoutMs": 5000,
+      "pollMs": 100
+    },
+    {
+      "action": "look_at",
+      "x": 0.5,
+      "y": 70.5,
+      "z": 2.5
+    },
+    {
+      "action": "set_key_held",
+      "key": 96,
+      "held": true
+    },
+    {
+      "action": "wait_ms",
+      "durationMs": 1200
+    },
+    {
+      "action": "break_block",
+      "x": 0,
+      "y": 70,
+      "z": 2
+    },
+    {
+      "action": "wait_ms",
+      "durationMs": 300
+    },
+    {
+      "action": "set_key_held",
+      "key": 96,
+      "held": false
+    },
+    {
+      "action": "wait_for_block",
+      "x": -1,
+      "y": 70,
+      "z": 2,
+      "air": true,
+      "timeoutMs": 3000
+    },
+    {
+      "action": "wait_for_block",
+      "x": 0,
+      "y": 70,
+      "z": 2,
+      "air": true,
+      "timeoutMs": 3000
+    },
+    {
+      "action": "wait_for_block",
+      "x": 1,
+      "y": 70,
+      "z": 2,
+      "air": true,
+      "timeoutMs": 3000
+    },
+    {
+      "action": "screenshot",
+      "name": "liteminer-veinmine-basic"
+    }
+  ],
+  "cleanup": [
+    {
+      "action": "set_key_held",
+      "key": 96,
+      "held": false
+    },
+    {
+      "action": "command",
+      "command": "/clear @s"
+    },
+    {
+      "action": "clear_nearby_entities",
+      "radius": 8,
+      "entityType": "minecraft:item",
+      "timeoutMs": 5000
+    },
+    {
+      "action": "command",
+      "command": "/fill -3 69 0 3 69 4 minecraft:air replace"
+    },
+    {
+      "action": "command",
+      "command": "/fill -3 70 0 3 73 4 minecraft:air replace"
+    }
+  ]
+}

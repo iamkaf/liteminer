@@ -65,4 +65,9 @@ public class Cycler<T> {
     public int getCurrentIndex() {
         return currentIndex;
     }
+
+    public T setCurrentIndex(int index) {
+        currentIndex = Math.floorMod(index, items.size());
+        return getCurrentItem();
+    }
 }

@@ -8,4 +8,5 @@ dependencies {
     implementation libs.amber.forge
     implementation libs.forgeconfigapiport.forge
     implementation libs.gson
+    runtimeOnly libs.teakit.forge
 }

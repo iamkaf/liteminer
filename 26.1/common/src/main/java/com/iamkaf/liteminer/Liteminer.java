@@ -45,6 +45,7 @@ public final class Liteminer {
         LOGGER.info("Litemining, from poppies to deepslate.");
 
         LiteminerNetwork.init();
+        LiteminerCommands.init();
         Events.init();
     }
 

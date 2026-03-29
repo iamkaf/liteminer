@@ -5,4 +5,5 @@ plugins {
 dependencies {
     // Amber integration
     implementation libs.amber.neoforge
+    runtimeOnly libs.teakit.neoforge
 }

@@ -6,3 +6,9 @@ plugins {
     alias(libs.plugins.neoforge.moddev) apply false
     alias(libs.plugins.forgegradle) apply false
 }
+
+allprojects {
+    repositories {
+        mavenLocal()
+    }
+}

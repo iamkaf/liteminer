@@ -8,4 +8,5 @@ dependencies {
     implementation libs.forgeconfigapiport.fabric
     runtimeOnly libs.modmenu
     runtimeOnly libs.amber.fabric
+    runtimeOnly libs.teakit.fabric
 }
