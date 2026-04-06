@@ -5,16 +5,6 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 2.0.1
-
-### Fixed
-- Staircase shapes now follow the mined block face instead of coarse player yaw.
-- Staircase Up now validates the actual lower block before mining it.
-- Staircases now stop exactly at the configured block break limit.
-
-### Changed
-- Staircase Up and Staircase Down now mine a three-block-tall path.
-
 ## 3.0.1
 
 ### Fixed
