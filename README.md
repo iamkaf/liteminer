@@ -22,7 +22,11 @@ This repository contains all Minecraft versions of Liteminer:
 
 ```
 liteminer/
-├── 1.21.11/          # Minecraft 1.21.11 (mod-template format)
+├── 1.20.1/           # Minecraft 1.20.1
+├── 1.21.1/           # Minecraft 1.21.1
+├── 1.21.11/          # Minecraft 1.21.11
+├── 26.1/             # Minecraft 26.1
+├── 26.1.1/             # Minecraft 26.1.1
 │   ├── common/       # Shared code across loaders
 │   ├── fabric/       # Fabric-specific implementation
 │   ├── forge/        # Forge scaffold (not enabled in settings yet)
@@ -32,7 +36,11 @@ liteminer/
 
 ## 🚀 Supported Versions
 
+- 26.1.1 - ✅ Active (`26.1.1/`)
+- 26.1 - ✅ Active (`26.1/`)
 - 1.21.11 — ✅ Active (`1.21.11/`)
+- 1.21.1 — 🤔 Maintenance, pending refactor (`1.21.1/`)
+- 1.20.1 — 🤔 Maintenance, pending refactor (`1.20.1/`)
 
 ## 🛠️ Building
 
@@ -55,8 +63,6 @@ just test 1.21.11
 ```
 
 Built jars will be in `<version>/<loader>/build/libs/`
-
-Template follow-up: the `26.1.1` Fabric runtime currently needs `runtimeOnly libs.modmenu` when a mod expects a Mod Menu-backed config entry.
 
 ## 💻 Development
 
@@ -88,7 +94,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **CurseForge**: https://www.curseforge.com/minecraft/mc-mods/liteminer
 - **Modrinth**: https://modrinth.com/mod/liteminer
-- **Issues**: https://github.com/iamkaf/mod-issues/issues
+- **Issues**: https://github.com/iamkaf/liteminer/issues
 
 ## 👤 Author
 

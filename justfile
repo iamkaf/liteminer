@@ -14,6 +14,25 @@ versions: list-versions
 latest:
   @echo {{version}}
 
+resolve-java version:
+  @props="{{version}}/gradle.properties"; \
+  v=$(sed -nE 's/^project\.build-java=([0-9]+).*/\1/p' "$props" | head -n1); \
+  if [ -z "$v" ]; then \
+    v=$(sed -nE 's/^project\.java=([0-9]+).*/\1/p' "$props" | head -n1); \
+  fi; \
+  if [ -z "$v" ]; then \
+    mc=$(sed -nE 's/^minecraft_version[[:space:]]*=[[:space:]]*([0-9.]+).*/\1/p' "$props" | head -n1); \
+    case "$mc" in \
+      1.20.1) v=17 ;; \
+      1.21.1) v=21 ;; \
+    esac; \
+  fi; \
+  if [ -z "$v" ]; then \
+    echo "Unsupported or missing Java version metadata in $props" >&2; \
+    exit 1; \
+  fi; \
+  echo "$v"
+
 # Check if a loader is enabled for a version via gradle.properties and project layout.
 loader-enabled version loader:
   @if [ ! -f "{{version}}/gradle.properties" ] || [ ! -f "{{version}}/{{loader}}/build.gradle" ]; then echo "false"; exit 0; fi; \
@@ -34,11 +53,9 @@ loader-enabled version loader:
 # in non-interactive shells; instead we set JAVA_HOME directly to SDKMAN's
 # installed candidates.
 with-java version *args:
-  @cd "{{version}}"; \
-    java_version=$(sed -nE 's/^project\.build-java=([0-9]+).*/\1/p' gradle.properties | head -n1); \
-    if [ -z "$java_version" ]; then \
-      java_version=$(sed -nE 's/^project\.java=([0-9]+).*/\1/p' gradle.properties | head -n1); \
-    fi; \
+  @java_version=$(just resolve-java "{{version}}"); \
+    cd "{{version}}"; \
+    chmod +x gradlew; \
     sdkman_path=""; \
     case "$java_version" in \
       8) sdkman_path="$HOME/.sdkman/candidates/java/8.0.452-tem" ;; \
@@ -50,7 +67,11 @@ with-java version *args:
     if [ -d "$sdkman_path" ]; then \
       export JAVA_HOME="$sdkman_path"; \
       export PATH="$JAVA_HOME/bin:$PATH"; \
-    elif [ -n "$JAVA_HOME" ] && [ -d "$JAVA_HOME" ]; then \
+    elif [ -L "$HOME/.sdkman/candidates/java/current" ] && [ -d "$HOME/.sdkman/candidates/java/current" ]; then \
+      export JAVA_HOME="$HOME/.sdkman/candidates/java/current"; \
+      export PATH="$JAVA_HOME/bin:$PATH"; \
+      echo "SDKMAN path $sdkman_path not found; using SDKMAN current=$JAVA_HOME"; \
+    elif [ -n "${JAVA_HOME:-}" ] && [ -d "$JAVA_HOME" ]; then \
       echo "SDKMAN path not found; using existing JAVA_HOME=$JAVA_HOME"; \
     else \
       echo "No valid Java installation found for project.java=$java_version"; exit 1; \

@@ -1,0 +1,14 @@
+plugins {
+    id 'com.iamkaf.multiloader.root'
+    id 'com.iamkaf.multiloader.publishing'
+    id 'com.iamkaf.multiloader.common' apply false
+    alias(libs.plugins.fabric.loom) apply false
+    alias(libs.plugins.neoforge.moddev) apply false
+    alias(libs.plugins.forgegradle) apply false
+}
+
+allprojects {
+    repositories {
+        mavenLocal()
+    }
+}

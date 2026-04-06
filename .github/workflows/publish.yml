@@ -62,9 +62,19 @@ jobs:
       - name: Detect Java version
         id: java
         run: |
-          v=$(sed -nE 's/^project\.java=([0-9]+).*/\1/p' "${{ matrix.version }}/gradle.properties" | head -n1)
+          v=$(sed -nE 's/^project\.build-java=([0-9]+).*/\1/p' "${{ matrix.version }}/gradle.properties" | head -n1)
           if [ -z "$v" ]; then
-            echo "project.java not found in ${{ matrix.version }}/gradle.properties" >&2
+            v=$(sed -nE 's/^project\.java=([0-9]+).*/\1/p' "${{ matrix.version }}/gradle.properties" | head -n1)
+          fi
+          if [ -z "$v" ]; then
+            mc=$(sed -nE 's/^minecraft_version[[:space:]]*=[[:space:]]*([0-9.]+).*/\1/p' "${{ matrix.version }}/gradle.properties" | head -n1)
+            case "$mc" in
+              1.20.1) v=17 ;;
+              1.21.1) v=21 ;;
+            esac
+          fi
+          if [ -z "$v" ]; then
+            echo "Could not determine Java version for ${{ matrix.version }}" >&2
             exit 1
           fi
           echo "version=$v" >> "$GITHUB_OUTPUT"
