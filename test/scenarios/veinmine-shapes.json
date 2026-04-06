@@ -234,7 +234,7 @@
     },
     {
       "action": "command",
-      "command": "/setblock 20 73 3 minecraft:coal_ore"
+      "command": "/setblock 20 71 3 minecraft:coal_ore"
     },
     {
       "action": "command",
@@ -242,11 +242,19 @@
     },
     {
       "action": "command",
-      "command": "/setblock 20 74 4 minecraft:coal_ore"
+      "command": "/setblock 20 73 3 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 20 72 4 minecraft:coal_ore"
     },
     {
       "action": "command",
       "command": "/setblock 20 73 4 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 20 74 4 minecraft:coal_ore"
     },
     {
       "action": "command",
@@ -277,6 +285,14 @@
     {
       "action": "wait_for_block",
       "x": 20,
+      "y": 72,
+      "z": 2,
+      "air": true,
+      "timeoutMs": 2000
+    },
+    {
+      "action": "wait_for_block",
+      "x": 20,
       "y": 71,
       "z": 2,
       "air": true,
@@ -293,6 +309,14 @@
     {
       "action": "wait_for_block",
       "x": 20,
+      "y": 73,
+      "z": 3,
+      "air": true,
+      "timeoutMs": 2000
+    },
+    {
+      "action": "wait_for_block",
+      "x": 20,
       "y": 72,
       "z": 3,
       "air": true,
@@ -303,6 +327,14 @@
       "x": 20,
       "y": 71,
       "z": 3,
+      "air": true,
+      "timeoutMs": 2000
+    },
+    {
+      "action": "wait_for_block",
+      "x": 20,
+      "y": 74,
+      "z": 4,
       "air": true,
       "timeoutMs": 2000
     },
@@ -340,6 +372,10 @@
     },
     {
       "action": "command",
+      "command": "/setblock 30 71 2 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
       "command": "/setblock 30 70 2 minecraft:coal_ore"
     },
     {
@@ -348,11 +384,19 @@
     },
     {
       "action": "command",
+      "command": "/setblock 30 70 3 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
       "command": "/setblock 30 69 3 minecraft:coal_ore"
     },
     {
       "action": "command",
       "command": "/setblock 30 68 3 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 30 69 4 minecraft:coal_ore"
     },
     {
       "action": "command",
@@ -391,6 +435,14 @@
     {
       "action": "wait_for_block",
       "x": 30,
+      "y": 71,
+      "z": 2,
+      "air": true,
+      "timeoutMs": 2000
+    },
+    {
+      "action": "wait_for_block",
+      "x": 30,
       "y": 70,
       "z": 2,
       "air": true,
@@ -407,6 +459,14 @@
     {
       "action": "wait_for_block",
       "x": 30,
+      "y": 70,
+      "z": 3,
+      "air": true,
+      "timeoutMs": 2000
+    },
+    {
+      "action": "wait_for_block",
+      "x": 30,
       "y": 69,
       "z": 3,
       "air": true,
@@ -417,6 +477,14 @@
       "x": 30,
       "y": 68,
       "z": 3,
+      "air": true,
+      "timeoutMs": 2000
+    },
+    {
+      "action": "wait_for_block",
+      "x": 30,
+      "y": 69,
+      "z": 4,
       "air": true,
       "timeoutMs": 2000
     },

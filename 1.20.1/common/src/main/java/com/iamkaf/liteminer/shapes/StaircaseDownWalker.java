@@ -22,7 +22,7 @@ public class StaircaseDownWalker implements Walker {
     }
 
     public HashSet<BlockPos> walk(Level level, Player player, BlockPos origin) {
-        Direction direction = player.getDirection();
+        Direction direction = getStairDirection(level, player);
         HashSet<BlockPos> potentialBrokenBlocks = new HashSet<>();
 
         potentialBrokenBlocks.add(origin);
@@ -53,22 +53,44 @@ public class StaircaseDownWalker implements Walker {
         if (TagHelper.isExcludedBlock(state)) return;
 
         BlockPos cursor = myPos;
+        int blockLimit = Liteminer.CONFIG.blockBreakLimit.get();
 
-        while (blocksToCollapse.size() < Liteminer.CONFIG.blockBreakLimit.get()) {
+        while (blocksToCollapse.size() < blockLimit) {
+            boolean shouldMineAboveCursor = shouldMine(player, level, cursor.above());
             boolean shouldMineCursor = shouldMine(player, level, cursor);
             boolean shouldMineBelowCursor = shouldMine(player, level, cursor.below());
-            if (!shouldMineCursor && !shouldMineBelowCursor) {
+            if (!shouldMineAboveCursor && !shouldMineCursor && !shouldMineBelowCursor) {
                 break;
             }
             if (shouldMineCursor) {
-                blocksToCollapse.add(cursor);
+                addIfWithinLimit(blocksToCollapse, cursor, blockLimit);
             }
             if (shouldMineBelowCursor) {
-                blocksToCollapse.add(cursor.below());
+                addIfWithinLimit(blocksToCollapse, cursor.below(), blockLimit);
+            }
+            if (shouldMineAboveCursor) {
+                addIfWithinLimit(blocksToCollapse, cursor.above(), blockLimit);
             }
             cursor = cursor.relative(direction).below();
         }
 
         blocksToCollapse.add(myPos);
+    }
+
+    // Use the mined block face when available so diagonal player yaw does not skew the staircase direction.
+    private static Direction getStairDirection(Level level, Player player) {
+        Direction direction = TunnelWalker.raytrace(level, player).getDirection().getOpposite();
+        if (direction == Direction.UP || direction == Direction.DOWN) {
+            return player.getDirection();
+        }
+        return direction;
+    }
+
+    // Stair steps add up to three blocks per iteration, so clamp each insertion to avoid overshooting the limit.
+    private static void addIfWithinLimit(HashSet<BlockPos> blocksToCollapse, BlockPos pos, int blockLimit) {
+        if (blocksToCollapse.size() >= blockLimit) {
+            return;
+        }
+        blocksToCollapse.add(pos);
     }
 }
