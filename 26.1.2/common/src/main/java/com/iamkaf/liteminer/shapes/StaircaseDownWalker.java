@@ -53,10 +53,10 @@ public class StaircaseDownWalker implements Walker {
         int blockLimit = Liteminer.CONFIG.blockBreakLimit.get();
 
         while (blocksToCollapse.size() < blockLimit) {
-            boolean shouldMineAboveCursor = shouldMine(player, level, cursor.above());
             boolean shouldMineCursor = shouldMine(player, level, cursor);
             boolean shouldMineBelowCursor = shouldMine(player, level, cursor.below());
-            if (!shouldMineAboveCursor && !shouldMineCursor && !shouldMineBelowCursor) {
+            boolean shouldMineTwoBelowCursor = shouldMine(player, level, cursor.below().below());
+            if (!shouldMineTwoBelowCursor && !shouldMineCursor && !shouldMineBelowCursor) {
                 break;
             }
             if (shouldMineCursor) {
@@ -65,8 +65,8 @@ public class StaircaseDownWalker implements Walker {
             if (shouldMineBelowCursor) {
                 addIfWithinLimit(blocksToCollapse, cursor.below(), blockLimit);
             }
-            if (shouldMineAboveCursor) {
-                addIfWithinLimit(blocksToCollapse, cursor.above(), blockLimit);
+            if (shouldMineTwoBelowCursor) {
+                addIfWithinLimit(blocksToCollapse, cursor.below().below(), blockLimit);
             }
             cursor = cursor.relative(direction).below();
         }
