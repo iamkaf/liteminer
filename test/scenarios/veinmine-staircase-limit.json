@@ -1,0 +1,163 @@
+{
+  "name": "liteminer-veinmine-staircase-limit",
+  "setup": [
+    {
+      "action": "command",
+      "command": "/tp @s 90 70 0"
+    },
+    {
+      "action": "clear_nearby_entities",
+      "radius": 24,
+      "entityType": "minecraft:item",
+      "timeoutMs": 5000
+    },
+    {
+      "action": "command",
+      "command": "/clear @s"
+    },
+    {
+      "action": "command",
+      "command": "/gamemode creative @s"
+    },
+    {
+      "action": "command",
+      "command": "/fill 86 66 0 96 76 6 minecraft:air replace"
+    },
+    {
+      "action": "command",
+      "command": "/fill 86 69 0 96 69 6 minecraft:stone replace"
+    }
+  ],
+  "steps": [
+    {
+      "action": "wait_for_no_screen",
+      "timeoutMs": 5000,
+      "pollMs": 100
+    },
+    {
+      "action": "command",
+      "command": "/liteminer shape set 2"
+    },
+    {
+      "action": "set_key_held",
+      "key": 96,
+      "held": true
+    },
+    {
+      "action": "wait_ms",
+      "durationMs": 1200
+    },
+    {
+      "action": "command",
+      "command": "/setblock 90 70 2 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 90 71 2 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 90 72 2 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 90 71 3 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 90 72 3 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 90 73 3 minecraft:coal_ore"
+    },
+    {
+      "action": "look_at",
+      "x": 90.5,
+      "y": 71.5,
+      "z": 2.01
+    },
+    {
+      "action": "wait_ms",
+      "durationMs": 250
+    },
+    {
+      "action": "break_block",
+      "x": 90,
+      "y": 71,
+      "z": 2,
+      "timeoutMs": 2000,
+      "pollMs": 50
+    },
+    {
+      "action": "wait_for_block",
+      "x": 90,
+      "y": 72,
+      "z": 2,
+      "air": true,
+      "timeoutMs": 2000
+    },
+    {
+      "action": "wait_for_block",
+      "x": 90,
+      "y": 71,
+      "z": 2,
+      "air": true,
+      "timeoutMs": 2000
+    },
+    {
+      "action": "wait_for_block",
+      "x": 90,
+      "y": 70,
+      "z": 2,
+      "air": true,
+      "timeoutMs": 2000
+    },
+    {
+      "action": "assert_block",
+      "x": 90,
+      "y": 73,
+      "z": 3,
+      "blockId": "minecraft:coal_ore"
+    },
+    {
+      "action": "assert_block",
+      "x": 90,
+      "y": 72,
+      "z": 3,
+      "blockId": "minecraft:coal_ore"
+    },
+    {
+      "action": "assert_block",
+      "x": 90,
+      "y": 71,
+      "z": 3,
+      "blockId": "minecraft:coal_ore"
+    },
+    {
+      "action": "screenshot",
+      "name": "liteminer-staircase-limit-3"
+    }
+  ],
+  "cleanup": [
+    {
+      "action": "set_key_held",
+      "key": 96,
+      "held": false
+    },
+    {
+      "action": "command",
+      "command": "/clear @s"
+    },
+    {
+      "action": "clear_nearby_entities",
+      "radius": 24,
+      "entityType": "minecraft:item",
+      "timeoutMs": 5000
+    },
+    {
+      "action": "command",
+      "command": "/fill 86 66 0 96 76 6 minecraft:air replace"
+    }
+  ]
+}

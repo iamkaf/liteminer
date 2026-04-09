@@ -1,0 +1,13 @@
+plugins {
+    id "com.hypherionmc.modutils.modpublisher" version "2.1.6"
+}
+
+apply from: "https://raw.githubusercontent.com/iamkaf/modresources/refs/heads/main/gradle/${minecraft_version}/forge.gradle"
+
+dependencies {
+    forge "net.minecraftforge:forge:$rootProject.forge_version"
+
+    modImplementation "com.iamkaf.amber:amber-forge:$rootProject.amber_version"
+    modRuntimeOnly("dev.emi:emi-forge:${rootProject.emi_version}")
+}
+

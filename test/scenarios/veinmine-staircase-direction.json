@@ -1,0 +1,296 @@
+{
+  "name": "liteminer-veinmine-staircase-direction",
+  "setup": [
+    {
+      "action": "command",
+      "command": "/tp @s 50 70 0"
+    },
+    {
+      "action": "clear_nearby_entities",
+      "radius": 32,
+      "entityType": "minecraft:item",
+      "timeoutMs": 5000
+    },
+    {
+      "action": "command",
+      "command": "/clear @s"
+    },
+    {
+      "action": "command",
+      "command": "/gamemode creative @s"
+    },
+    {
+      "action": "command",
+      "command": "/fill 46 66 0 86 75 6 minecraft:air replace"
+    },
+    {
+      "action": "command",
+      "command": "/fill 46 69 0 86 69 6 minecraft:stone replace"
+    }
+  ],
+  "steps": [
+    {
+      "action": "wait_for_no_screen",
+      "timeoutMs": 5000,
+      "pollMs": 100
+    },
+    {
+      "action": "set_key_held",
+      "key": 96,
+      "held": true
+    },
+    {
+      "action": "wait_ms",
+      "durationMs": 1200
+    },
+
+    {
+      "action": "command",
+      "command": "/liteminer shape set 2"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 60 70 2 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 60 71 2 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 60 72 2 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 60 71 3 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 60 72 3 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 60 73 3 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 61 72 2 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
+      "command": "/tp @s 57 70 1"
+    },
+    {
+      "action": "look_at",
+      "x": 60.5,
+      "y": 71.5,
+      "z": 2.01
+    },
+    {
+      "action": "wait_ms",
+      "durationMs": 250
+    },
+    {
+      "action": "break_block",
+      "x": 60,
+      "y": 71,
+      "z": 2,
+      "timeoutMs": 2000,
+      "pollMs": 50
+    },
+    {
+      "action": "wait_for_block",
+      "x": 60,
+      "y": 72,
+      "z": 2,
+      "air": true,
+      "timeoutMs": 2000
+    },
+    {
+      "action": "wait_for_block",
+      "x": 60,
+      "y": 71,
+      "z": 2,
+      "air": true,
+      "timeoutMs": 2000
+    },
+    {
+      "action": "wait_for_block",
+      "x": 60,
+      "y": 70,
+      "z": 2,
+      "air": true,
+      "timeoutMs": 2000
+    },
+    {
+      "action": "wait_for_block",
+      "x": 60,
+      "y": 73,
+      "z": 3,
+      "air": true,
+      "timeoutMs": 2000
+    },
+    {
+      "action": "wait_for_block",
+      "x": 60,
+      "y": 72,
+      "z": 3,
+      "air": true,
+      "timeoutMs": 2000
+    },
+    {
+      "action": "wait_for_block",
+      "x": 60,
+      "y": 71,
+      "z": 3,
+      "air": true,
+      "timeoutMs": 2000
+    },
+    {
+      "action": "assert_block",
+      "x": 61,
+      "y": 72,
+      "z": 2,
+      "blockId": "minecraft:coal_ore"
+    },
+    {
+      "action": "screenshot",
+      "name": "liteminer-staircase-up-hit-face-over-yaw"
+    },
+
+    {
+      "action": "command",
+      "command": "/liteminer shape set 3"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 80 70 2 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 80 69 2 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 80 71 2 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 80 70 3 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 80 69 3 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 80 68 3 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 81 69 2 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
+      "command": "/tp @s 77 70 1"
+    },
+    {
+      "action": "look_at",
+      "x": 80.5,
+      "y": 70.5,
+      "z": 2.01
+    },
+    {
+      "action": "wait_ms",
+      "durationMs": 250
+    },
+    {
+      "action": "break_block",
+      "x": 80,
+      "y": 70,
+      "z": 2,
+      "timeoutMs": 2000,
+      "pollMs": 50
+    },
+    {
+      "action": "wait_for_block",
+      "x": 80,
+      "y": 71,
+      "z": 2,
+      "air": true,
+      "timeoutMs": 2000
+    },
+    {
+      "action": "wait_for_block",
+      "x": 80,
+      "y": 70,
+      "z": 2,
+      "air": true,
+      "timeoutMs": 2000
+    },
+    {
+      "action": "wait_for_block",
+      "x": 80,
+      "y": 69,
+      "z": 2,
+      "air": true,
+      "timeoutMs": 2000
+    },
+    {
+      "action": "wait_for_block",
+      "x": 80,
+      "y": 70,
+      "z": 3,
+      "air": true,
+      "timeoutMs": 2000
+    },
+    {
+      "action": "wait_for_block",
+      "x": 80,
+      "y": 69,
+      "z": 3,
+      "air": true,
+      "timeoutMs": 2000
+    },
+    {
+      "action": "wait_for_block",
+      "x": 80,
+      "y": 68,
+      "z": 3,
+      "air": true,
+      "timeoutMs": 2000
+    },
+    {
+      "action": "assert_block",
+      "x": 81,
+      "y": 69,
+      "z": 2,
+      "blockId": "minecraft:coal_ore"
+    },
+    {
+      "action": "screenshot",
+      "name": "liteminer-staircase-down-hit-face-over-yaw"
+    }
+  ],
+  "cleanup": [
+    {
+      "action": "set_key_held",
+      "key": 96,
+      "held": false
+    },
+    {
+      "action": "command",
+      "command": "/clear @s"
+    },
+    {
+      "action": "clear_nearby_entities",
+      "radius": 32,
+      "entityType": "minecraft:item",
+      "timeoutMs": 5000
+    },
+    {
+      "action": "command",
+      "command": "/fill 46 66 0 86 75 6 minecraft:air replace"
+    }
+  ]
+}
