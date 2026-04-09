@@ -2,10 +2,11 @@
 
 See the full changelog at https://github.com/iamkaf/liteminer/commits/main
 
-## 1.0.1
+## 1.0.2
 
 - fix: staircase shapes now use the mined block face, validate the lower stair block correctly, and stop exactly at the configured block break limit
 - feat: staircase up and down now mine a three-block-tall path
+- credits: staircase-down adjustment by Evarika
 
 ## 1.0.0
 
