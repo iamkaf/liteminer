@@ -26,7 +26,7 @@ liteminer/
 ├── 1.21.1/           # Minecraft 1.21.1
 ├── 1.21.11/          # Minecraft 1.21.11
 ├── 26.1/             # Minecraft 26.1
-├── 26.1.1/             # Minecraft 26.1.1
+├── 26.1.2/             # Minecraft 26.1.2
 │   ├── common/       # Shared code across loaders
 │   ├── fabric/       # Fabric-specific implementation
 │   ├── forge/        # Forge scaffold (not enabled in settings yet)
@@ -36,7 +36,7 @@ liteminer/
 
 ## 🚀 Supported Versions
 
-- 26.1.1 - ✅ Active (`26.1.1/`)
+- 26.1.2 - ✅ Active (`26.1.2/`)
 - 26.1 - ✅ Active (`26.1/`)
 - 1.21.11 — ✅ Active (`1.21.11/`)
 - 1.21.1 — 🤔 Maintenance, pending refactor (`1.21.1/`)
