@@ -11,11 +11,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.HashSet;
-import java.util.Set;
 
 public class StaircaseDownWalker implements Walker {
-    public final Set<BlockPos> VISITED = new HashSet<>();
-
     @Override
     public String toString() {
         return "Staircase Down";
@@ -37,16 +34,16 @@ public class StaircaseDownWalker implements Walker {
             return potentialBrokenBlocks;
         }
 
-        searchBlocks(player, level, origin, origin, potentialBrokenBlocks, originState.getBlock(), direction);
-        VISITED.clear();
+        HashSet<BlockPos> visited = new HashSet<>();
+        searchBlocks(player, level, origin, origin, potentialBrokenBlocks, originState.getBlock(), direction, visited);
 
         return potentialBrokenBlocks;
     }
 
     private void searchBlocks(Player player, Level level, BlockPos myPos, BlockPos absoluteOrigin,
-            HashSet<BlockPos> blocksToCollapse, Block originBlock, Direction direction) {
-        if (VISITED.size() >= Liteminer.CONFIG.blockBreakLimit.get()) return;
-        if (VISITED.contains(myPos)) return;
+                              HashSet<BlockPos> blocksToCollapse, Block originBlock, Direction direction, HashSet<BlockPos> visited) {
+        if (visited.size() >= Liteminer.CONFIG.blockBreakLimit.get()) return;
+        if (visited.contains(myPos)) return;
 
         BlockState state = level.getBlockState(myPos);
 
@@ -56,10 +53,10 @@ public class StaircaseDownWalker implements Walker {
         int blockLimit = Liteminer.CONFIG.blockBreakLimit.get();
 
         while (blocksToCollapse.size() < blockLimit) {
-            boolean shouldMineAboveCursor = shouldMine(player, level, cursor.above());
             boolean shouldMineCursor = shouldMine(player, level, cursor);
             boolean shouldMineBelowCursor = shouldMine(player, level, cursor.below());
-            if (!shouldMineAboveCursor && !shouldMineCursor && !shouldMineBelowCursor) {
+            boolean shouldMineTwoBelowCursor = shouldMine(player, level, cursor.below().below());
+            if (!shouldMineTwoBelowCursor && !shouldMineCursor && !shouldMineBelowCursor) {
                 break;
             }
             if (shouldMineCursor) {
@@ -68,8 +65,8 @@ public class StaircaseDownWalker implements Walker {
             if (shouldMineBelowCursor) {
                 addIfWithinLimit(blocksToCollapse, cursor.below(), blockLimit);
             }
-            if (shouldMineAboveCursor) {
-                addIfWithinLimit(blocksToCollapse, cursor.above(), blockLimit);
+            if (shouldMineTwoBelowCursor) {
+                addIfWithinLimit(blocksToCollapse, cursor.below().below(), blockLimit);
             }
             cursor = cursor.relative(direction).below();
         }
