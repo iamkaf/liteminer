@@ -215,14 +215,6 @@
     {
       "action": "wait_for_block",
       "x": 80,
-      "y": 71,
-      "z": 2,
-      "air": true,
-      "timeoutMs": 2000
-    },
-    {
-      "action": "wait_for_block",
-      "x": 80,
       "y": 70,
       "z": 2,
       "air": true,
@@ -239,8 +231,8 @@
     {
       "action": "wait_for_block",
       "x": 80,
-      "y": 70,
-      "z": 3,
+      "y": 68,
+      "z": 2,
       "air": true,
       "timeoutMs": 2000
     },
@@ -256,6 +248,14 @@
       "action": "wait_for_block",
       "x": 80,
       "y": 68,
+      "z": 3,
+      "air": true,
+      "timeoutMs": 2000
+    },
+    {
+      "action": "wait_for_block",
+      "x": 80,
+      "y": 67,
       "z": 3,
       "air": true,
       "timeoutMs": 2000

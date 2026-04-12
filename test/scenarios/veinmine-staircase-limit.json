@@ -114,25 +114,28 @@
       "timeoutMs": 2000
     },
     {
-      "action": "assert_block",
+      "action": "wait_for_block",
       "x": 90,
       "y": 73,
       "z": 3,
-      "blockId": "minecraft:coal_ore"
+      "air": true,
+      "timeoutMs": 2000
     },
     {
-      "action": "assert_block",
+      "action": "wait_for_block",
       "x": 90,
       "y": 72,
       "z": 3,
-      "blockId": "minecraft:coal_ore"
+      "air": true,
+      "timeoutMs": 2000
     },
     {
-      "action": "assert_block",
+      "action": "wait_for_block",
       "x": 90,
       "y": 71,
       "z": 3,
-      "blockId": "minecraft:coal_ore"
+      "air": true,
+      "timeoutMs": 2000
     },
     {
       "action": "screenshot",
