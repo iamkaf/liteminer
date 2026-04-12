@@ -13,6 +13,7 @@ pluginManagement {
         id 'com.iamkaf.multiloader.fabric' version multiloaderConventionsVersion
         id 'com.iamkaf.multiloader.forge' version multiloaderConventionsVersion
         id 'com.iamkaf.multiloader.neoforge' version multiloaderConventionsVersion
+        id 'com.iamkaf.multiloader.translations' version multiloaderConventionsVersion
         id 'com.iamkaf.multiloader.publishing' version multiloaderConventionsVersion
     }
 }

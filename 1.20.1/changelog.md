@@ -2,6 +2,11 @@
 
 See the full changelog at https://github.com/iamkaf/liteminer/commits/main
 
+## 1.0.3
+
+- synced French, Brazilian Portuguese, Simplified Chinese, and Traditional Chinese translations from `i18n.kaf.sh`
+- credits: French by `.Polloclown`; Brazilian Portuguese by `Kaf`; Simplified Chinese by `虾米逃生计划`; Traditional Chinese by `sunmoonzero`
+
 ## 1.0.2
 
 - fix: staircase shapes now use the mined block face, validate the lower stair block correctly, and stop exactly at the configured block break limit

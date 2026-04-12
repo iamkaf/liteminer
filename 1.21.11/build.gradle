@@ -1,5 +1,6 @@
 plugins {
     id 'com.iamkaf.multiloader.root'
+    id 'com.iamkaf.multiloader.translations'
     id 'com.iamkaf.multiloader.publishing'
     id 'com.iamkaf.multiloader.common' apply false
     id 'com.iamkaf.multiloader.fabric' apply false
@@ -8,4 +9,9 @@ plugins {
     alias(libs.plugins.fabric.loom) apply false
     alias(libs.plugins.neoforge.moddev) apply false
     alias(libs.plugins.forgegradle) apply false
+}
+
+multiloaderTranslations {
+    projectSlug = 'liteminer'
+    outputDir = layout.projectDirectory.dir('common/src/main/resources/assets/liteminer/lang')
 }
