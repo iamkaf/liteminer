@@ -1,6 +1,5 @@
 package com.iamkaf.liteminer.shapes;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -22,7 +21,7 @@ public class Cycler<T> {
         if (initialItems == null || initialItems.isEmpty()) {
             throw new IllegalArgumentException("Item list cannot be null or empty");
         }
-        items = new ArrayList<>(initialItems);
+        items = initialItems;
         currentIndex = 0;
     }
 

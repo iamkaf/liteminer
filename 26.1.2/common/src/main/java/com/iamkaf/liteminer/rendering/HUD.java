@@ -2,6 +2,9 @@ package com.iamkaf.liteminer.rendering;
 
 import com.iamkaf.amber.api.functions.v1.PlayerFunctions;
 import com.iamkaf.liteminer.LiteminerClient;
+import com.iamkaf.liteminer.api.event.LiteminerClientEvents;
+import com.iamkaf.liteminer.api.event.LiteminerHudContext;
+import com.iamkaf.liteminer.api.shape.LiteminerShape;
 import com.iamkaf.liteminer.networking.C2SVeinmineKeybindChange;
 import com.iamkaf.liteminer.networking.LiteminerNetwork;
 import net.minecraft.client.DeltaTracker;
@@ -11,6 +14,9 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import org.joml.Matrix3x2fStack;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class HUD {
     public static void onRenderHUD(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker) {
@@ -34,7 +40,6 @@ public class HUD {
 
         Font font = Minecraft.getInstance().font;
 
-        int lineHeight = 10;
         float scale = LiteminerClient.CONFIG.hud_scale.get().floatValue();
 
         int width = guiGraphics.guiWidth();
@@ -43,27 +48,39 @@ public class HUD {
         int centerWidth = (int) (width / 2f / scale);
         int centerHeight = (int) (height / 2f / scale);
 
-        int xOffset = (int) (5 / scale);
-        int yOffset = (int) (-10 / scale);
-
         Component selectedBlocksLabel = Component.translatable(
                 selectedBlockCount > 1 ? "hud.liteminer.selected_blocks" : "hud.liteminer" + ".selected_blocks_singular",
                 selectedBlockCount
         );
+        LiteminerShape selectedShape = LiteminerClient.shapes.getCurrentItem();
+        List<Component> lines = new ArrayList<>();
+        lines.add(selectedBlocksLabel);
+        lines.add(selectedShape.displayName());
+
+        LiteminerHudContext context = new LiteminerHudContext(selectedBlockCount, selectedShape, lines);
+        LiteminerClientEvents.MODIFY_HUD.invoker().modifyHud(context);
+        if (!context.visible() || context.lines().isEmpty()) {
+            return;
+        }
+
+        int xOffset = (int) (context.xOffset() / scale);
+        int yOffset = (int) (context.yOffset() / scale);
+        int lineHeight = context.lineHeight();
 
         Matrix3x2fStack pose = guiGraphics.pose();
 //        pose.pushPose();
         pose.pushMatrix();
         pose.scale(scale, scale);
 
-        guiGraphics.text(font, selectedBlocksLabel, centerWidth + xOffset, centerHeight + yOffset, 0xFFFFFFFF);
-        guiGraphics.text(
-                font,
-                LiteminerClient.shapes.getCurrentItem().toString(),
-                centerWidth + xOffset,
-                centerHeight + yOffset + lineHeight,
-                0xFFFFFFFF
-        );
+        for (int i = 0; i < context.lines().size(); i++) {
+            guiGraphics.text(
+                    font,
+                    context.lines().get(i),
+                    centerWidth + xOffset,
+                    centerHeight + yOffset + i * lineHeight,
+                    context.textColor()
+            );
+        }
 
         pose.popMatrix();
     }
@@ -88,7 +105,7 @@ public class HUD {
                         minecraft.player,
                         Component.translatable(
                                 "hud.liteminer.changed_shape",
-                                LiteminerClient.shapes.getCurrentItem().toString()
+                                LiteminerClient.shapes.getCurrentItem().displayName()
                         )
                 );
             }

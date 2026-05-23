@@ -4,8 +4,10 @@ import com.iamkaf.amber.api.platform.v1.Platform;
 import com.iamkaf.amber.api.event.v1.events.common.BlockEvents;
 import com.iamkaf.liteminer.Liteminer;
 import com.iamkaf.liteminer.LiteminerPlayerState;
+import com.iamkaf.liteminer.api.event.LiteminerEvents;
+import com.iamkaf.liteminer.api.shape.LiteminerShape;
+import com.iamkaf.liteminer.api.shape.LiteminerShapes;
 import com.iamkaf.liteminer.platform.Services;
-import com.iamkaf.liteminer.shapes.Walker;
 import com.iamkaf.liteminer.tags.TagHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -30,10 +32,10 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
-
-import static com.iamkaf.liteminer.Liteminer.WALKERS;
 
 public class OnBlockBreak {
     public static void init() {
@@ -62,22 +64,68 @@ public class OnBlockBreak {
             return InteractionResult.PASS;
         }
 
-        Walker walker = WALKERS.get(playerState.getShape());
+        int shapeIndex = playerState.getShape();
+        LiteminerShape shape = LiteminerShapes.byIndex(shapeIndex).orElseThrow();
+        int blockLimit = Liteminer.CONFIG.blockBreakLimit.get();
+        InteractionResult startResult = LiteminerEvents.BEFORE_VEINMINE.invoker().beforeVeinmine(
+                new LiteminerEvents.StartContext(
+                        LiteminerEvents.Operation.BREAK,
+                        level,
+                        player,
+                        null,
+                        absoluteOrigin,
+                        blockState,
+                        blockEntity,
+                        tool,
+                        shape,
+                        shapeIndex,
+                        blockLimit
+                )
+        );
+        if (startResult != InteractionResult.PASS) {
+            return startResult;
+        }
 
-        var blocks = walker.walk(level, player, absoluteOrigin)
+        var blocks = shape.walk(level, player, absoluteOrigin)
                 .stream()
                 .sorted(Comparator.comparingInt(p -> p.distManhattan(absoluteOrigin)))
                 .toList();
+        List<BlockPos> processed = new ArrayList<>();
+        List<BlockPos> skipped = new ArrayList<>();
 
         for (var block : blocks) {
             if (block.equals(absoluteOrigin)) {
                 continue;
             }
-            if (player.isCreative()) {
-                level.setBlockAndUpdate(block, Blocks.AIR.defaultBlockState());
+
+            BlockState state = level.getBlockState(block);
+            InteractionResult eventResult = LiteminerEvents.ALLOW_BLOCK.invoker()
+                    .allowBlock(new LiteminerEvents.BlockContext(
+                            LiteminerEvents.Operation.BREAK,
+                            level,
+                            player,
+                            null,
+                            absoluteOrigin,
+                            blockState,
+                            blockEntity,
+                            block,
+                            state,
+                            level.getBlockEntity(block),
+                            tool,
+                            shape,
+                            shapeIndex,
+                            blockLimit
+                    ));
+            if (eventResult != InteractionResult.PASS) {
+                skipped.add(block);
                 continue;
             }
-            BlockState state = level.getBlockState(block);
+
+            if (player.isCreative()) {
+                level.setBlockAndUpdate(block, Blocks.AIR.defaultBlockState());
+                processed.add(block);
+                continue;
+            }
             player.awardStat(Stats.BLOCK_MINED.get(state.getBlock()));
             if (!tool.isEmpty() && tool.isDamageableItem()) {
                 boolean itemIsAboutToBreak = tool.getMaxDamage() - tool.getDamageValue() <= 2;
@@ -149,6 +197,7 @@ public class OnBlockBreak {
             }
 
             level.setBlockAndUpdate(block, Blocks.AIR.defaultBlockState());
+            processed.add(block);
 
             // pray that mojang doesn't add more ice, or I'll have to come back here
             // The comment above doesn't help me at all. What the heck, Kaf??? What does this do??? - Kaf, 2025-12-18
@@ -168,6 +217,23 @@ public class OnBlockBreak {
                 }
             }
         }
+
+        LiteminerEvents.AFTER_VEINMINE.invoker().afterVeinmine(new LiteminerEvents.ResultContext(
+                LiteminerEvents.Operation.BREAK,
+                level,
+                player,
+                null,
+                absoluteOrigin,
+                blockState,
+                blockEntity,
+                tool,
+                shape,
+                shapeIndex,
+                blockLimit,
+                blocks,
+                processed,
+                skipped
+        ));
 
         return InteractionResult.PASS;
     }

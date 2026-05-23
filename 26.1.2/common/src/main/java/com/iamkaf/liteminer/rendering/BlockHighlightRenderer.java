@@ -3,8 +3,8 @@ package com.iamkaf.liteminer.rendering;
 import com.iamkaf.amber.api.functions.v1.WorldFunctions;
 import com.iamkaf.liteminer.Liteminer;
 import com.iamkaf.liteminer.LiteminerClient;
+import com.iamkaf.liteminer.api.shape.LiteminerShape;
 import com.iamkaf.liteminer.shapes.ShapelessWalker;
-import com.iamkaf.liteminer.shapes.Walker;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.ColorTargetState;
 import com.mojang.blaze3d.pipeline.DepthStencilState;
@@ -144,7 +144,7 @@ public class BlockHighlightRenderer {
             return InteractionResult.PASS;
         }
 
-        Walker walker = LiteminerClient.shapes.getCurrentItem();
+        LiteminerShape shape = LiteminerClient.shapes.getCurrentItem();
         int currentShapeIndex = LiteminerClient.shapes.getCurrentIndex();
         int blockLimit = Liteminer.CONFIG.blockBreakLimit.get();
 
@@ -164,7 +164,7 @@ public class BlockHighlightRenderer {
             combinedShape = cache.cachedCombinedShape;
         } else {
             // Recalculate and cache
-            blocksToHighlight = walker.walk(level, player, ShapelessWalker.raytrace(level, player).getBlockPos());
+            blocksToHighlight = shape.walk(level, player, ShapelessWalker.raytrace(level, player).getBlockPos());
 
             if (blocksToHighlight.isEmpty()) {
                 cache.invalidate();

@@ -21,6 +21,14 @@
     },
     {
       "action": "command",
+      "command": "/give @s minecraft:netherite_pickaxe"
+    },
+    {
+      "action": "select_hotbar_slot",
+      "slot": 0
+    },
+    {
+      "action": "command",
       "command": "/fill -4 66 0 44 75 6 minecraft:air replace"
     },
     {
@@ -35,10 +43,13 @@
       "pollMs": 100
     },
     {
-      "action": "command",
+      "action": "client_command",
       "command": "/liteminer shape set 0"
     },
-
+    {
+      "action": "wait_ms",
+      "durationMs": 500
+    },
     {
       "action": "command",
       "command": "/setblock 0 70 2 minecraft:coal_ore"
@@ -137,10 +148,13 @@
       "action": "screenshot",
       "name": "liteminer-shape-shapeless"
     },
-
     {
-      "action": "command",
+      "action": "client_command",
       "command": "/liteminer shape set 1"
+    },
+    {
+      "action": "wait_ms",
+      "durationMs": 500
     },
     {
       "action": "command",
@@ -170,7 +184,7 @@
     },
     {
       "action": "wait_ms",
-      "durationMs": 250
+      "durationMs": 750
     },
     {
       "action": "break_block",
@@ -215,10 +229,13 @@
       "action": "screenshot",
       "name": "liteminer-shape-small-tunnel"
     },
-
     {
-      "action": "command",
+      "action": "client_command",
       "command": "/liteminer shape set 2"
+    },
+    {
+      "action": "wait_ms",
+      "durationMs": 500
     },
     {
       "action": "command",
@@ -272,7 +289,7 @@
     },
     {
       "action": "wait_ms",
-      "durationMs": 250
+      "durationMs": 750
     },
     {
       "action": "break_block",
@@ -365,10 +382,13 @@
       "action": "screenshot",
       "name": "liteminer-shape-staircase-up"
     },
-
     {
-      "action": "command",
+      "action": "client_command",
       "command": "/liteminer shape set 3"
+    },
+    {
+      "action": "wait_ms",
+      "durationMs": 500
     },
     {
       "action": "command",
@@ -422,7 +442,7 @@
     },
     {
       "action": "wait_ms",
-      "durationMs": 250
+      "durationMs": 750
     },
     {
       "action": "break_block",
@@ -515,10 +535,13 @@
       "action": "screenshot",
       "name": "liteminer-shape-staircase-down"
     },
-
     {
-      "action": "command",
+      "action": "client_command",
       "command": "/liteminer shape set 4"
+    },
+    {
+      "action": "wait_ms",
+      "durationMs": 500
     },
     {
       "action": "command",
@@ -540,7 +563,7 @@
     },
     {
       "action": "wait_ms",
-      "durationMs": 250
+      "durationMs": 750
     },
     {
       "action": "break_block",
@@ -633,10 +656,13 @@
       "action": "screenshot",
       "name": "liteminer-shape-3x3"
     },
-
     {
-      "action": "command",
+      "action": "client_command",
       "command": "/liteminer shape set 0"
+    },
+    {
+      "action": "wait_ms",
+      "durationMs": 500
     },
     {
       "action": "set_key_held",

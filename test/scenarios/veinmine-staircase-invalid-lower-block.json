@@ -21,6 +21,14 @@
     },
     {
       "action": "command",
+      "command": "/give @s minecraft:netherite_pickaxe"
+    },
+    {
+      "action": "select_hotbar_slot",
+      "slot": 0
+    },
+    {
+      "action": "command",
       "command": "/fill 66 66 0 74 75 4 minecraft:air replace"
     },
     {
@@ -35,8 +43,12 @@
       "pollMs": 100
     },
     {
-      "action": "command",
+      "action": "client_command",
       "command": "/liteminer shape set 2"
+    },
+    {
+      "action": "wait_ms",
+      "durationMs": 500
     },
     {
       "action": "set_key_held",
@@ -67,7 +79,7 @@
     },
     {
       "action": "wait_ms",
-      "durationMs": 250
+      "durationMs": 750
     },
     {
       "action": "break_block",

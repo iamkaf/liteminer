@@ -21,41 +21,49 @@
     },
     {
       "action": "command",
-      "command": "/fill -3 69 0 3 69 4 minecraft:stone replace"
+      "command": "/give @s minecraft:netherite_pickaxe"
+    },
+    {
+      "action": "select_hotbar_slot",
+      "slot": 0
     },
     {
       "action": "command",
-      "command": "/fill -3 70 0 3 73 4 minecraft:air replace"
+      "command": "/fill 0 69 0 4 69 4 minecraft:stone replace"
     },
     {
       "action": "command",
-      "command": "/setblock -1 70 2 minecraft:coal_ore"
-    },
-    {
-      "action": "command",
-      "command": "/setblock 0 70 2 minecraft:coal_ore"
+      "command": "/fill 0 70 0 4 73 4 minecraft:air replace"
     },
     {
       "action": "command",
       "command": "/setblock 1 70 2 minecraft:coal_ore"
     },
     {
-      "action": "assert_block",
-      "x": -1,
-      "y": 70,
-      "z": 2,
-      "blockId": "minecraft:coal_ore"
+      "action": "command",
+      "command": "/setblock 2 70 2 minecraft:coal_ore"
     },
     {
-      "action": "assert_block",
-      "x": 0,
-      "y": 70,
-      "z": 2,
-      "blockId": "minecraft:coal_ore"
+      "action": "command",
+      "command": "/setblock 3 70 2 minecraft:coal_ore"
     },
     {
       "action": "assert_block",
       "x": 1,
+      "y": 70,
+      "z": 2,
+      "blockId": "minecraft:coal_ore"
+    },
+    {
+      "action": "assert_block",
+      "x": 2,
+      "y": 70,
+      "z": 2,
+      "blockId": "minecraft:coal_ore"
+    },
+    {
+      "action": "assert_block",
+      "x": 3,
       "y": 70,
       "z": 2,
       "blockId": "minecraft:coal_ore"
@@ -69,7 +77,7 @@
     },
     {
       "action": "look_at",
-      "x": 0.5,
+      "x": 2.5,
       "y": 70.5,
       "z": 2.5
     },
@@ -84,7 +92,7 @@
     },
     {
       "action": "break_block",
-      "x": 0,
+      "x": 2,
       "y": 70,
       "z": 2
     },
@@ -99,23 +107,23 @@
     },
     {
       "action": "wait_for_block",
-      "x": -1,
-      "y": 70,
-      "z": 2,
-      "air": true,
-      "timeoutMs": 3000
-    },
-    {
-      "action": "wait_for_block",
-      "x": 0,
-      "y": 70,
-      "z": 2,
-      "air": true,
-      "timeoutMs": 3000
-    },
-    {
-      "action": "wait_for_block",
       "x": 1,
+      "y": 70,
+      "z": 2,
+      "air": true,
+      "timeoutMs": 3000
+    },
+    {
+      "action": "wait_for_block",
+      "x": 2,
+      "y": 70,
+      "z": 2,
+      "air": true,
+      "timeoutMs": 3000
+    },
+    {
+      "action": "wait_for_block",
+      "x": 3,
       "y": 70,
       "z": 2,
       "air": true,
@@ -144,11 +152,11 @@
     },
     {
       "action": "command",
-      "command": "/fill -3 69 0 3 69 4 minecraft:air replace"
+      "command": "/fill 0 69 0 4 69 4 minecraft:air replace"
     },
     {
       "action": "command",
-      "command": "/fill -3 70 0 3 73 4 minecraft:air replace"
+      "command": "/fill 0 70 0 4 73 4 minecraft:air replace"
     }
   ]
 }
