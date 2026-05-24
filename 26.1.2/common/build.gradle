@@ -1,19 +1,5 @@
 plugins {
     id 'com.iamkaf.multiloader.common'
-    id 'net.neoforged.moddev'
-}
-
-neoForge {
-    neoFormVersion = libs.versions.neoform.get()
-    // Automatically enable AccessTransformers if the file exists
-    def at = file('src/main/resources/META-INF/accesstransformer.cfg')
-    if (at.exists()) {
-        accessTransformers.from(at.absolutePath)
-    }
-    parchment {
-        minecraftVersion = libs.versions.parchment.minecraft.get()
-        mappingsVersion = libs.parchment.get().version.toString()
-    }
 }
 
 dependencies {

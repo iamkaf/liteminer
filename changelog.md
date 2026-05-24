@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `/liteminer config` for opening the config screen where supported, with a Forge fallback that links to the config folder.
 - Added a public Liteminer API for addon integrations, including veinmine lifecycle events, player state helpers, shape registration, and HUD customization hooks.
 
+### Changed
+- Improved high-count block highlight rendering performance by one bajillion % by drawing exposed boundary edges directly instead of building large outline shape unions.
+- Improved highlight performance for dense plant and leaf selections.
+
 ## 3.0.3
 
 ### Added
