@@ -3,7 +3,9 @@ package com.iamkaf.liteminer.event;
 import com.iamkaf.amber.api.event.v1.events.common.BlockEvents;
 import com.iamkaf.liteminer.Liteminer;
 import com.iamkaf.liteminer.LiteminerPlayerState;
-import com.iamkaf.liteminer.shapes.Walker;
+import com.iamkaf.liteminer.api.event.LiteminerEvents;
+import com.iamkaf.liteminer.api.shape.LiteminerShape;
+import com.iamkaf.liteminer.api.shape.LiteminerShapes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
@@ -15,11 +17,12 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
+import java.util.ArrayList;
 import java.util.Comparator;
-
-import static com.iamkaf.liteminer.Liteminer.WALKERS;
+import java.util.List;
 
 public class OnBlockInteraction {
     public static void init() {
@@ -57,12 +60,35 @@ public class OnBlockInteraction {
             return InteractionResult.PASS;
         }
 
-        Walker walker = WALKERS.get(playerState.getShape());
+        int shapeIndex = playerState.getShape();
+        LiteminerShape shape = LiteminerShapes.byIndex(shapeIndex).orElseThrow();
+        int blockLimit = Liteminer.CONFIG.blockBreakLimit.get();
+        BlockState originState = level.getBlockState(blockPos);
+        InteractionResult startResult = LiteminerEvents.BEFORE_VEINMINE.invoker().beforeVeinmine(
+                new LiteminerEvents.StartContext(
+                        LiteminerEvents.Operation.INTERACT,
+                        level,
+                        player,
+                        hand,
+                        blockPos,
+                        originState,
+                        level.getBlockEntity(blockPos),
+                        tool,
+                        shape,
+                        shapeIndex,
+                        blockLimit
+                )
+        );
+        if (startResult != InteractionResult.PASS) {
+            return startResult;
+        }
 
-        var blocks = walker.walk(level, player, blockPos)
+        var blocks = shape.walk(level, player, blockPos)
                 .stream()
                 .sorted(Comparator.comparingInt(p -> p.distManhattan(blockPos)))
                 .toList();
+        List<BlockPos> processed = new ArrayList<>();
+        List<BlockPos> skipped = new ArrayList<>();
 
         for (var block : blocks) {
             if (block.equals(blockPos)) {
@@ -77,7 +103,31 @@ public class OnBlockInteraction {
                 }
             }
 
+            BlockState state = level.getBlockState(block);
+            InteractionResult eventResult = LiteminerEvents.ALLOW_BLOCK.invoker()
+                    .allowBlock(new LiteminerEvents.BlockContext(
+                            LiteminerEvents.Operation.INTERACT,
+                            level,
+                            player,
+                            hand,
+                            blockPos,
+                            originState,
+                            level.getBlockEntity(blockPos),
+                            block,
+                            state,
+                            level.getBlockEntity(block),
+                            tool,
+                            shape,
+                            shapeIndex,
+                            blockLimit
+                    ));
+            if (eventResult != InteractionResult.PASS) {
+                skipped.add(block);
+                continue;
+            }
+
             item.useOn(new UseOnContext(player, hand, new BlockHitResult(block.getBottomCenter(), direction, block, false)));
+            processed.add(block);
 
             boolean exhaustionEnabled = Liteminer.CONFIG.foodExhaustionEnabled.get();
             float exhaustion = Liteminer.CONFIG.foodExhaustion.get().floatValue();
@@ -85,6 +135,23 @@ public class OnBlockInteraction {
                 player.causeFoodExhaustion(exhaustion);
             }
         }
+
+        LiteminerEvents.AFTER_VEINMINE.invoker().afterVeinmine(new LiteminerEvents.ResultContext(
+                LiteminerEvents.Operation.INTERACT,
+                level,
+                player,
+                hand,
+                blockPos,
+                originState,
+                level.getBlockEntity(blockPos),
+                tool,
+                shape,
+                shapeIndex,
+                blockLimit,
+                blocks,
+                processed,
+                skipped
+        ));
 
         return InteractionResult.PASS;
     }

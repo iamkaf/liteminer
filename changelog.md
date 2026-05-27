@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 3.1.0
+
+### Added
+- Added `/liteminer config` for opening the config screen where supported, with a Forge fallback that links to the config folder.
+- Added a public Liteminer API for addon integrations, including veinmine lifecycle events, player state helpers, shape registration, and HUD customization hooks.
+- Synced German, British English, European Spanish, Hungarian, and Polish translations from `i18n.kaf.sh` for the latest version.
+
+### Changed
+- Improved high-count block highlight rendering performance by one bajillion % by drawing exposed boundary edges directly instead of building large outline shape unions.
+- Improved highlight performance for dense plant and leaf selections.
+
+### Credits
+- German and British English translations by `JoAiJo`.
+- European Spanish translation by `Leshton`.
+- Hungarian translation by `bayi`.
+- Polish translation by `div1ne`.
+
 ## 3.0.3
 
 ### Added

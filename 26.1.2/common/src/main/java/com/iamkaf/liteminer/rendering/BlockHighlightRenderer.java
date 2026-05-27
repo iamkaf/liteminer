@@ -3,8 +3,8 @@ package com.iamkaf.liteminer.rendering;
 import com.iamkaf.amber.api.functions.v1.WorldFunctions;
 import com.iamkaf.liteminer.Liteminer;
 import com.iamkaf.liteminer.LiteminerClient;
+import com.iamkaf.liteminer.api.shape.LiteminerShape;
 import com.iamkaf.liteminer.shapes.ShapelessWalker;
-import com.iamkaf.liteminer.shapes.Walker;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.ColorTargetState;
 import com.mojang.blaze3d.pipeline.DepthStencilState;
@@ -36,9 +36,13 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
 
 import java.util.Collection;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 
 public class BlockHighlightRenderer {
@@ -51,10 +55,14 @@ public class BlockHighlightRenderer {
         int lastShapeIndex;
         HashSet<BlockPos> cachedBlocks;
         VoxelShape cachedCombinedShape;
+        List<Line> cachedLines;
         long lastUpdateTime;
+        BlockPos lastCameraBlock;
+        int lastYawBucket;
+        int lastPitchBucket;
         int frameCounter = 0;
 
-        boolean isValid(BlockPos origin, int shapeIndex, int blockLimit) {
+        boolean isValid(BlockPos origin, int shapeIndex, int blockLimit, Camera camera) {
             // Adaptive cache timeout based on block limit
             // Higher limits = more expensive calculations = longer cache
             long cacheTimeout = blockLimit >= 512 ? 500 :  // 500ms for very large limits
@@ -64,6 +72,10 @@ public class BlockHighlightRenderer {
 
             return Objects.equals(lastOrigin, origin) &&
                    lastShapeIndex == shapeIndex &&
+                   // Render geometry is camera-culled, so camera movement has to invalidate it.
+                   Objects.equals(lastCameraBlock, camera.blockPosition()) &&
+                   lastYawBucket == rotationBucket(camera.yaw()) &&
+                   lastPitchBucket == rotationBucket(camera.xRot()) &&
                    (System.currentTimeMillis() - lastUpdateTime) < cacheTimeout;
         }
 
@@ -80,11 +92,15 @@ public class BlockHighlightRenderer {
             return (frameCounter % frameSkip) == 0;
         }
 
-        void update(BlockPos origin, int shapeIndex, HashSet<BlockPos> blocks, VoxelShape shape) {
+        void update(BlockPos origin, int shapeIndex, Camera camera, HashSet<BlockPos> blocks, VoxelShape shape, List<Line> lines) {
             this.lastOrigin = origin;
             this.lastShapeIndex = shapeIndex;
+            this.lastCameraBlock = camera.blockPosition();
+            this.lastYawBucket = rotationBucket(camera.yaw());
+            this.lastPitchBucket = rotationBucket(camera.xRot());
             this.cachedBlocks = blocks;
             this.cachedCombinedShape = shape;
+            this.cachedLines = lines;
             this.lastUpdateTime = System.currentTimeMillis();
         }
 
@@ -92,6 +108,8 @@ public class BlockHighlightRenderer {
             this.lastOrigin = null;
             this.cachedBlocks = null;
             this.cachedCombinedShape = null;
+            this.cachedLines = null;
+            this.lastCameraBlock = null;
         }
     }
 
@@ -144,7 +162,7 @@ public class BlockHighlightRenderer {
             return InteractionResult.PASS;
         }
 
-        Walker walker = LiteminerClient.shapes.getCurrentItem();
+        LiteminerShape shape = LiteminerClient.shapes.getCurrentItem();
         int currentShapeIndex = LiteminerClient.shapes.getCurrentIndex();
         int blockLimit = Liteminer.CONFIG.blockBreakLimit.get();
 
@@ -153,18 +171,21 @@ public class BlockHighlightRenderer {
         // Check cache validity
         HashSet<BlockPos> blocksToHighlight;
         VoxelShape combinedShape;
+        List<Line> linesToRender;
 
-        if (cache.isValid(origin, currentShapeIndex, blockLimit) && cache.shouldUpdateThisFrame(blockLimit)) {
+        if (cache.isValid(origin, currentShapeIndex, blockLimit, camera) && cache.shouldUpdateThisFrame(blockLimit)) {
             // Use cached results
             blocksToHighlight = cache.cachedBlocks;
             combinedShape = cache.cachedCombinedShape;
-        } else if (cache.isValid(origin, currentShapeIndex, blockLimit)) {
+            linesToRender = cache.cachedLines;
+        } else if (cache.isValid(origin, currentShapeIndex, blockLimit, camera)) {
             // Cache is valid but we're skipping this frame for performance
             blocksToHighlight = cache.cachedBlocks;
             combinedShape = cache.cachedCombinedShape;
+            linesToRender = cache.cachedLines;
         } else {
             // Recalculate and cache
-            blocksToHighlight = walker.walk(level, player, ShapelessWalker.raytrace(level, player).getBlockPos());
+            blocksToHighlight = shape.walk(level, player, ShapelessWalker.raytrace(level, player).getBlockPos());
 
             if (blocksToHighlight.isEmpty()) {
                 cache.invalidate();
@@ -172,21 +193,26 @@ public class BlockHighlightRenderer {
                 return InteractionResult.PASS;
             }
 
-            // Adaptive rendering strategy based on block count
-            if (blockLimit >= 128 && blocksToHighlight.size() >= 128) {
-                // For high block limits, skip expensive BoundingBoxMerger
-                // Render individual block AABBs - much faster for large counts
-                combinedShape = createSimplifiedShape(blocksToHighlight, origin);
+            HashSet<BlockPos> renderBlocks = cullBlocksOutsideCamera(blocksToHighlight, camera, mc);
+            if (renderBlocks.isEmpty()) {
+                renderBlocks = blocksToHighlight;
+            }
+
+            if (renderBlocks.size() >= 64) {
+                // Avoid VoxelShape unions for dense selections; plant and leaf shapes are especially expensive.
+                linesToRender = createBoundaryLines(renderBlocks, origin);
+                combinedShape = null;
             } else {
                 // For normal block limits, use expensive but prettier merged shapes
                 Collection<VoxelShape> shapes = new HashSet<>();
-                for (AABB aabb : WorldFunctions.mergeBoundingBoxes(blocksToHighlight, origin)) {
+                for (AABB aabb : WorldFunctions.mergeBoundingBoxes(renderBlocks, origin)) {
                     shapes.add(Shapes.create(aabb.inflate(0.005d)));
                 }
                 combinedShape = orShapes(shapes);
+                linesToRender = null;
             }
 
-            cache.update(origin, currentShapeIndex, blocksToHighlight, combinedShape);
+            cache.update(origin, currentShapeIndex, camera, blocksToHighlight, combinedShape, linesToRender);
         }
 
         LiteminerClient.selectedBlocks = blocksToHighlight;
@@ -207,14 +233,12 @@ public class BlockHighlightRenderer {
         // Render see-through translucent lines with NO_DEPTH_TEST so they show through blocks
         VertexConsumer translucentBuilder = buffers.getBuffer(LINES_TRANSLUCENT_NO_DEPTH_TEST);
         int translucentColor = LiteminerClient.CONFIG.highlightSeeThroughLineColor.get().argb(0x4B);
-        ShapeRenderer.renderShape(poseStack, translucentBuilder, combinedShape,
-                0.0, 0.0, 0.0, translucentColor, lineWidth);
+        renderHighlight(poseStack, translucentBuilder, combinedShape, linesToRender, translucentColor, lineWidth);
 
         // Render foreground opaque lines that respect depth testing
         VertexConsumer opaqueBuilder = buffers.getBuffer(LINES_NORMAL);
         int opaqueColor = LiteminerClient.CONFIG.highlightForegroundLineColor.get().argb(0xFF);
-        ShapeRenderer.renderShape(poseStack, opaqueBuilder, combinedShape,
-                0.0, 0.0, 0.0, opaqueColor, lineWidth);
+        renderHighlight(poseStack, opaqueBuilder, combinedShape, linesToRender, opaqueColor, lineWidth);
 
         buffers.endBatch(LINES_TRANSLUCENT_NO_DEPTH_TEST);
         buffers.endBatch(LINES_NORMAL);
@@ -223,39 +247,111 @@ public class BlockHighlightRenderer {
         return InteractionResult.PASS;
     }
 
-    /**
-     * Creates a simplified shape for high block counts (>=128).
-     * Skips expensive BoundingBoxMerger and directly combines individual block AABBs.
-     * This is much faster for large block counts at the cost of visual fidelity.
-     */
-    private static VoxelShape createSimplifiedShape(HashSet<BlockPos> blocks, BlockPos origin) {
-        VoxelShape combinedShape = Shapes.empty();
-
-        // For very large counts, use even more aggressive optimization
-        int blockCount = blocks.size();
-        boolean useAggressiveOptimization = blockCount >= 256;
-
-        if (useAggressiveOptimization) {
-            // Skip inflation and use raw block AABBs for maximum performance
-            for (BlockPos pos : blocks) {
-                BlockPos relative = pos.subtract(origin);
-                AABB box = new AABB(relative.getX(), relative.getY(), relative.getZ(),
-                                   relative.getX() + 1, relative.getY() + 1, relative.getZ() + 1);
-                combinedShape = Shapes.join(combinedShape, Shapes.create(box), BooleanOp.OR);
+    private static void renderHighlight(PoseStack poseStack, VertexConsumer builder, VoxelShape shape,
+            List<Line> lines, int color, float width) {
+        if (lines != null) {
+            for (Line line : lines) {
+                addLine(poseStack, builder, line.x1, line.y1, line.z1, line.x2, line.y2, line.z2, color, width);
             }
-        } else {
-            // Use slight inflation for better visuals while still being faster than merging
-            for (BlockPos pos : blocks) {
-                BlockPos relative = pos.subtract(origin);
-                AABB box = new AABB(relative.getX(), relative.getY(), relative.getZ(),
-                                   relative.getX() + 1, relative.getY() + 1, relative.getZ() + 1)
-                                   .inflate(0.002d);  // Reduced inflation for performance
-                combinedShape = Shapes.join(combinedShape, Shapes.create(box), BooleanOp.OR);
+            return;
+        }
+
+        ShapeRenderer.renderShape(poseStack, builder, shape, 0.0, 0.0, 0.0, color, width);
+    }
+
+    private static void addLine(PoseStack poseStack, VertexConsumer builder, double x1, double y1, double z1,
+            double x2, double y2, double z2, int color, float width) {
+        PoseStack.Pose pose = poseStack.last();
+        Vector3f normal = new Vector3f((float) (x2 - x1), (float) (y2 - y1), (float) (z2 - z1)).normalize();
+        builder.addVertex(pose, (float) x1, (float) y1, (float) z1).setColor(color).setNormal(pose, normal).setLineWidth(width);
+        builder.addVertex(pose, (float) x2, (float) y2, (float) z2).setColor(color).setNormal(pose, normal).setLineWidth(width);
+    }
+
+    private static List<Line> createBoundaryLines(HashSet<BlockPos> blocks, BlockPos origin) {
+        HashSet<Line> lines = new HashSet<>();
+
+        for (BlockPos pos : blocks) {
+            int x = pos.getX() - origin.getX();
+            int y = pos.getY() - origin.getY();
+            int z = pos.getZ() - origin.getZ();
+
+            boolean west = isFaceExposed(blocks, pos, -1, 0, 0);
+            boolean east = isFaceExposed(blocks, pos, 1, 0, 0);
+            boolean down = isFaceExposed(blocks, pos, 0, -1, 0);
+            boolean up = isFaceExposed(blocks, pos, 0, 1, 0);
+            boolean north = isFaceExposed(blocks, pos, 0, 0, -1);
+            boolean south = isFaceExposed(blocks, pos, 0, 0, 1);
+
+            if (down && north) lines.add(new Line(x, y, z, x + 1, y, z));
+            if (up && north) lines.add(new Line(x, y + 1, z, x + 1, y + 1, z));
+            if (down && south) lines.add(new Line(x, y, z + 1, x + 1, y, z + 1));
+            if (up && south) lines.add(new Line(x, y + 1, z + 1, x + 1, y + 1, z + 1));
+
+            if (west && north) lines.add(new Line(x, y, z, x, y + 1, z));
+            if (east && north) lines.add(new Line(x + 1, y, z, x + 1, y + 1, z));
+            if (west && south) lines.add(new Line(x, y, z + 1, x, y + 1, z + 1));
+            if (east && south) lines.add(new Line(x + 1, y, z + 1, x + 1, y + 1, z + 1));
+
+            if (west && down) lines.add(new Line(x, y, z, x, y, z + 1));
+            if (east && down) lines.add(new Line(x + 1, y, z, x + 1, y, z + 1));
+            if (west && up) lines.add(new Line(x, y + 1, z, x, y + 1, z + 1));
+            if (east && up) lines.add(new Line(x + 1, y + 1, z, x + 1, y + 1, z + 1));
+        }
+
+        return new ArrayList<>(lines);
+    }
+
+    private static HashSet<BlockPos> cullBlocksOutsideCamera(HashSet<BlockPos> blocks, Camera camera, Minecraft mc) {
+        // Culling only affects the rendered outline. selectedBlocks keeps the full set for HUD/gameplay.
+        if (blocks.size() <= 16) {
+            return blocks;
+        }
+
+        Vec3 cameraPos = camera.position();
+        Vector3fc forward = camera.forwardVector();
+        Vector3fc left = camera.leftVector();
+        Vector3fc up = camera.upVector();
+
+        double aspect = (double) mc.getWindow().getWidth() / Math.max(1, mc.getWindow().getHeight());
+        double verticalTan = Math.tan(Math.toRadians(camera.getFov()) * 0.5d);
+        double horizontalTan = verticalTan * aspect;
+        double margin = 1.75d;
+
+        HashSet<BlockPos> visible = new HashSet<>();
+        for (BlockPos pos : blocks) {
+            double x = pos.getX() + 0.5d - cameraPos.x;
+            double y = pos.getY() + 0.5d - cameraPos.y;
+            double z = pos.getZ() + 0.5d - cameraPos.z;
+
+            double depth = dot(x, y, z, forward);
+            if (depth < -margin) {
+                continue;
+            }
+
+            double horizontal = Math.abs(dot(x, y, z, left));
+            double vertical = Math.abs(dot(x, y, z, up));
+            double safeDepth = Math.max(depth, 0.0d);
+            if (horizontal <= safeDepth * horizontalTan + margin && vertical <= safeDepth * verticalTan + margin) {
+                visible.add(pos);
             }
         }
 
-        return combinedShape.optimize();
+        return visible;
     }
+
+    private static double dot(double x, double y, double z, Vector3fc vector) {
+        return x * vector.x() + y * vector.y() + z * vector.z();
+    }
+
+    private static int rotationBucket(float rotation) {
+        return Math.round(rotation * 2.0f);
+    }
+
+    private static boolean isFaceExposed(HashSet<BlockPos> blocks, BlockPos pos, int x, int y, int z) {
+        return !blocks.contains(new BlockPos(pos.getX() + x, pos.getY() + y, pos.getZ() + z));
+    }
+
+    private record Line(int x1, int y1, int z1, int x2, int y2, int z2) {}
 
     static VoxelShape orShapes(Collection<VoxelShape> shapes) {
         VoxelShape combinedShape = Shapes.empty();

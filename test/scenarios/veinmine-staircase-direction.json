@@ -21,6 +21,14 @@
     },
     {
       "action": "command",
+      "command": "/give @s minecraft:netherite_pickaxe"
+    },
+    {
+      "action": "select_hotbar_slot",
+      "slot": 0
+    },
+    {
+      "action": "command",
       "command": "/fill 46 66 0 86 75 6 minecraft:air replace"
     },
     {
@@ -43,10 +51,13 @@
       "action": "wait_ms",
       "durationMs": 1200
     },
-
     {
-      "action": "command",
+      "action": "client_command",
       "command": "/liteminer shape set 2"
+    },
+    {
+      "action": "wait_ms",
+      "durationMs": 500
     },
     {
       "action": "command",
@@ -88,7 +99,7 @@
     },
     {
       "action": "wait_ms",
-      "durationMs": 250
+      "durationMs": 750
     },
     {
       "action": "break_block",
@@ -157,10 +168,13 @@
       "action": "screenshot",
       "name": "liteminer-staircase-up-hit-face-over-yaw"
     },
-
     {
-      "action": "command",
+      "action": "client_command",
       "command": "/liteminer shape set 3"
+    },
+    {
+      "action": "wait_ms",
+      "durationMs": 500
     },
     {
       "action": "command",
@@ -202,7 +216,7 @@
     },
     {
       "action": "wait_ms",
-      "durationMs": 250
+      "durationMs": 750
     },
     {
       "action": "break_block",

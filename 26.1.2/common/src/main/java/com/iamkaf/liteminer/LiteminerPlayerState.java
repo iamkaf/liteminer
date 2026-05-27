@@ -1,5 +1,7 @@
 package com.iamkaf.liteminer;
 
+import com.iamkaf.liteminer.api.shape.LiteminerShapes;
+
 import java.util.UUID;
 
 public class LiteminerPlayerState {
@@ -28,6 +30,6 @@ public class LiteminerPlayerState {
     }
 
     public void setShape(int shape) {
-        this.shape = shape;
+        this.shape = Math.floorMod(shape, LiteminerShapes.size());
     }
 }

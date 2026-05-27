@@ -2,6 +2,7 @@ package com.iamkaf.liteminer.neoforge;
 
 import com.iamkaf.liteminer.Constants;
 import com.iamkaf.liteminer.LiteminerClient;
+import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -14,6 +15,8 @@ public class LiteminerNeoForgeClient {
     public LiteminerNeoForgeClient(ModContainer container) {
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
         container.registerConfig(ModConfig.Type.CLIENT, LiteminerClient.CONFIG_SPEC);
+        LiteminerClient.setOpenConfigScreenCallback(
+                () -> Minecraft.getInstance().setScreen(new ConfigurationScreen(container, Minecraft.getInstance().screen)));
         LiteminerClient.init();
     }
 }

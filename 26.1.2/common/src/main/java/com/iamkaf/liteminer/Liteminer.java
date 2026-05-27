@@ -3,7 +3,8 @@ package com.iamkaf.liteminer;
 import com.iamkaf.liteminer.config.LiteminerConfig;
 import com.iamkaf.liteminer.event.Events;
 import com.iamkaf.liteminer.networking.LiteminerNetwork;
-import com.iamkaf.liteminer.shapes.*;
+import com.iamkaf.liteminer.api.shape.LiteminerShapes;
+import com.iamkaf.liteminer.shapes.ShapelessWalker;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.common.ModConfigSpec;
@@ -11,7 +12,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -20,13 +20,6 @@ public final class Liteminer {
     public static final Logger LOGGER = Constants.LOG;
     public static final LiteminerConfig CONFIG;
     public static final ModConfigSpec CONFIG_SPEC;
-    public static final List<Walker> WALKERS = List.of(
-            new ShapelessWalker(),
-            new TunnelWalker(),
-            new StaircaseUpWalker(),
-            new StaircaseDownWalker(),
-            new ThreeByThreeWalker()
-    );
     public static Liteminer instance;
 
     static {
@@ -45,7 +38,6 @@ public final class Liteminer {
         LOGGER.info("Litemining, from poppies to deepslate.");
 
         LiteminerNetwork.init();
-        LiteminerCommands.init();
         Events.init();
     }
 
@@ -79,7 +71,8 @@ public final class Liteminer {
 
         if (isVeinMining) {
             Level level = player.level();
-            int blockCount = WALKERS.get(playerState.getShape())
+            int blockCount = LiteminerShapes.byIndex(playerState.getShape())
+                    .orElseThrow()
                     .walk(level, player, ShapelessWalker.raytrace(level, player).getBlockPos())
                     .size();
             return getScaledBreakSpeedModifier(blockCount);
