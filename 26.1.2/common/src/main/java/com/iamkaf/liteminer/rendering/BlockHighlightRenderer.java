@@ -4,6 +4,7 @@ import com.iamkaf.amber.api.functions.v1.WorldFunctions;
 import com.iamkaf.liteminer.Liteminer;
 import com.iamkaf.liteminer.LiteminerClient;
 import com.iamkaf.liteminer.api.shape.LiteminerShape;
+import com.iamkaf.liteminer.config.LineColor;
 import com.iamkaf.liteminer.shapes.ShapelessWalker;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.ColorTargetState;
@@ -46,6 +47,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class BlockHighlightRenderer {
+    private static final long HIGHLIGHT_COLOR_PERIOD_MS = 1_200L;
     private static final RenderType LINES_NORMAL = RenderTypes.lines();
     private static final RenderType LINES_TRANSLUCENT_NO_DEPTH_TEST = createLinesTranslucentNoDepthTestRenderType();
 
@@ -232,12 +234,12 @@ public class BlockHighlightRenderer {
 
         // Render see-through translucent lines with NO_DEPTH_TEST so they show through blocks
         VertexConsumer translucentBuilder = buffers.getBuffer(LINES_TRANSLUCENT_NO_DEPTH_TEST);
-        int translucentColor = LiteminerClient.CONFIG.highlightSeeThroughLineColor.get().argb(0x4B);
+        int translucentColor = highlightColor(LiteminerClient.CONFIG.highlightSeeThroughLineColor.get(), 0x4B);
         renderHighlight(poseStack, translucentBuilder, combinedShape, linesToRender, translucentColor, lineWidth);
 
         // Render foreground opaque lines that respect depth testing
         VertexConsumer opaqueBuilder = buffers.getBuffer(LINES_NORMAL);
-        int opaqueColor = LiteminerClient.CONFIG.highlightForegroundLineColor.get().argb(0xFF);
+        int opaqueColor = highlightColor(LiteminerClient.CONFIG.highlightForegroundLineColor.get(), 0xFF);
         renderHighlight(poseStack, opaqueBuilder, combinedShape, linesToRender, opaqueColor, lineWidth);
 
         buffers.endBatch(LINES_TRANSLUCENT_NO_DEPTH_TEST);
@@ -245,6 +247,14 @@ public class BlockHighlightRenderer {
 
         poseStack.popPose();
         return InteractionResult.PASS;
+    }
+
+    private static int highlightColor(LineColor color, int alpha) {
+        if (!LiteminerClient.CONFIG.highlightColorTransition.get()) {
+            return color.argb(alpha);
+        }
+
+        return color.transitioningArgb(alpha, System.currentTimeMillis(), HIGHLIGHT_COLOR_PERIOD_MS);
     }
 
     private static void renderHighlight(PoseStack poseStack, VertexConsumer builder, VoxelShape shape,
