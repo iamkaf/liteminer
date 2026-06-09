@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 3.1.1
+
+### Added
+- Synced Ukrainian translations from `i18n.kaf.sh` for the latest version.
+
+### Fixed
+- Harvest Time Modifier now scales mining speed from the actual selected block count and shape.
+- Food exhaustion is no longer applied to right-click vein interactions that do not consume an action.
+
+### Credits
+- Ukrainian translation by `Ɦrim`.
+
 ## 3.1.0
 
 ### Added

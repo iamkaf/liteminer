@@ -5,7 +5,9 @@ import com.iamkaf.liteminer.event.Events;
 import com.iamkaf.liteminer.networking.LiteminerNetwork;
 import com.iamkaf.liteminer.api.shape.LiteminerShapes;
 import com.iamkaf.liteminer.shapes.ShapelessWalker;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
@@ -49,10 +51,22 @@ public final class Liteminer {
     }
 
     public static float getScaledBreakSpeedModifier(int blockCount) {
-        float modifier = CONFIG.harvestTimePerBlockModifier.get().floatValue();
-        float blockBreakLimit = CONFIG.blockBreakLimit.get().floatValue();
+        if (blockCount <= 1) {
+            return 1f;
+        }
 
-        return 1 - blockCount / blockBreakLimit * modifier * 0.1f * 0.95f;
+        float modifier = CONFIG.harvestTimePerBlockModifier.get().floatValue();
+        float extraBlockPenalty = (blockCount - 1) * modifier * 0.1f;
+
+        return 1f / (1f + extraBlockPenalty);
+    }
+
+    public static int getSelectedBlockCount(Level level, Player player, int shapeIndex) {
+        BlockPos origin = ShapelessWalker.raytrace(level, player).getBlockPos();
+        return LiteminerShapes.byIndex(shapeIndex)
+                .orElseThrow()
+                .walk(level, player, origin)
+                .size();
     }
 
     public LiteminerPlayerState getPlayerState(ServerPlayer player) {
@@ -65,17 +79,12 @@ public final class Liteminer {
         playerState.setShape(shape);
     }
 
-    public float onBreakSpeed(ServerPlayer player, float originalSpeed) {
+    public float onBreakSpeed(ServerPlayer player) {
         LiteminerPlayerState playerState = getPlayerState(player);
         var isVeinMining = playerState.getKeymappingState();
 
         if (isVeinMining) {
-            Level level = player.level();
-            int blockCount = LiteminerShapes.byIndex(playerState.getShape())
-                    .orElseThrow()
-                    .walk(level, player, ShapelessWalker.raytrace(level, player).getBlockPos())
-                    .size();
-            return getScaledBreakSpeedModifier(blockCount);
+            return getScaledBreakSpeedModifier(getSelectedBlockCount(player.level(), player, playerState.getShape()));
         }
         return 1f;
     }
