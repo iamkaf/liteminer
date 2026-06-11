@@ -4,6 +4,7 @@
 .vscode/
 *.iml
 build/
+.teakit/
 
 # Each version has its own .gitignore for build artifacts
 # This file is for root-level ignores only

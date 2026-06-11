@@ -1,0 +1,45 @@
+modId = "liteminer"
+projectKey = "liteminer"
+
+[defaults]
+launcher = "gradle"
+workingDirectory = "26.1.2"
+gradleWrapper = "./gradlew"
+noDaemon = true
+console = "plain"
+maxWorkers = 1
+configureOnDemand = false
+
+[defaults.gradleProperties]
+"liteminer.withTeaKit" = "true"
+
+[defaults.systemProperties]
+"liteminer.withTeaKit" = "true"
+"teakit.enabled" = "true"
+"teakit.autoWorld" = "true"
+"teakit.runtimeApi.required" = "1"
+"teakit.worldId" = "liteminer_teakit"
+"teakit.worldName" = "Liteminer TeaKit"
+
+[nodes."26.1.2-fabric"]
+loader = "fabric"
+minecraft = "26.1.2"
+tasks = [":fabric:runClient"]
+gameDirectory = "26.1.2/fabric/runs/client"
+
+[nodes."26.1.2-forge"]
+loader = "forge"
+minecraft = "26.1.2"
+tasks = [":forge:runClient"]
+gameDirectory = "26.1.2/forge/run"
+
+[nodes."26.1.2-forge".environment]
+GLFW_PLATFORM = "x11"
+XDG_SESSION_TYPE = "x11"
+WAYLAND_DISPLAY = ""
+
+[nodes."26.1.2-neoforge"]
+loader = "neoforge"
+minecraft = "26.1.2"
+tasks = [":neoforge:runClient"]
+gameDirectory = "26.1.2/neoforge/run"
