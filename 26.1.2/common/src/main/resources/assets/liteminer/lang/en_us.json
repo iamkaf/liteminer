@@ -37,5 +37,10 @@
     "liteminer.config.highlight_see_through_line_color": "Highlight See-through Color",
     "liteminer.config.highlight_see_through_line_color.tooltip": "Color for the see-through highlight lines (wool colors).",
     "liteminer.config.prevent_tool_breaking": "Prevent Tool Breaking",
-    "liteminer.config.prevent_tool_breaking.tooltip": "Stops vein mining when the durability of the tool gets to 1."
+    "liteminer.config.prevent_tool_breaking.tooltip": "Stops vein mining when the durability of the tool gets to 1.",
+    "shape.liteminer.shapeless": "Shapeless",
+    "shape.liteminer.small_tunnel": "Small Tunnel",
+    "shape.liteminer.staircase_up": "Staircase Up",
+    "shape.liteminer.staircase_down": "Staircase Down",
+    "shape.liteminer.three_by_three": "3x3"
 }

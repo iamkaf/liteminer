@@ -32,11 +32,6 @@ public class TunnelWalker implements Walker {
         ));
     }
 
-    @Override
-    public String toString() {
-        return "Small Tunnel";
-    }
-
     public HashSet<BlockPos> walk(Level level, Player player, BlockPos origin) {
         Direction direction = raytrace(level, player).getDirection().getOpposite();
         HashSet<BlockPos> potentialBrokenBlocks = new HashSet<>();

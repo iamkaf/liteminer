@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Harvest Time Modifier now scales mining speed from the actual selected block count and shape.
 - Food exhaustion is no longer applied to right-click vein interactions that do not consume an action.
+- Mining shape names are now localizable.
 
 ### Credits
 - Ukrainian translation by `Ɦrim`.

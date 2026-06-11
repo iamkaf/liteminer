@@ -13,11 +13,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import java.util.HashSet;
 
 public class StaircaseUpWalker implements Walker {
-    @Override
-    public String toString() {
-        return "Staircase Up";
-    }
-
     public HashSet<BlockPos> walk(Level level, Player player, BlockPos origin) {
         Direction direction = getStairDirection(level, player);
         HashSet<BlockPos> potentialBrokenBlocks = new HashSet<>();

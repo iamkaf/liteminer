@@ -50,11 +50,11 @@ public final class LiteminerShapes {
     public static final Identifier THREE_BY_THREE = Constants.resource("three_by_three");
 
     static {
-        register(SHAPELESS, Component.literal("Shapeless"), new ShapelessWalker()::walk);
-        register(SMALL_TUNNEL, Component.literal("Small Tunnel"), new TunnelWalker()::walk);
-        register(STAIRCASE_UP, Component.literal("Staircase Up"), new StaircaseUpWalker()::walk);
-        register(STAIRCASE_DOWN, Component.literal("Staircase Down"), new StaircaseDownWalker()::walk);
-        register(THREE_BY_THREE, Component.literal("3x3"), new ThreeByThreeWalker()::walk);
+        register(SHAPELESS, Component.translatable("shape.liteminer.shapeless"), new ShapelessWalker()::walk);
+        register(SMALL_TUNNEL, Component.translatable("shape.liteminer.small_tunnel"), new TunnelWalker()::walk);
+        register(STAIRCASE_UP, Component.translatable("shape.liteminer.staircase_up"), new StaircaseUpWalker()::walk);
+        register(STAIRCASE_DOWN, Component.translatable("shape.liteminer.staircase_down"), new StaircaseDownWalker()::walk);
+        register(THREE_BY_THREE, Component.translatable("shape.liteminer.three_by_three"), new ThreeByThreeWalker()::walk);
     }
 
     private LiteminerShapes() {

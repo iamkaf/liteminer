@@ -26,11 +26,6 @@ public class ThreeByThreeWalker implements Walker {
         return level.clip(new ClipContext(eyePosition, combined, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, player));
     }
 
-    @Override
-    public String toString() {
-        return "3x3";
-    }
-
     public HashSet<BlockPos> walk(Level level, Player player, BlockPos origin) {
         Direction direction = raytrace(level, player).getDirection().getOpposite();
         HashSet<BlockPos> potentialBrokenBlocks = new HashSet<>();
