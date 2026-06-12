@@ -57,11 +57,6 @@ public class ShapelessWalker implements Walker {
         ));
     }
 
-    @Override
-    public String toString() {
-        return "Shapeless";
-    }
-
     public static @NotNull BlockPos raytraceBlock(Level level, Player player) {
         var rayTraceResult = raytrace(level, player);
 

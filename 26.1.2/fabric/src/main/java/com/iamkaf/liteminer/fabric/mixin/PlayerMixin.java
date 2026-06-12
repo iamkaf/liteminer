@@ -2,7 +2,6 @@ package com.iamkaf.liteminer.fabric.mixin;
 
 import com.iamkaf.liteminer.Liteminer;
 import com.iamkaf.liteminer.LiteminerClient;
-import com.iamkaf.liteminer.shapes.ShapelessWalker;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -10,7 +9,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -30,22 +28,19 @@ public abstract class PlayerMixin extends LivingEntity {
 
         Float originalSpeed = cir.getReturnValue();
         if (!level().isClientSide()) {
-            var speedModifier = Liteminer.instance.onBreakSpeed((ServerPlayer) (Object) this, originalSpeed);
-            if (speedModifier != originalSpeed) {
+            var speedModifier = Liteminer.instance.onBreakSpeed((ServerPlayer) (Object) this);
+            if (speedModifier != 1f) {
                 cir.setReturnValue(originalSpeed * speedModifier);
             }
         } else {
             if (LiteminerClient.isVeinMining()) {
-                cir.setReturnValue(originalSpeed * Liteminer.getScaledBreakSpeedModifier(
-                        liteminer$calculateBlockCountForClient()));
+                int blockCount = Liteminer.getSelectedBlockCount(
+                        level(),
+                        (Player) (Object) this,
+                        LiteminerClient.shapes.getCurrentIndex()
+                );
+                cir.setReturnValue(originalSpeed * Liteminer.getScaledBreakSpeedModifier(blockCount));
             }
         }
-    }
-
-    @Unique
-    private int liteminer$calculateBlockCountForClient() {
-        ShapelessWalker shapelessWalker = new ShapelessWalker();
-        Player player = (Player) (Object) this;
-        return shapelessWalker.walk(level(), player, ShapelessWalker.raytrace(level(), player).getBlockPos()).size();
     }
 }

@@ -1,0 +1,18 @@
+{
+  "compilerOptions" : {
+    "paths" : {
+      "@teakit/test" : [ "./.teakit/types/@teakit/test" ],
+      "@teakit/test/protocol" : [ "./.teakit/types/@teakit/test/protocol.d.ts" ],
+      "@teakit/test/capabilities.json" : [ "./.teakit/types/@teakit/test/capabilities.json" ]
+    },
+    "resolveJsonModule" : true,
+    "allowJs" : false,
+    "checkJs" : false,
+    "module" : "ESNext",
+    "moduleResolution" : "Bundler",
+    "noEmit" : true,
+    "strict" : true,
+    "target" : "ES2022"
+  },
+  "include" : [ "scenarios/**/*.scenario.ts", "scenarios/**/*.test.ts", "test/scenarios/**/*.scenario.ts", "test/scenarios/**/*.test.ts" ]
+}
