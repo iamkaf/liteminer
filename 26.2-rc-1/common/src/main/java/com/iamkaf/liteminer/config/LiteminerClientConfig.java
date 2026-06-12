@@ -9,7 +9,6 @@ public final class LiteminerClientConfig {
     public final ConfigValue<Double> hud_scale;
 
     public final ConfigValue<Boolean> showHighlights;
-    public final ConfigValue<Boolean> highlightColorTransition;
     public final ConfigValue<LineColor> highlightForegroundLineColor;
     public final ConfigValue<LineColor> highlightSeeThroughLineColor;
 
@@ -58,13 +57,6 @@ public final class LiteminerClientConfig {
                 .comment("Shows block highlights when vein mining.")
                 .tooltip("Show visual highlights around blocks that will be mined.")
                 .info(info -> info.inlineText("Disable this if the outlines are distracting or too expensive on your client."))
-                .clientOnly()
-                .build();
-
-        highlightColorTransition = builder.bool("highlight_color_transition", false)
-                .comment("Animates highlight colors toward their opposite RGB color.")
-                .tooltip("Transitions highlight lines toward the opposite RGB color.")
-                .info(info -> info.inlineText("This is a visual-only effect. It does not change which blocks are selected."))
                 .clientOnly()
                 .build();
 

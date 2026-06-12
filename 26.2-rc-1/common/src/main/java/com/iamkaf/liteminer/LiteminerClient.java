@@ -55,7 +55,7 @@ public class LiteminerClient {
                 .scope(ConfigScope.CLIENT)
                 .syncMode(SyncMode.NONE)
                 .fileName("liteminer-client.toml")
-                .schemaVersion(2)
+                .schemaVersion(3)
                 .migrate(0, context -> {
                 })
                 .migrate(1, context -> {
@@ -63,9 +63,12 @@ public class LiteminerClient {
                     context.rename("show_hud", "hud.show_hud");
                     context.rename("hud_scale", "hud.hud_scale");
                     context.rename("show_highlights", "highlights.show_highlights");
-                    context.rename("highlight_color_transition", "highlights.highlight_color_transition");
+                    context.remove("highlight_color_transition");
                     context.rename("highlight_foreground_line_color", "highlights.highlight_foreground_line_color");
                     context.rename("highlight_see_through_line_color", "highlights.highlight_see_through_line_color");
+                })
+                .migrate(2, context -> {
+                    context.remove("highlights.highlight_color_transition");
                 })
                 .comment("Client-only Liteminer settings for controls, HUD, and rendering.")
                 .info(info -> info
