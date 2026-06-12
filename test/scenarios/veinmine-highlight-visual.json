@@ -1,0 +1,122 @@
+{
+  "name": "liteminer-veinmine-highlight-visual",
+  "setup": [
+    {
+      "action": "command",
+      "command": "/tp @s 12 70 0"
+    },
+    {
+      "action": "clear_nearby_entities",
+      "radius": 12,
+      "entityType": "minecraft:item",
+      "timeoutMs": 5000
+    },
+    {
+      "action": "command",
+      "command": "/clear @s"
+    },
+    {
+      "action": "command",
+      "command": "/gamemode creative @s"
+    },
+    {
+      "action": "command",
+      "command": "/give @s minecraft:netherite_pickaxe"
+    },
+    {
+      "action": "select_hotbar_slot",
+      "slot": 0
+    },
+    {
+      "action": "command",
+      "command": "/fill 8 69 0 16 72 6 minecraft:air replace"
+    },
+    {
+      "action": "command",
+      "command": "/fill 8 69 0 16 69 6 minecraft:stone replace"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 12 70 3 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 12 70 4 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 12 70 5 minecraft:coal_ore"
+    },
+    {
+      "action": "command",
+      "command": "/setblock 12 71 5 minecraft:coal_ore"
+    },
+    {
+      "action": "assert_block",
+      "x": 12,
+      "y": 70,
+      "z": 3,
+      "blockId": "minecraft:coal_ore"
+    }
+  ],
+  "steps": [
+    {
+      "action": "wait_for_no_screen",
+      "timeoutMs": 5000,
+      "pollMs": 100
+    },
+    {
+      "action": "client_command",
+      "command": "/liteminer shape set 0"
+    },
+    {
+      "action": "wait_ms",
+      "durationMs": 500
+    },
+    {
+      "action": "look_at",
+      "x": 12.5,
+      "y": 70.5,
+      "z": 3.5
+    },
+    {
+      "action": "set_key_held",
+      "key": 96,
+      "held": true
+    },
+    {
+      "action": "wait_ms",
+      "durationMs": 1600
+    },
+    {
+      "action": "screenshot",
+      "name": "liteminer-highlight-lines"
+    },
+    {
+      "action": "set_key_held",
+      "key": 96,
+      "held": false
+    }
+  ],
+  "cleanup": [
+    {
+      "action": "set_key_held",
+      "key": 96,
+      "held": false
+    },
+    {
+      "action": "command",
+      "command": "/clear @s"
+    },
+    {
+      "action": "clear_nearby_entities",
+      "radius": 12,
+      "entityType": "minecraft:item",
+      "timeoutMs": 5000
+    },
+    {
+      "action": "command",
+      "command": "/fill 8 69 0 16 72 6 minecraft:air replace"
+    }
+  ]
+}

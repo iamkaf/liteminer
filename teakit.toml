@@ -27,6 +27,13 @@ minecraft = "26.1.2"
 tasks = [":fabric:runClient"]
 gameDirectory = "26.1.2/fabric/runs/client"
 
+[nodes."26.2-rc-1-fabric"]
+loader = "fabric"
+minecraft = "26.2-rc-1"
+workingDirectory = "26.2-rc-1"
+tasks = [":fabric:runClient"]
+gameDirectory = "26.2-rc-1/fabric/runs/client"
+
 [nodes."26.1.2-forge"]
 loader = "forge"
 minecraft = "26.1.2"
