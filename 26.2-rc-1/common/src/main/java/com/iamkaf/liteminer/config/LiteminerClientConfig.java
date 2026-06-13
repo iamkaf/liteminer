@@ -16,13 +16,12 @@ public final class LiteminerClientConfig {
         builder.push("controls")
                 .categoryComment("Local input behavior for activating vein mining.")
                 .categoryInfo(info -> info
-                        .header("Controls")
-                        .inlineText("Choose whether the vein mining key must be held down or toggles the mode on and off."))
+                        .headerKey("liteminer.config.info.controls.header")
+                        .inlineTextKey("liteminer.config.info.controls.text"))
                 .header("Controls");
         keyMode = builder.enumValue("key_mode", KeyMode.HOLD)
                 .comment("Controls how the vein mining keybind activates vein mining.")
-                .info(info -> info.inlineText(
-                        "Hold mode is safer for quick mining. Toggle mode is more comfortable for longer vein mining sessions."))
+                .info(info -> info.inlineTextKey("liteminer.config.key_mode.info"))
                 .clientOnly()
                 .build();
         builder.pop();
@@ -30,19 +29,17 @@ public final class LiteminerClientConfig {
         builder.push("hud")
                 .categoryComment("Client HUD text shown while vein mining.")
                 .categoryInfo(info -> info
-                        .header("HUD")
-                        .inlineText("HUD settings control the selected block count and current shape text shown in-game."))
+                        .headerKey("liteminer.config.info.hud.header")
+                        .inlineTextKey("liteminer.config.info.hud.text"))
                 .header("HUD");
         showHUD = builder.bool("show_hud", true)
                 .comment("Shows selected block count and current vein mining shape on the HUD.")
-                .info(info -> info.inlineText(
-                        "Disable this if you prefer to rely on the selected block highlights without extra HUD text."))
+                .info(info -> info.inlineTextKey("liteminer.config.show_hud.info"))
                 .clientOnly()
                 .build();
         hud_scale = builder.doubleRange("hud_scale", 1d, 0.5d, 2d)
                 .comment("Scales Liteminer HUD text.")
-                .info(info -> info.inlineText(
-                        "Values below 1.0 shrink the HUD, while values above 1.0 enlarge it."))
+                .info(info -> info.inlineTextKey("liteminer.config.hud_scale.info"))
                 .clientOnly()
                 .build();
         builder.pop();
@@ -50,27 +47,24 @@ public final class LiteminerClientConfig {
         builder.push("highlights")
                 .categoryComment("Client block outline rendering for selected vein mining blocks.")
                 .categoryInfo(info -> info
-                        .header("Highlights")
-                        .inlineText("Highlights show which blocks will be mined before you break the targeted block."))
+                        .headerKey("liteminer.config.info.highlights.header")
+                        .inlineTextKey("liteminer.config.info.highlights.text"))
                 .header("Highlights");
         showHighlights = builder.bool("show_highlights", true)
                 .comment("Shows block highlights when vein mining.")
-                .info(info -> info.inlineText(
-                        "Disable this if the outlines are distracting or too expensive on your client."))
+                .info(info -> info.inlineTextKey("liteminer.config.show_highlights.info"))
                 .clientOnly()
                 .build();
 
         highlightForegroundLineColor = builder.colorRgb("highlight_foreground_line_color", 0xF9FFFE)
                 .comment("Color used for normal visible highlight lines.")
-                .info(info -> info.inlineText(
-                        "These lines render normally and are most visible when the selected block face is unobstructed."))
+                .info(info -> info.inlineTextKey("liteminer.config.highlight_foreground_line_color.info"))
                 .clientOnly()
                 .build();
 
         highlightSeeThroughLineColor = builder.colorRgb("highlight_see_through_line_color", 0x169C9C)
                 .comment("Color used for see-through highlight lines.")
-                .info(info -> info.inlineText(
-                        "These lines render through blocks so selected blocks remain readable behind terrain."))
+                .info(info -> info.inlineTextKey("liteminer.config.highlight_see_through_line_color.info"))
                 .clientOnly()
                 .build();
         builder.pop();

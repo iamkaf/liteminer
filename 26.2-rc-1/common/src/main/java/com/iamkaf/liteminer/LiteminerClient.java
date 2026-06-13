@@ -71,9 +71,9 @@ public class LiteminerClient {
                 })
                 .comment("Client-only Liteminer settings for controls, HUD, and rendering.")
                 .info(info -> info
-                        .header("Liteminer Client")
-                        .inlineText("Client settings control local input behavior, on-screen HUD text, and block highlight rendering.")
-                        .url("Report an issue", "https://github.com/iamkaf/mod-issues"));
+                        .headerKey("liteminer.config.info.client.header")
+                        .inlineTextKey("liteminer.config.info.client.text")
+                        .urlKey("liteminer.config.info.report_issue", "https://github.com/iamkaf/liteminer"));
         CONFIG = new LiteminerClientConfig(builder);
         CONFIG_HANDLE = builder.build();
     }

@@ -1,7 +1,7 @@
 modLoader = "javafml"
 loaderVersion = "${forge_loader_version_range}"
 license = "${license}"
-issueTrackerURL = "https://github.com/iamkaf/mod-issues/issues"
+issueTrackerURL = "https://github.com/iamkaf/liteminer/issues"
 
 [[mods]]
 modId = "${mod_id}"

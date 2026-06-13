@@ -8,9 +8,9 @@
         "${mod_author}"
     ],
     "contact": {
-        "homepage": "https://github.com/iamkaf/mod-issues",
-        "issues": "https://github.com/iamkaf/mod-issues/issues",
-        "sources": "https://github.com/iamkaf/mod-issues"
+        "homepage": "https://github.com/iamkaf/liteminer",
+        "issues": "https://github.com/iamkaf/liteminer/issues",
+        "sources": "https://github.com/iamkaf/liteminer"
     },
     "license": "${license}",
     "icon": "assets/${mod_id}/icon.png",

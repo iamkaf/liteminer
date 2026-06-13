@@ -46,9 +46,9 @@ public final class Liteminer {
                 })
                 .comment("Common Liteminer settings synced from the server when multiplayer policy requires it.")
                 .info(info -> info
-                        .header("Liteminer")
-                        .inlineText("Gameplay settings for vein mining limits, safety checks, harvest cost, and block matching.")
-                        .url("Report an issue", "https://github.com/iamkaf/mod-issues"));
+                        .headerKey("liteminer.config.info.common.header")
+                        .inlineTextKey("liteminer.config.info.common.text")
+                        .urlKey("liteminer.config.info.report_issue", "https://github.com/iamkaf/liteminer"));
         CONFIG = new LiteminerConfig(builder);
         CONFIG_HANDLE = builder.build();
     }
