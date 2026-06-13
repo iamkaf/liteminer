@@ -9,68 +9,68 @@ public final class LiteminerClientConfig {
     public final ConfigValue<Double> hud_scale;
 
     public final ConfigValue<Boolean> showHighlights;
-    public final ConfigValue<LineColor> highlightForegroundLineColor;
-    public final ConfigValue<LineColor> highlightSeeThroughLineColor;
+    public final ConfigValue<Integer> highlightForegroundLineColor;
+    public final ConfigValue<Integer> highlightSeeThroughLineColor;
 
     public LiteminerClientConfig(ConfigBuilder builder) {
         builder.push("controls")
                 .categoryComment("Local input behavior for activating vein mining.")
-                .categoryTooltip("Keybind behavior.")
                 .categoryInfo(info -> info
                         .header("Controls")
-                        .inlineText("Choose whether the vein mining key must be held down or toggles the mode on and off."));
+                        .inlineText("Choose whether the vein mining key must be held down or toggles the mode on and off."))
+                .header("Controls");
         keyMode = builder.enumValue("key_mode", KeyMode.HOLD)
                 .comment("Controls how the vein mining keybind activates vein mining.")
-                .tooltip("In Hold mode you must keep holding the key to mine. In toggle mode you hit the key to toggle.")
-                .info(info -> info.inlineText("Hold mode is safer for quick mining. Toggle mode is more comfortable for longer sessions."))
+                .info(info -> info.inlineText(
+                        "Hold mode is safer for quick mining. Toggle mode is more comfortable for longer vein mining sessions."))
                 .clientOnly()
                 .build();
         builder.pop();
 
         builder.push("hud")
                 .categoryComment("Client HUD text shown while vein mining.")
-                .categoryTooltip("On-screen selected block and shape text.")
                 .categoryInfo(info -> info
                         .header("HUD")
-                        .inlineText("HUD settings control the selected block count and current shape text shown in-game."));
+                        .inlineText("HUD settings control the selected block count and current shape text shown in-game."))
+                .header("HUD");
         showHUD = builder.bool("show_hud", true)
                 .comment("Shows selected block count and current vein mining shape on the HUD.")
-                .tooltip("Enables the text showing how many blocks you have selected and your mining shape.")
-                .info(info -> info.inlineText("Disable this if you prefer the visual highlight only."))
+                .info(info -> info.inlineText(
+                        "Disable this if you prefer to rely on the selected block highlights without extra HUD text."))
                 .clientOnly()
                 .build();
         hud_scale = builder.doubleRange("hud_scale", 1d, 0.5d, 2d)
                 .comment("Scales Liteminer HUD text.")
-                .tooltip("Changes how big the HUD elements are.")
-                .info(info -> info.inlineText("Values below 1.0 shrink the HUD, while values above 1.0 enlarge it."))
+                .info(info -> info.inlineText(
+                        "Values below 1.0 shrink the HUD, while values above 1.0 enlarge it."))
                 .clientOnly()
                 .build();
         builder.pop();
 
         builder.push("highlights")
                 .categoryComment("Client block outline rendering for selected vein mining blocks.")
-                .categoryTooltip("Selected block highlight rendering.")
                 .categoryInfo(info -> info
                         .header("Highlights")
-                        .inlineText("Highlights show which blocks will be mined before you break the targeted block."));
+                        .inlineText("Highlights show which blocks will be mined before you break the targeted block."))
+                .header("Highlights");
         showHighlights = builder.bool("show_highlights", true)
                 .comment("Shows block highlights when vein mining.")
-                .tooltip("Show visual highlights around blocks that will be mined.")
-                .info(info -> info.inlineText("Disable this if the outlines are distracting or too expensive on your client."))
+                .info(info -> info.inlineText(
+                        "Disable this if the outlines are distracting or too expensive on your client."))
                 .clientOnly()
                 .build();
 
-        highlightForegroundLineColor = builder.enumValue("highlight_foreground_line_color", LineColor.WHITE)
+        highlightForegroundLineColor = builder.colorRgb("highlight_foreground_line_color", 0xF9FFFE)
                 .comment("Color used for normal visible highlight lines.")
-                .tooltip("Color for the main highlight lines using Minecraft wool colors.")
-                .info(info -> info.inlineText("These lines render normally and are most visible when the selected block face is unobstructed."))
+                .info(info -> info.inlineText(
+                        "These lines render normally and are most visible when the selected block face is unobstructed."))
                 .clientOnly()
                 .build();
 
-        highlightSeeThroughLineColor = builder.enumValue("highlight_see_through_line_color", LineColor.CYAN)
+        highlightSeeThroughLineColor = builder.colorRgb("highlight_see_through_line_color", 0x169C9C)
                 .comment("Color used for see-through highlight lines.")
-                .tooltip("Color for the see-through highlight lines using Minecraft wool colors.")
-                .info(info -> info.inlineText("These lines render through blocks so selected blocks remain readable behind terrain."))
+                .info(info -> info.inlineText(
+                        "These lines render through blocks so selected blocks remain readable behind terrain."))
                 .clientOnly()
                 .build();
         builder.pop();

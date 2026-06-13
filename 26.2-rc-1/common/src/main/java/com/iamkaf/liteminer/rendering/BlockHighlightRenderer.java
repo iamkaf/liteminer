@@ -169,14 +169,18 @@ public class BlockHighlightRenderer {
 
         float lineWidth = mc.getWindow().getAppropriateLineWidth();
 
-        int translucentColor = LiteminerClient.CONFIG.highlightSeeThroughLineColor.get().argb(0x4B);
+        int translucentColor = withAlpha(LiteminerClient.CONFIG.highlightSeeThroughLineColor.get(), 0x4B);
         submitHighlight(submitNodeCollector, poseStack, LINES_TRANSLUCENT_NO_DEPTH_TEST, linesToRender, translucentColor, lineWidth);
 
-        int opaqueColor = LiteminerClient.CONFIG.highlightForegroundLineColor.get().argb(0xFF);
+        int opaqueColor = withAlpha(LiteminerClient.CONFIG.highlightForegroundLineColor.get(), 0xFF);
         submitHighlight(submitNodeCollector, poseStack, LINES_NORMAL, linesToRender, opaqueColor, lineWidth);
 
         poseStack.popPose();
         return InteractionResult.PASS;
+    }
+
+    private static int withAlpha(int rgb, int alpha) {
+        return ((alpha & 0xFF) << 24) | (rgb & 0xFFFFFF);
     }
 
     private static void submitHighlight(SubmitNodeCollector submitNodeCollector, PoseStack poseStack, RenderType renderType,

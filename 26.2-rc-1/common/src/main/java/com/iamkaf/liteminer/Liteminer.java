@@ -32,10 +32,8 @@ public final class Liteminer {
                 .scope(ConfigScope.COMMON)
                 .syncMode(SyncMode.LOGIN_AND_RELOAD)
                 .fileName("liteminer-common.toml")
-                .schemaVersion(2)
+                .schemaVersion(1)
                 .migrate(0, context -> {
-                })
-                .migrate(1, context -> {
                     context.rename("prevent_tool_breaking", "safety.prevent_tool_breaking");
                     context.rename("require_correct_tool_enabled", "safety.require_correct_tool_enabled");
                     context.rename("block_break_limit", "limits.block_break_limit");

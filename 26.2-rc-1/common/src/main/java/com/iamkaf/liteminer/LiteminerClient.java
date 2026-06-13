@@ -9,6 +9,7 @@ import com.iamkaf.amber.api.event.v1.events.common.client.RenderEvents;
 import com.iamkaf.amber.api.registry.v1.KeybindHelper;
 import com.iamkaf.konfig.api.v1.ConfigBuilder;
 import com.iamkaf.konfig.api.v1.ConfigHandle;
+import com.iamkaf.konfig.api.v1.ConfigMigrationContext;
 import com.iamkaf.konfig.api.v1.ConfigScope;
 import com.iamkaf.konfig.api.v1.Konfig;
 import com.iamkaf.konfig.api.v1.SyncMode;
@@ -55,10 +56,8 @@ public class LiteminerClient {
                 .scope(ConfigScope.CLIENT)
                 .syncMode(SyncMode.NONE)
                 .fileName("liteminer-client.toml")
-                .schemaVersion(3)
+                .schemaVersion(1)
                 .migrate(0, context -> {
-                })
-                .migrate(1, context -> {
                     context.rename("key_mode", "controls.key_mode");
                     context.rename("show_hud", "hud.show_hud");
                     context.rename("hud_scale", "hud.hud_scale");
@@ -66,9 +65,9 @@ public class LiteminerClient {
                     context.remove("highlight_color_transition");
                     context.rename("highlight_foreground_line_color", "highlights.highlight_foreground_line_color");
                     context.rename("highlight_see_through_line_color", "highlights.highlight_see_through_line_color");
-                })
-                .migrate(2, context -> {
                     context.remove("highlights.highlight_color_transition");
+                    migrateLineColor(context, "highlights.highlight_foreground_line_color", "#F9FFFE");
+                    migrateLineColor(context, "highlights.highlight_see_through_line_color", "#169C9C");
                 })
                 .comment("Client-only Liteminer settings for controls, HUD, and rendering.")
                 .info(info -> info
@@ -77,6 +76,48 @@ public class LiteminerClient {
                         .url("Report an issue", "https://github.com/iamkaf/mod-issues"));
         CONFIG = new LiteminerClientConfig(builder);
         CONFIG_HANDLE = builder.build();
+    }
+
+    private static void migrateLineColor(ConfigMigrationContext context, String path, String fallback) {
+        String value;
+        try {
+            value = context.string(path);
+        } catch (RuntimeException ignored) {
+            context.set(path, fallback);
+            return;
+        }
+
+        if (value == null) {
+            return;
+        }
+        context.set(path, lineColorToHex(value, fallback));
+    }
+
+    private static String lineColorToHex(String value, String fallback) {
+        String normalized = value.trim();
+        if (normalized.startsWith("#") || normalized.regionMatches(true, 0, "0x", 0, 2)) {
+            return normalized;
+        }
+
+        return switch (normalized.toUpperCase().replace('-', '_').replace(' ', '_')) {
+            case "WHITE" -> "#F9FFFE";
+            case "ORANGE" -> "#F9801D";
+            case "MAGENTA" -> "#C74EBD";
+            case "LIGHT_BLUE" -> "#3AB3DA";
+            case "YELLOW" -> "#FED83D";
+            case "LIME" -> "#80C71F";
+            case "PINK" -> "#F38BAA";
+            case "GRAY" -> "#474F52";
+            case "LIGHT_GRAY" -> "#9D9D97";
+            case "CYAN" -> "#169C9C";
+            case "PURPLE" -> "#8932B8";
+            case "BLUE" -> "#3C44AA";
+            case "BROWN" -> "#835432";
+            case "GREEN" -> "#5E7C16";
+            case "RED" -> "#B02E26";
+            case "BLACK" -> "#1D1D21";
+            default -> fallback;
+        };
     }
 
     public static void init() {
