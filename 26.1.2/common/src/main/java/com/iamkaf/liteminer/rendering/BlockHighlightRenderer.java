@@ -4,7 +4,6 @@ import com.iamkaf.amber.api.functions.v1.WorldFunctions;
 import com.iamkaf.liteminer.Liteminer;
 import com.iamkaf.liteminer.LiteminerClient;
 import com.iamkaf.liteminer.api.shape.LiteminerShape;
-import com.iamkaf.liteminer.config.LineColor;
 import com.iamkaf.liteminer.shapes.ShapelessWalker;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.ColorTargetState;
@@ -15,7 +14,6 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import net.minecraft.client.renderer.ShapeRenderer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -34,74 +32,43 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.phys.shapes.BooleanOp;
-import net.minecraft.world.phys.shapes.Shapes;
-import net.minecraft.world.phys.shapes.VoxelShape;
 import org.joml.Vector3f;
-import org.joml.Vector3fc;
 
-import java.util.Collection;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class BlockHighlightRenderer {
-    private static final long HIGHLIGHT_COLOR_PERIOD_MS = 1_200L;
     private static final RenderType LINES_NORMAL = RenderTypes.lines();
     private static final RenderType LINES_TRANSLUCENT_NO_DEPTH_TEST = createLinesTranslucentNoDepthTestRenderType();
+    private static final int GRID_EXTERIOR_THRESHOLD = 768;
+    private static final double SAMPLE_EPSILON = 0.0001d;
 
-    // Cache for expensive operations
     private static class HighlightCache {
         BlockPos lastOrigin;
         int lastShapeIndex;
+        int lastBlockLimit;
         HashSet<BlockPos> cachedBlocks;
-        VoxelShape cachedCombinedShape;
         List<Line> cachedLines;
         long lastUpdateTime;
-        BlockPos lastCameraBlock;
-        int lastYawBucket;
-        int lastPitchBucket;
-        int frameCounter = 0;
 
-        boolean isValid(BlockPos origin, int shapeIndex, int blockLimit, Camera camera) {
-            // Adaptive cache timeout based on block limit
-            // Higher limits = more expensive calculations = longer cache
-            long cacheTimeout = blockLimit >= 512 ? 500 :  // 500ms for very large limits
-                               blockLimit >= 256 ? 300 :   // 300ms for large limits
-                               blockLimit >= 128 ? 200 :   // 200ms for medium-large limits
-                               100;                         // 100ms for normal limits
-
+        boolean isValid(BlockPos origin, int shapeIndex, int blockLimit) {
             return Objects.equals(lastOrigin, origin) &&
-                   lastShapeIndex == shapeIndex &&
-                   // Render geometry is camera-culled, so camera movement has to invalidate it.
-                   Objects.equals(lastCameraBlock, camera.blockPosition()) &&
-                   lastYawBucket == rotationBucket(camera.yaw()) &&
-                   lastPitchBucket == rotationBucket(camera.xRot()) &&
-                   (System.currentTimeMillis() - lastUpdateTime) < cacheTimeout;
+                    lastShapeIndex == shapeIndex &&
+                    lastBlockLimit == blockLimit &&
+                    (System.currentTimeMillis() - lastUpdateTime) < cacheTimeoutMillis(blockLimit);
         }
 
-        boolean shouldUpdateThisFrame(int blockLimit) {
-            // For high block limits, skip frames to reduce overhead
-            // Only update every N frames based on block count
-            frameCounter++;
-
-            int frameSkip = blockLimit >= 512 ? 4 :  // Update every 4th frame for huge limits
-                           blockLimit >= 256 ? 3 :   // Update every 3rd frame for very large limits
-                           blockLimit >= 128 ? 2 :   // Update every 2nd frame for medium-large limits
-                           1;                         // Update every frame for normal limits
-
-            return (frameCounter % frameSkip) == 0;
-        }
-
-        void update(BlockPos origin, int shapeIndex, Camera camera, HashSet<BlockPos> blocks, VoxelShape shape, List<Line> lines) {
+        void update(BlockPos origin, int shapeIndex, int blockLimit, HashSet<BlockPos> blocks, List<Line> lines) {
             this.lastOrigin = origin;
             this.lastShapeIndex = shapeIndex;
-            this.lastCameraBlock = camera.blockPosition();
-            this.lastYawBucket = rotationBucket(camera.yaw());
-            this.lastPitchBucket = rotationBucket(camera.xRot());
+            this.lastBlockLimit = blockLimit;
             this.cachedBlocks = blocks;
-            this.cachedCombinedShape = shape;
             this.cachedLines = lines;
             this.lastUpdateTime = System.currentTimeMillis();
         }
@@ -109,9 +76,7 @@ public class BlockHighlightRenderer {
         void invalidate() {
             this.lastOrigin = null;
             this.cachedBlocks = null;
-            this.cachedCombinedShape = null;
             this.cachedLines = null;
-            this.lastCameraBlock = null;
         }
     }
 
@@ -167,26 +132,15 @@ public class BlockHighlightRenderer {
         LiteminerShape shape = LiteminerClient.shapes.getCurrentItem();
         int currentShapeIndex = LiteminerClient.shapes.getCurrentIndex();
         int blockLimit = Liteminer.CONFIG.blockBreakLimit.get();
-
         BlockPos origin = ShapelessWalker.raytraceBlock(level, player);
 
-        // Check cache validity
         HashSet<BlockPos> blocksToHighlight;
-        VoxelShape combinedShape;
         List<Line> linesToRender;
 
-        if (cache.isValid(origin, currentShapeIndex, blockLimit, camera) && cache.shouldUpdateThisFrame(blockLimit)) {
-            // Use cached results
+        if (cache.isValid(origin, currentShapeIndex, blockLimit)) {
             blocksToHighlight = cache.cachedBlocks;
-            combinedShape = cache.cachedCombinedShape;
-            linesToRender = cache.cachedLines;
-        } else if (cache.isValid(origin, currentShapeIndex, blockLimit, camera)) {
-            // Cache is valid but we're skipping this frame for performance
-            blocksToHighlight = cache.cachedBlocks;
-            combinedShape = cache.cachedCombinedShape;
             linesToRender = cache.cachedLines;
         } else {
-            // Recalculate and cache
             blocksToHighlight = shape.walk(level, player, ShapelessWalker.raytrace(level, player).getBlockPos());
 
             if (blocksToHighlight.isEmpty()) {
@@ -195,26 +149,8 @@ public class BlockHighlightRenderer {
                 return InteractionResult.PASS;
             }
 
-            HashSet<BlockPos> renderBlocks = cullBlocksOutsideCamera(blocksToHighlight, camera, mc);
-            if (renderBlocks.isEmpty()) {
-                renderBlocks = blocksToHighlight;
-            }
-
-            if (renderBlocks.size() >= 64) {
-                // Avoid VoxelShape unions for dense selections; plant and leaf shapes are especially expensive.
-                linesToRender = createBoundaryLines(renderBlocks, origin);
-                combinedShape = null;
-            } else {
-                // For normal block limits, use expensive but prettier merged shapes
-                Collection<VoxelShape> shapes = new HashSet<>();
-                for (AABB aabb : WorldFunctions.mergeBoundingBoxes(renderBlocks, origin)) {
-                    shapes.add(Shapes.create(aabb.inflate(0.005d)));
-                }
-                combinedShape = orShapes(shapes);
-                linesToRender = null;
-            }
-
-            cache.update(origin, currentShapeIndex, camera, blocksToHighlight, combinedShape, linesToRender);
+            linesToRender = createHighlightLines(blocksToHighlight, origin);
+            cache.update(origin, currentShapeIndex, blockLimit, blocksToHighlight, linesToRender);
         }
 
         LiteminerClient.selectedBlocks = blocksToHighlight;
@@ -232,15 +168,13 @@ public class BlockHighlightRenderer {
         MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
         float lineWidth = mc.getWindow().getAppropriateLineWidth();
 
-        // Render see-through translucent lines with NO_DEPTH_TEST so they show through blocks
         VertexConsumer translucentBuilder = buffers.getBuffer(LINES_TRANSLUCENT_NO_DEPTH_TEST);
-        int translucentColor = highlightColor(LiteminerClient.CONFIG.highlightSeeThroughLineColor.get(), 0x4B);
-        renderHighlight(poseStack, translucentBuilder, combinedShape, linesToRender, translucentColor, lineWidth);
+        int translucentColor = LiteminerClient.CONFIG.highlightSeeThroughLineColor.get().argb(0x4B);
+        renderHighlight(poseStack, translucentBuilder, linesToRender, translucentColor, lineWidth);
 
-        // Render foreground opaque lines that respect depth testing
         VertexConsumer opaqueBuilder = buffers.getBuffer(LINES_NORMAL);
-        int opaqueColor = highlightColor(LiteminerClient.CONFIG.highlightForegroundLineColor.get(), 0xFF);
-        renderHighlight(poseStack, opaqueBuilder, combinedShape, linesToRender, opaqueColor, lineWidth);
+        int opaqueColor = LiteminerClient.CONFIG.highlightForegroundLineColor.get().argb(0xFF);
+        renderHighlight(poseStack, opaqueBuilder, linesToRender, opaqueColor, lineWidth);
 
         buffers.endBatch(LINES_TRANSLUCENT_NO_DEPTH_TEST);
         buffers.endBatch(LINES_NORMAL);
@@ -249,24 +183,196 @@ public class BlockHighlightRenderer {
         return InteractionResult.PASS;
     }
 
-    private static int highlightColor(LineColor color, int alpha) {
-        if (!LiteminerClient.CONFIG.highlightColorTransition.get()) {
-            return color.argb(alpha);
+    private static void renderHighlight(PoseStack poseStack, VertexConsumer builder, List<Line> lines, int color,
+            float width) {
+        for (Line line : lines) {
+            addLine(poseStack, builder, line.x1, line.y1, line.z1, line.x2, line.y2, line.z2, color, width);
         }
-
-        return color.transitioningArgb(alpha, System.currentTimeMillis(), HIGHLIGHT_COLOR_PERIOD_MS);
     }
 
-    private static void renderHighlight(PoseStack poseStack, VertexConsumer builder, VoxelShape shape,
-            List<Line> lines, int color, float width) {
-        if (lines != null) {
-            for (Line line : lines) {
-                addLine(poseStack, builder, line.x1, line.y1, line.z1, line.x2, line.y2, line.z2, color, width);
-            }
+    private static List<Line> createHighlightLines(HashSet<BlockPos> blocks, BlockPos origin) {
+        if (blocks.size() > GRID_EXTERIOR_THRESHOLD) {
+            return createGridExteriorLines(blocks, origin);
+        }
+        return createMergedExteriorLines(blocks, origin);
+    }
+
+    private static List<Line> createMergedExteriorLines(HashSet<BlockPos> blocks, BlockPos origin) {
+        List<AABB> boxes = new ArrayList<>(WorldFunctions.mergeBoundingBoxes(blocks, origin));
+        HashSet<Line> lines = new HashSet<>();
+        for (AABB box : boxes) {
+            addExteriorBoxLines(lines, boxes, box);
+        }
+        return mergeCollinearLines(lines);
+    }
+
+    private static List<Line> createGridExteriorLines(HashSet<BlockPos> blocks, BlockPos origin) {
+        HashSet<Line> lines = new HashSet<>();
+        for (BlockPos pos : blocks) {
+            addGridExteriorBoxLines(lines, blocks, pos, origin);
+        }
+        return mergeCollinearLines(lines);
+    }
+
+    private static void addExteriorBoxLines(Collection<Line> lines, List<AABB> boxes, AABB box) {
+        addExteriorLine(lines, boxes, Axis.X, box.minX, box.maxX, box.minY, box.minZ);
+        addExteriorLine(lines, boxes, Axis.X, box.minX, box.maxX, box.maxY, box.minZ);
+        addExteriorLine(lines, boxes, Axis.X, box.minX, box.maxX, box.minY, box.maxZ);
+        addExteriorLine(lines, boxes, Axis.X, box.minX, box.maxX, box.maxY, box.maxZ);
+
+        addExteriorLine(lines, boxes, Axis.Y, box.minY, box.maxY, box.minX, box.minZ);
+        addExteriorLine(lines, boxes, Axis.Y, box.minY, box.maxY, box.maxX, box.minZ);
+        addExteriorLine(lines, boxes, Axis.Y, box.minY, box.maxY, box.minX, box.maxZ);
+        addExteriorLine(lines, boxes, Axis.Y, box.minY, box.maxY, box.maxX, box.maxZ);
+
+        addExteriorLine(lines, boxes, Axis.Z, box.minZ, box.maxZ, box.minX, box.minY);
+        addExteriorLine(lines, boxes, Axis.Z, box.minZ, box.maxZ, box.maxX, box.minY);
+        addExteriorLine(lines, boxes, Axis.Z, box.minZ, box.maxZ, box.minX, box.maxY);
+        addExteriorLine(lines, boxes, Axis.Z, box.minZ, box.maxZ, box.maxX, box.maxY);
+    }
+
+    private static void addGridExteriorBoxLines(Collection<Line> lines, HashSet<BlockPos> blocks, BlockPos pos,
+            BlockPos origin) {
+        int x = pos.getX();
+        int y = pos.getY();
+        int z = pos.getZ();
+
+        addGridExteriorLine(lines, blocks, Axis.X, x, x + 1, y, z, origin);
+        addGridExteriorLine(lines, blocks, Axis.X, x, x + 1, y + 1, z, origin);
+        addGridExteriorLine(lines, blocks, Axis.X, x, x + 1, y, z + 1, origin);
+        addGridExteriorLine(lines, blocks, Axis.X, x, x + 1, y + 1, z + 1, origin);
+
+        addGridExteriorLine(lines, blocks, Axis.Y, y, y + 1, x, z, origin);
+        addGridExteriorLine(lines, blocks, Axis.Y, y, y + 1, x + 1, z, origin);
+        addGridExteriorLine(lines, blocks, Axis.Y, y, y + 1, x, z + 1, origin);
+        addGridExteriorLine(lines, blocks, Axis.Y, y, y + 1, x + 1, z + 1, origin);
+
+        addGridExteriorLine(lines, blocks, Axis.Z, z, z + 1, x, y, origin);
+        addGridExteriorLine(lines, blocks, Axis.Z, z, z + 1, x + 1, y, origin);
+        addGridExteriorLine(lines, blocks, Axis.Z, z, z + 1, x, y + 1, origin);
+        addGridExteriorLine(lines, blocks, Axis.Z, z, z + 1, x + 1, y + 1, origin);
+    }
+
+    private static void addGridExteriorLine(Collection<Line> lines, HashSet<BlockPos> blocks, Axis axis,
+            int start, int end, int fixedA, int fixedB, BlockPos origin) {
+        double middle = start + 0.5d;
+        if (!isGridExteriorEdge(blocks, axis, middle, fixedA, fixedB)) {
             return;
         }
 
-        ShapeRenderer.renderShape(poseStack, builder, shape, 0.0, 0.0, 0.0, color, width);
+        double relativeStart = start - axis.origin(origin);
+        double relativeEnd = end - axis.origin(origin);
+        double relativeFixedA = fixedA - axis.fixedAOrigin(origin);
+        double relativeFixedB = fixedB - axis.fixedBOrigin(origin);
+        lines.add(axis.line(relativeStart, relativeEnd, relativeFixedA, relativeFixedB));
+    }
+
+    private static void addExteriorLine(Collection<Line> lines, List<AABB> boxes, Axis axis, double start, double end,
+            double fixedA, double fixedB) {
+        ArrayList<Double> splitPoints = new ArrayList<>();
+        splitPoints.add(start);
+        splitPoints.add(end);
+        for (AABB box : boxes) {
+            addSplitPoint(splitPoints, axis.min(box), start, end);
+            addSplitPoint(splitPoints, axis.max(box), start, end);
+        }
+        splitPoints.sort(Double::compareTo);
+
+        double segmentStart = splitPoints.get(0);
+        for (int i = 1; i < splitPoints.size(); i++) {
+            double segmentEnd = splitPoints.get(i);
+            if (segmentEnd - segmentStart <= SAMPLE_EPSILON) {
+                continue;
+            }
+
+            double middle = (segmentStart + segmentEnd) * 0.5d;
+            if (isExteriorUnionEdge(boxes, axis, middle, fixedA, fixedB)) {
+                lines.add(axis.line(segmentStart, segmentEnd, fixedA, fixedB));
+            }
+            segmentStart = segmentEnd;
+        }
+    }
+
+    private static void addSplitPoint(Collection<Double> splitPoints, double value, double start, double end) {
+        if (value > start + SAMPLE_EPSILON && value < end - SAMPLE_EPSILON) {
+            splitPoints.add(value);
+        }
+    }
+
+    private static boolean isExteriorUnionEdge(List<AABB> boxes, Axis axis, double middle, double fixedA,
+            double fixedB) {
+        boolean a = axis.contains(boxes, middle, fixedA - SAMPLE_EPSILON, fixedB - SAMPLE_EPSILON);
+        boolean b = axis.contains(boxes, middle, fixedA - SAMPLE_EPSILON, fixedB + SAMPLE_EPSILON);
+        boolean c = axis.contains(boxes, middle, fixedA + SAMPLE_EPSILON, fixedB - SAMPLE_EPSILON);
+        boolean d = axis.contains(boxes, middle, fixedA + SAMPLE_EPSILON, fixedB + SAMPLE_EPSILON);
+        return isExteriorQuadrantPattern(a, b, c, d);
+    }
+
+    private static boolean isGridExteriorEdge(HashSet<BlockPos> blocks, Axis axis, double middle, int fixedA,
+            int fixedB) {
+        boolean a = axis.contains(blocks, middle, fixedA - SAMPLE_EPSILON, fixedB - SAMPLE_EPSILON);
+        boolean b = axis.contains(blocks, middle, fixedA - SAMPLE_EPSILON, fixedB + SAMPLE_EPSILON);
+        boolean c = axis.contains(blocks, middle, fixedA + SAMPLE_EPSILON, fixedB - SAMPLE_EPSILON);
+        boolean d = axis.contains(blocks, middle, fixedA + SAMPLE_EPSILON, fixedB + SAMPLE_EPSILON);
+        return isExteriorQuadrantPattern(a, b, c, d);
+    }
+
+    private static boolean isExteriorQuadrantPattern(boolean a, boolean b, boolean c, boolean d) {
+        int solidQuadrants = (a ? 1 : 0) + (b ? 1 : 0) + (c ? 1 : 0) + (d ? 1 : 0);
+        boolean diagonal = (a && d && !b && !c) || (b && c && !a && !d);
+        return solidQuadrants == 1 || solidQuadrants == 3 || diagonal;
+    }
+
+    private static boolean contains(List<AABB> boxes, double x, double y, double z) {
+        for (AABB box : boxes) {
+            if (x > box.minX && x < box.maxX &&
+                    y > box.minY && y < box.maxY &&
+                    z > box.minZ && z < box.maxZ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean contains(HashSet<BlockPos> blocks, double x, double y, double z) {
+        return blocks.contains(new BlockPos(
+                (int) Math.floor(x),
+                (int) Math.floor(y),
+                (int) Math.floor(z)
+        ));
+    }
+
+    private static List<Line> mergeCollinearLines(Collection<Line> lines) {
+        Map<LineKey, List<Line>> groups = new HashMap<>();
+        for (Line line : lines) {
+            groups.computeIfAbsent(LineKey.of(line), ignored -> new ArrayList<>()).add(line);
+        }
+
+        ArrayList<Line> merged = new ArrayList<>();
+        for (Map.Entry<LineKey, List<Line>> entry : groups.entrySet()) {
+            List<Line> group = entry.getValue();
+            Axis axis = entry.getKey().axis();
+            group.sort(Comparator.comparingDouble(axis::start));
+
+            double start = axis.start(group.get(0));
+            double end = axis.end(group.get(0));
+            double fixedA = entry.getKey().fixedA();
+            double fixedB = entry.getKey().fixedB();
+            for (int i = 1; i < group.size(); i++) {
+                Line line = group.get(i);
+                double nextStart = axis.start(line);
+                double nextEnd = axis.end(line);
+                if (nextStart <= end + SAMPLE_EPSILON) {
+                    end = Math.max(end, nextEnd);
+                } else {
+                    merged.add(axis.line(start, end, fixedA, fixedB));
+                    start = nextStart;
+                    end = nextEnd;
+                }
+            }
+            merged.add(axis.line(start, end, fixedA, fixedB));
+        }
+        return merged;
     }
 
     private static void addLine(PoseStack poseStack, VertexConsumer builder, double x1, double y1, double z1,
@@ -277,98 +383,200 @@ public class BlockHighlightRenderer {
         builder.addVertex(pose, (float) x2, (float) y2, (float) z2).setColor(color).setNormal(pose, normal).setLineWidth(width);
     }
 
-    private static List<Line> createBoundaryLines(HashSet<BlockPos> blocks, BlockPos origin) {
-        HashSet<Line> lines = new HashSet<>();
-
-        for (BlockPos pos : blocks) {
-            int x = pos.getX() - origin.getX();
-            int y = pos.getY() - origin.getY();
-            int z = pos.getZ() - origin.getZ();
-
-            boolean west = isFaceExposed(blocks, pos, -1, 0, 0);
-            boolean east = isFaceExposed(blocks, pos, 1, 0, 0);
-            boolean down = isFaceExposed(blocks, pos, 0, -1, 0);
-            boolean up = isFaceExposed(blocks, pos, 0, 1, 0);
-            boolean north = isFaceExposed(blocks, pos, 0, 0, -1);
-            boolean south = isFaceExposed(blocks, pos, 0, 0, 1);
-
-            if (down && north) lines.add(new Line(x, y, z, x + 1, y, z));
-            if (up && north) lines.add(new Line(x, y + 1, z, x + 1, y + 1, z));
-            if (down && south) lines.add(new Line(x, y, z + 1, x + 1, y, z + 1));
-            if (up && south) lines.add(new Line(x, y + 1, z + 1, x + 1, y + 1, z + 1));
-
-            if (west && north) lines.add(new Line(x, y, z, x, y + 1, z));
-            if (east && north) lines.add(new Line(x + 1, y, z, x + 1, y + 1, z));
-            if (west && south) lines.add(new Line(x, y, z + 1, x, y + 1, z + 1));
-            if (east && south) lines.add(new Line(x + 1, y, z + 1, x + 1, y + 1, z + 1));
-
-            if (west && down) lines.add(new Line(x, y, z, x, y, z + 1));
-            if (east && down) lines.add(new Line(x + 1, y, z, x + 1, y, z + 1));
-            if (west && up) lines.add(new Line(x, y + 1, z, x, y + 1, z + 1));
-            if (east && up) lines.add(new Line(x + 1, y + 1, z, x + 1, y + 1, z + 1));
-        }
-
-        return new ArrayList<>(lines);
+    private static long cacheTimeoutMillis(int blockLimit) {
+        return blockLimit >= 512 ? 500L :
+                blockLimit >= 256 ? 300L :
+                blockLimit >= 128 ? 200L :
+                100L;
     }
 
-    private static HashSet<BlockPos> cullBlocksOutsideCamera(HashSet<BlockPos> blocks, Camera camera, Minecraft mc) {
-        // Culling only affects the rendered outline. selectedBlocks keeps the full set for HUD/gameplay.
-        if (blocks.size() <= 16) {
-            return blocks;
+    private record Line(double x1, double y1, double z1, double x2, double y2, double z2) {}
+
+    private record LineKey(Axis axis, double fixedA, double fixedB) {
+        private static LineKey of(Line line) {
+            if (line.y1 == line.y2 && line.z1 == line.z2) {
+                return new LineKey(Axis.X, line.y1, line.z1);
+            }
+            if (line.x1 == line.x2 && line.z1 == line.z2) {
+                return new LineKey(Axis.Y, line.x1, line.z1);
+            }
+            return new LineKey(Axis.Z, line.x1, line.y1);
         }
+    }
 
-        Vec3 cameraPos = camera.position();
-        Vector3fc forward = camera.forwardVector();
-        Vector3fc left = camera.leftVector();
-        Vector3fc up = camera.upVector();
-
-        double aspect = (double) mc.getWindow().getWidth() / Math.max(1, mc.getWindow().getHeight());
-        double verticalTan = Math.tan(Math.toRadians(camera.getFov()) * 0.5d);
-        double horizontalTan = verticalTan * aspect;
-        double margin = 1.75d;
-
-        HashSet<BlockPos> visible = new HashSet<>();
-        for (BlockPos pos : blocks) {
-            double x = pos.getX() + 0.5d - cameraPos.x;
-            double y = pos.getY() + 0.5d - cameraPos.y;
-            double z = pos.getZ() + 0.5d - cameraPos.z;
-
-            double depth = dot(x, y, z, forward);
-            if (depth < -margin) {
-                continue;
+    private enum Axis {
+        X {
+            @Override
+            double min(AABB box) {
+                return box.minX;
             }
 
-            double horizontal = Math.abs(dot(x, y, z, left));
-            double vertical = Math.abs(dot(x, y, z, up));
-            double safeDepth = Math.max(depth, 0.0d);
-            if (horizontal <= safeDepth * horizontalTan + margin && vertical <= safeDepth * verticalTan + margin) {
-                visible.add(pos);
+            @Override
+            double max(AABB box) {
+                return box.maxX;
             }
-        }
 
-        return visible;
-    }
+            @Override
+            double start(Line line) {
+                return line.x1;
+            }
 
-    private static double dot(double x, double y, double z, Vector3fc vector) {
-        return x * vector.x() + y * vector.y() + z * vector.z();
-    }
+            @Override
+            double end(Line line) {
+                return line.x2;
+            }
 
-    private static int rotationBucket(float rotation) {
-        return Math.round(rotation * 2.0f);
-    }
+            @Override
+            boolean contains(List<AABB> boxes, double middle, double fixedA, double fixedB) {
+                return BlockHighlightRenderer.contains(boxes, middle, fixedA, fixedB);
+            }
 
-    private static boolean isFaceExposed(HashSet<BlockPos> blocks, BlockPos pos, int x, int y, int z) {
-        return !blocks.contains(new BlockPos(pos.getX() + x, pos.getY() + y, pos.getZ() + z));
-    }
+            @Override
+            boolean contains(HashSet<BlockPos> blocks, double middle, double fixedA, double fixedB) {
+                return BlockHighlightRenderer.contains(blocks, middle, fixedA, fixedB);
+            }
 
-    private record Line(int x1, int y1, int z1, int x2, int y2, int z2) {}
+            @Override
+            Line line(double start, double end, double fixedA, double fixedB) {
+                return new Line(start, fixedA, fixedB, end, fixedA, fixedB);
+            }
 
-    static VoxelShape orShapes(Collection<VoxelShape> shapes) {
-        VoxelShape combinedShape = Shapes.empty();
-        for (VoxelShape shape : shapes) {
-            // Use optimized version - it's faster than joinUnoptimized
-            combinedShape = Shapes.join(combinedShape, shape, BooleanOp.OR);
-        }
-        return combinedShape.optimize();
+            @Override
+            int origin(BlockPos origin) {
+                return origin.getX();
+            }
+
+            @Override
+            int fixedAOrigin(BlockPos origin) {
+                return origin.getY();
+            }
+
+            @Override
+            int fixedBOrigin(BlockPos origin) {
+                return origin.getZ();
+            }
+        },
+        Y {
+            @Override
+            double min(AABB box) {
+                return box.minY;
+            }
+
+            @Override
+            double max(AABB box) {
+                return box.maxY;
+            }
+
+            @Override
+            double start(Line line) {
+                return line.y1;
+            }
+
+            @Override
+            double end(Line line) {
+                return line.y2;
+            }
+
+            @Override
+            boolean contains(List<AABB> boxes, double middle, double fixedA, double fixedB) {
+                return BlockHighlightRenderer.contains(boxes, fixedA, middle, fixedB);
+            }
+
+            @Override
+            boolean contains(HashSet<BlockPos> blocks, double middle, double fixedA, double fixedB) {
+                return BlockHighlightRenderer.contains(blocks, fixedA, middle, fixedB);
+            }
+
+            @Override
+            Line line(double start, double end, double fixedA, double fixedB) {
+                return new Line(fixedA, start, fixedB, fixedA, end, fixedB);
+            }
+
+            @Override
+            int origin(BlockPos origin) {
+                return origin.getY();
+            }
+
+            @Override
+            int fixedAOrigin(BlockPos origin) {
+                return origin.getX();
+            }
+
+            @Override
+            int fixedBOrigin(BlockPos origin) {
+                return origin.getZ();
+            }
+        },
+        Z {
+            @Override
+            double min(AABB box) {
+                return box.minZ;
+            }
+
+            @Override
+            double max(AABB box) {
+                return box.maxZ;
+            }
+
+            @Override
+            double start(Line line) {
+                return line.z1;
+            }
+
+            @Override
+            double end(Line line) {
+                return line.z2;
+            }
+
+            @Override
+            boolean contains(List<AABB> boxes, double middle, double fixedA, double fixedB) {
+                return BlockHighlightRenderer.contains(boxes, fixedA, fixedB, middle);
+            }
+
+            @Override
+            boolean contains(HashSet<BlockPos> blocks, double middle, double fixedA, double fixedB) {
+                return BlockHighlightRenderer.contains(blocks, fixedA, fixedB, middle);
+            }
+
+            @Override
+            Line line(double start, double end, double fixedA, double fixedB) {
+                return new Line(fixedA, fixedB, start, fixedA, fixedB, end);
+            }
+
+            @Override
+            int origin(BlockPos origin) {
+                return origin.getZ();
+            }
+
+            @Override
+            int fixedAOrigin(BlockPos origin) {
+                return origin.getX();
+            }
+
+            @Override
+            int fixedBOrigin(BlockPos origin) {
+                return origin.getY();
+            }
+        };
+
+        abstract double min(AABB box);
+
+        abstract double max(AABB box);
+
+        abstract double start(Line line);
+
+        abstract double end(Line line);
+
+        abstract boolean contains(List<AABB> boxes, double middle, double fixedA, double fixedB);
+
+        abstract boolean contains(HashSet<BlockPos> blocks, double middle, double fixedA, double fixedB);
+
+        abstract Line line(double start, double end, double fixedA, double fixedB);
+
+        abstract int origin(BlockPos origin);
+
+        abstract int fixedAOrigin(BlockPos origin);
+
+        abstract int fixedBOrigin(BlockPos origin);
     }
 }
