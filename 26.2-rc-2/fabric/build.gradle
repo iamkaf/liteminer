@@ -6,6 +6,7 @@ dependencies {
     compileOnly libs.amber
     compileOnly libs.konfig
     implementation libs.fabric.api
+    runtimeOnly libs.modmenu
     runtimeOnly libs.amber.fabric
     runtimeOnly libs.konfig.fabric
     runtimeOnly libs.teakit.fabric
