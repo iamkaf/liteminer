@@ -176,7 +176,7 @@ public class BlockHighlightRenderer {
         submitHighlight(submitNodeCollector, poseStack, LINES_NORMAL, linesToRender, opaqueColor, lineWidth);
 
         poseStack.popPose();
-        return InteractionResult.PASS;
+        return InteractionResult.SUCCESS;
     }
 
     private static int withAlpha(int rgb, int alpha) {
