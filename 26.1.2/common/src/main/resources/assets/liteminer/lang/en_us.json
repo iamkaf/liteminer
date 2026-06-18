@@ -14,8 +14,6 @@
     "liteminer.config.hud_scale.tooltip": "Changes how big the HUD elements are.",
     "liteminer.config.show_highlights": "Show Block Highlights",
     "liteminer.config.show_highlights.tooltip": "Show visual highlights around blocks that will be mined.",
-    "liteminer.config.highlight_color_transition": "Animate Highlight Color",
-    "liteminer.config.highlight_color_transition.tooltip": "Transitions highlight lines toward the opposite RGB color.",
     "liteminer.config.block_break_limit": "Block Break Limit",
     "liteminer.config.block_break_limit.tooltip": "Upper limit to how many blocks can be broken at a time.",
     "liteminer.config.require_correct_tool_enabled": "Require Correct Tool",

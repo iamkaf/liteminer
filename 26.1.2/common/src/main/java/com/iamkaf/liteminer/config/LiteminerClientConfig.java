@@ -8,7 +8,6 @@ public final class LiteminerClientConfig {
     public final ModConfigSpec.ConfigValue<Double> hud_scale;
 
     public final ModConfigSpec.ConfigValue<Boolean> showHighlights;
-    public final ModConfigSpec.ConfigValue<Boolean> highlightColorTransition;
     public final ModConfigSpec.ConfigValue<LineColor> highlightForegroundLineColor;
     public final ModConfigSpec.ConfigValue<LineColor> highlightSeeThroughLineColor;
 
@@ -24,10 +23,6 @@ public final class LiteminerClientConfig {
         showHighlights = builder.translation("liteminer.config.show_highlights")
                 .comment("Show block highlights when veinmining")
                 .define("show_highlights", true);
-
-        highlightColorTransition = builder.translation("liteminer.config.highlight_color_transition")
-                .comment("Animate highlight colors toward their opposite RGB color")
-                .define("highlight_color_transition", false);
 
         highlightForegroundLineColor = builder.translation("liteminer.config.highlight_foreground_line_color")
                 .comment(":)")

@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 4.0.0
+
+### Added
+
+- Added Konfig-powered config screens for Minecraft 26.2.
+
+### Changed
+
+- Ported to Minecraft 26.2.
+- BREAKING: Liteminer now requires Konfig for configuration support.
+  - Get it from [Modrinth](https://modrinth.com/mod/konfig) or [CurseForge](https://www.curseforge.com/minecraft/mc-mods/konfig)
+- Existing config values migrate into the new categorized TOML layout.
+
+## 3.1.2
+
+### Fixed
+
+- Large block selection highlights now draw cleaner exterior outlines with better performance.
+- Highlight outlines no longer leave stray broken edge segments on large selections.
+
+### Removed
+
+- Removed the experimental animated highlight color option.
+
 ## 3.1.1
 
 ### Added

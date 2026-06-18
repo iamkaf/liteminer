@@ -22,11 +22,11 @@ loader = "fabric"
 loader_version = "latest"
 sides = ["client", "server"]
 mods = [
-  "maven:com.iamkaf.liteminer:liteminer-fabric:3.1.0+26.1.2",
+  "maven:com.iamkaf.liteminer:liteminer-fabric:3.1.2+26.1.2",
   "maven:net.fabricmc.fabric-api:fabric-api:0.146.1+26.1.2",
   "maven:fuzs.forgeconfigapiport:forgeconfigapiport-fabric:26.1.3",
   "maven:com.iamkaf.amber:amber-fabric:11.0.0+26.1.2",
-  "maven:com.iamkaf.teakit:teakit-fabric:0.8.0+26.1.2",
+  "maven:com.iamkaf.teakit:teakit-fabric:0.10.0+26.1.2",
 ]
 
 [[instance]]
@@ -37,10 +37,10 @@ loader = "forge"
 loader_version = "latest"
 sides = ["client", "server"]
 mods = [
-  "maven:com.iamkaf.liteminer:liteminer-forge:3.1.0+26.1.2",
+  "maven:com.iamkaf.liteminer:liteminer-forge:3.1.2+26.1.2",
   "maven:fuzs.forgeconfigapiport:forgeconfigapiport-forge:26.1.3",
   "maven:com.iamkaf.amber:amber-forge:11.0.0+26.1.2",
-  "maven:com.iamkaf.teakit:teakit-forge:0.8.0+26.1.2",
+  "maven:com.iamkaf.teakit:teakit-forge:0.10.0+26.1.2",
 ]
 
 [[instance]]
@@ -51,7 +51,7 @@ loader = "neoforge"
 loader_version = "latest"
 sides = ["client", "server"]
 mods = [
-  "maven:com.iamkaf.liteminer:liteminer-neoforge:3.1.0+26.1.2",
+  "maven:com.iamkaf.liteminer:liteminer-neoforge:3.1.2+26.1.2",
   "maven:com.iamkaf.amber:amber-neoforge:11.0.0+26.1.2",
-  "maven:com.iamkaf.teakit:teakit-neoforge:0.8.0+26.1.2",
+  "maven:com.iamkaf.teakit:teakit-neoforge:0.10.0+26.1.2",
 ]
