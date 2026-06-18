@@ -1,8 +1,0 @@
-plugins {
-    id 'com.iamkaf.multiloader.neoforge'
-}
-
-dependencies {
-    // Amber integration
-    implementation libs.amber.neoforge
-}

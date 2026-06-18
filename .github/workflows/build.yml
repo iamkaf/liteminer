@@ -1,4 +1,4 @@
-name: Build All Versions
+name: Build
 
 on:
   push:
@@ -20,44 +20,46 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Detect changed versions
         id: set-versions
+        shell: bash
         run: |
-          all_versions=$(find . -maxdepth 1 -type d -regex '\./[0-9]+\.[0-9]+.*' | sed 's|./||' | sort)
+          set -euo pipefail
 
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            changed=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -oP '^[0-9]+\.[0-9]+[^/]*' | sort -u || true)
-            versions=$(comm -12 <(echo "$all_versions") <(echo "$changed"))
-          elif [ "${{ github.event_name }}" == "push" ]; then
-            if [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
-              versions="$all_versions"
-            else
-              changed=$(git diff --name-only ${{ github.event.before }}...${{ github.sha }} | grep -oP '^[0-9]+\.[0-9]+[^/]*' | sort -u || true)
-              versions=$(comm -12 <(echo "$all_versions") <(echo "$changed"))
-            fi
-          else
-            versions="$all_versions"
+          all_versions=$(find versions -mindepth 2 -maxdepth 2 -type f -name gradle.properties -printf '%h\n' | xargs -r -n1 basename | sort -V)
+
+          changed_files=""
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            changed_files=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
+          elif [ "${{ github.event_name }}" = "push" ] && [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
+            changed_files=$(git diff --name-only "${{ github.event.before }}...${{ github.sha }}")
           fi
 
-          versions_json=$(echo "$versions" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          if [ -z "$changed_files" ] || printf '%s\n' "$changed_files" | grep -Eq '^(common|fabric|forge|neoforge|gradle|\.github/workflows|settings\.gradle\.kts|stonecutter\.gradle\.kts|gradle\.properties|justfile|gradlew|gradlew\.bat)(/|$)'; then
+            versions="$all_versions"
+          else
+            changed_versions=$(printf '%s\n' "$changed_files" | sed -nE 's|^versions/([^/]+)/.*|\1|p' | sort -u)
+            versions=$(comm -12 <(printf '%s\n' "$all_versions") <(printf '%s\n' "$changed_versions"))
+          fi
+
+          versions_json=$(printf '%s\n' "$versions" | jq -R -s -c 'split("\n") | map(select(length > 0))')
           build_matrix=$(printf '%s\n' "$versions" | while IFS= read -r version; do
             [ -n "$version" ] || continue
-            props="$version/gradle.properties"
+            props="versions/$version/gradle.properties"
             enabled_loaders=$(sed -nE 's/^project\.enabled-loaders=(.*)$/\1/p' "$props" | head -n1)
 
             for loader in fabric forge neoforge; do
-              [ -f "$version/$loader/build.gradle" ] || continue
-
-              if [ -z "$enabled_loaders" ] || printf '%s\n' "$enabled_loaders" | tr ',' '\n' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' | grep -Fxq "$loader"; then
-                jq -cn --arg version "$version" --arg loader "$loader" '{version: $version, loader: $loader}'
+              [ -f "$loader/build.gradle" ] || continue
+              if printf '%s\n' "$enabled_loaders" | tr ',' '\n' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' | grep -Fxq "$loader"; then
+                jq -cn --arg version "$version" --arg loader "$loader" --arg node "$version-$loader" '{version: $version, loader: $loader, node: $node}'
               fi
             done
           done | jq -s -c '.')
 
           echo "versions=$versions_json" >> "$GITHUB_OUTPUT"
           echo "build-matrix=$build_matrix" >> "$GITHUB_OUTPUT"
-          echo "Building versions: $versions_json"
+          echo "Versions: $versions_json"
           echo "Build matrix: $build_matrix"
 
   build:
@@ -70,35 +72,29 @@ jobs:
       fail-fast: false
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Detect Java version
         id: java
+        shell: bash
         run: |
-          v=$(sed -nE 's/^project\.build-java=([0-9]+).*/\1/p' "${{ matrix.version }}/gradle.properties" | head -n1)
+          set -euo pipefail
+          props="versions/${{ matrix.version }}/gradle.properties"
+          v=$(sed -nE 's/^project\.build-java=([0-9]+).*/\1/p' "$props" | head -n1)
           if [ -z "$v" ]; then
-            v=$(sed -nE 's/^project\.java=([0-9]+).*/\1/p' "${{ matrix.version }}/gradle.properties" | head -n1)
+            v=$(sed -nE 's/^project\.java=([0-9]+).*/\1/p' "$props" | head -n1)
           fi
           if [ -z "$v" ]; then
-            mc=$(sed -nE 's/^minecraft_version[[:space:]]*=[[:space:]]*([0-9.]+).*/\1/p' "${{ matrix.version }}/gradle.properties" | head -n1)
-            case "$mc" in
-              1.20.1) v=17 ;;
-              1.21.1) v=21 ;;
-            esac
-          fi
-          if [ -z "$v" ]; then
-            echo "Could not determine Java version for ${{ matrix.version }}" >&2
+            echo "project.build-java/project.java not found in $props" >&2
             exit 1
           fi
-          echo "version=$v" >> $GITHUB_OUTPUT
-          echo "Using build Java $v for ${{ matrix.version }}"
+          echo "version=$v" >> "$GITHUB_OUTPUT"
 
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: "temurin"
-          java-version: "${{ steps.java.outputs.version }}"
+          distribution: temurin
+          java-version: ${{ steps.java.outputs.version }}
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
@@ -107,60 +103,44 @@ jobs:
         uses: taiki-e/install-action@just
 
       - name: Make gradlew executable
-        working-directory: ${{ matrix.version }}
         run: chmod +x gradlew
 
-      - name: Build ${{ matrix.loader }}
-        run: just build-loader ${{ matrix.version }} ${{ matrix.loader }}
+      - name: Build ${{ matrix.node }}
+        run: just build ${{ matrix.node }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-${{ matrix.version }}-${{ matrix.loader }}
-          path: ${{ matrix.version }}/${{ matrix.loader }}/build/libs/*.jar
+          name: ${{ github.event.repository.name }}-${{ matrix.node }}
+          path: ${{ matrix.loader }}/versions/${{ matrix.version }}/build/libs/*.jar
           if-no-files-found: error
-
-      - name: Capture build scan
-        run: just build-loader ${{ matrix.version }} ${{ matrix.loader }} --scan
 
   test:
     needs: detect-changes
     if: needs.detect-changes.outputs.versions != '[]'
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        version: ${{ fromJson(needs.detect-changes.outputs.versions) }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Detect Java version
         id: java
+        shell: bash
         run: |
-          v=$(sed -nE 's/^project\.build-java=([0-9]+).*/\1/p' "${{ matrix.version }}/gradle.properties" | head -n1)
+          set -euo pipefail
+          first_version=$(printf '%s\n' '${{ needs.detect-changes.outputs.versions }}' | jq -r '.[0]')
+          props="versions/$first_version/gradle.properties"
+          v=$(sed -nE 's/^project\.build-java=([0-9]+).*/\1/p' "$props" | head -n1)
           if [ -z "$v" ]; then
-            v=$(sed -nE 's/^project\.java=([0-9]+).*/\1/p' "${{ matrix.version }}/gradle.properties" | head -n1)
-          fi
-          if [ -z "$v" ]; then
-            mc=$(sed -nE 's/^minecraft_version[[:space:]]*=[[:space:]]*([0-9.]+).*/\1/p' "${{ matrix.version }}/gradle.properties" | head -n1)
-            case "$mc" in
-              1.20.1) v=17 ;;
-              1.21.1) v=21 ;;
-            esac
-          fi
-          if [ -z "$v" ]; then
-            echo "Could not determine Java version for ${{ matrix.version }}" >&2
-            exit 1
+            v=$(sed -nE 's/^project\.java=([0-9]+).*/\1/p' "$props" | head -n1)
           fi
           echo "version=$v" >> "$GITHUB_OUTPUT"
-          echo "Using build Java $v for ${{ matrix.version }}"
 
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: "temurin"
-          java-version: "${{ steps.java.outputs.version }}"
+          distribution: temurin
+          java-version: ${{ steps.java.outputs.version }}
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
@@ -169,11 +149,10 @@ jobs:
         uses: taiki-e/install-action@just
 
       - name: Make gradlew executable
-        working-directory: ${{ matrix.version }}
         run: chmod +x gradlew
 
-      - name: Run tests
-        run: just test ${{ matrix.version }}
+      - name: Compile all changed nodes
+        run: just compile-all
 
   summary:
     needs: [build, test]
@@ -183,6 +162,5 @@ jobs:
       - name: Build Summary
         run: |
           echo "## Build Results" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "Build status: ${{ needs.build.result }}" >> "$GITHUB_STEP_SUMMARY"
           echo "Test status: ${{ needs.test.result }}" >> "$GITHUB_STEP_SUMMARY"

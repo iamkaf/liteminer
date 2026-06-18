@@ -1,10 +1,39 @@
-# Root-level gitignore for monorepo
 .DS_Store
+Thumbs.db
 .idea/
 .vscode/
 *.iml
-build/
-.teakit/
+*.ipr
+*.iws
+*.bak
+*.log
+*.launch
 
-# Each version has its own .gitignore for build artifacts
-# This file is for root-level ignores only
+.gradle/
+.cache/
+.teakit/
+build/
+out/
+bin/
+run/
+runs/
+*/run/
+*/runs/
+
+common/versions/
+fabric/versions/
+forge/versions/
+neoforge/versions/
+versions/*/build/
+stonecutter.gradle
+src/main/generated/
+common/src/main/generated/
+
+.screens/
+.runclient-*/
+.runclient-check/
+.runclient-check-v2/
+.runclient-toml-check/
+.runclient-toml-rerun/
+forge/*.launch
+fabric/*.launch

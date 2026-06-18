@@ -1,0 +1,17 @@
+plugins {
+    id 'com.iamkaf.multiloader.neoforge'
+}
+
+def minecraftVersion = requiredProp(project, 'project.minecraft')
+def libs = catalogFor(project, minecraftVersion)
+def useKonfig = minecraftVersion != '26.1.2'
+
+dependencies {
+    // Amber integration
+    implementation library(libs, 'amber-neoforge')
+    runtimeOnly library(libs, 'teakit-neoforge')
+
+    if (useKonfig) {
+        implementation library(libs, 'konfig-neoforge')
+    }
+}

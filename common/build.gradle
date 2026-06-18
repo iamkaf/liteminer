@@ -1,0 +1,24 @@
+plugins {
+    id 'com.iamkaf.multiloader.common'
+}
+
+def minecraftVersion = requiredProp(project, 'project.minecraft')
+def libs = catalogFor(project, minecraftVersion)
+def useKonfig = minecraftVersion != '26.1.2'
+
+dependencies {
+    compileOnly library(libs, 'mixin')
+    // fabric and neoforge both bundle mixinextras, so it is safe to use it in common
+    compileOnly library(libs, 'mixin-extras')
+    annotationProcessor library(libs, 'mixin-extras')
+    implementation library(libs, 'gson')
+
+    // Amber integration
+    implementation library(libs, 'amber')
+
+    if (useKonfig) {
+        implementation library(libs, 'konfig')
+    } else {
+        implementation library(libs, 'forgeconfigapiport-common-neoforgeapi')
+    }
+}

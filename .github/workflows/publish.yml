@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Specific version directory to publish. Leave blank to publish all versions.
+        description: Specific Minecraft version from versions/<version>. Leave blank to publish all versions.
         required: false
         type: string
 
@@ -22,25 +22,25 @@ jobs:
       versions: ${{ steps.set-versions.outputs.versions }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Select versions to publish
         id: set-versions
+        shell: bash
         run: |
           set -euo pipefail
 
           if [ -n "${{ inputs.version }}" ]; then
-            if [ ! -d "${{ inputs.version }}" ]; then
-              echo "Unknown version directory: ${{ inputs.version }}" >&2
+            if [ ! -f "versions/${{ inputs.version }}/gradle.properties" ]; then
+              echo "Unknown version: ${{ inputs.version }}" >&2
               exit 1
             fi
             versions="${{ inputs.version }}"
           else
-            versions="$(ls -1d */ | sed 's:/$::' | grep -E '^[0-9]' | sort -V)"
+            versions=$(find versions -mindepth 2 -maxdepth 2 -type f -name gradle.properties -printf '%h\n' | xargs -r -n1 basename | sort -V)
           fi
 
-          versions_json=$(echo "$versions" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          versions_json=$(printf '%s\n' "$versions" | jq -R -s -c 'split("\n") | map(select(length > 0))')
           echo "versions=$versions_json" >> "$GITHUB_OUTPUT"
           echo "Publishing versions: $versions_json"
 
@@ -54,31 +54,25 @@ jobs:
       fail-fast: false
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Detect Java version
         id: java
+        shell: bash
         run: |
-          v=$(sed -nE 's/^project\.build-java=([0-9]+).*/\1/p' "${{ matrix.version }}/gradle.properties" | head -n1)
+          set -euo pipefail
+          props="versions/${{ matrix.version }}/gradle.properties"
+          v=$(sed -nE 's/^project\.build-java=([0-9]+).*/\1/p' "$props" | head -n1)
           if [ -z "$v" ]; then
-            v=$(sed -nE 's/^project\.java=([0-9]+).*/\1/p' "${{ matrix.version }}/gradle.properties" | head -n1)
+            v=$(sed -nE 's/^project\.java=([0-9]+).*/\1/p' "$props" | head -n1)
           fi
           if [ -z "$v" ]; then
-            mc=$(sed -nE 's/^minecraft_version[[:space:]]*=[[:space:]]*([0-9.]+).*/\1/p' "${{ matrix.version }}/gradle.properties" | head -n1)
-            case "$mc" in
-              1.20.1) v=17 ;;
-              1.21.1) v=21 ;;
-            esac
-          fi
-          if [ -z "$v" ]; then
-            echo "Could not determine Java version for ${{ matrix.version }}" >&2
+            echo "project.build-java/project.java not found in $props" >&2
             exit 1
           fi
           echo "version=$v" >> "$GITHUB_OUTPUT"
-          echo "Using Java $v for ${{ matrix.version }}"
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -94,7 +88,6 @@ jobs:
         uses: taiki-e/install-action@just
 
       - name: Make gradlew executable
-        working-directory: ${{ matrix.version }}
         run: chmod +x gradlew
 
       - name: Publish ${{ matrix.version }} to KafMaven

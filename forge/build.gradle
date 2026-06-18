@@ -1,0 +1,20 @@
+plugins {
+    id 'com.iamkaf.multiloader.forge'
+}
+
+def minecraftVersion = requiredProp(project, 'project.minecraft')
+def libs = catalogFor(project, minecraftVersion)
+def useKonfig = minecraftVersion != '26.1.2'
+
+dependencies {
+    implementation('net.sf.jopt-simple:jopt-simple:5.0.4') { version { strictly '5.0.4' } }
+    implementation library(libs, 'amber-forge')
+    implementation library(libs, 'gson')
+    runtimeOnly library(libs, 'teakit-forge')
+
+    if (useKonfig) {
+        implementation library(libs, 'konfig-forge')
+    } else {
+        implementation library(libs, 'forgeconfigapiport-forge')
+    }
+}
