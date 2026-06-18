@@ -41,6 +41,18 @@ workingDirectory = "26.2"
 tasks = [":neoforge:runClient"]
 gameDirectory = "26.2/neoforge/run"
 
+[nodes."26.2-forge"]
+loader = "forge"
+minecraft = "26.2"
+workingDirectory = "26.2"
+tasks = [":forge:runClient"]
+gameDirectory = "26.2/forge/run"
+
+[nodes."26.2-forge".environment]
+GLFW_PLATFORM = "x11"
+XDG_SESSION_TYPE = "x11"
+WAYLAND_DISPLAY = ""
+
 [nodes."26.1.2-forge"]
 loader = "forge"
 minecraft = "26.1.2"
