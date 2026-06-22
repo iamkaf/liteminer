@@ -1,5 +1,7 @@
 .DS_Store
 Thumbs.db
+
+# IDEs
 .idea/
 .vscode/
 *.iml
@@ -9,26 +11,33 @@ Thumbs.db
 *.log
 *.launch
 
+# Gradle
 .gradle/
 .cache/
 .teakit/
 build/
+*/build/
+**/build/
 out/
 bin/
+
+# Minecraft runs
 run/
 runs/
 */run/
 */runs/
+**/run/
+**/runs/
 
+# Stonecutter version sandboxes
 common/versions/
 fabric/versions/
 forge/versions/
 neoforge/versions/
 versions/*/build/
 stonecutter.gradle
-src/main/generated/
-common/src/main/generated/
 
+# Runtime proof output
 .screens/
 .runclient-*/
 .runclient-check/
@@ -37,3 +46,13 @@ common/src/main/generated/
 .runclient-toml-rerun/
 forge/*.launch
 fabric/*.launch
+
+# OS / JVM
+hs_err_*.log
+replay_*.log
+*.hprof
+*.jfr
+
+# Caches
+**/.cache/
+.architectury-transformer/
