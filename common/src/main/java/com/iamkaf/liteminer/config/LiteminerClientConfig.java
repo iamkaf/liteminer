@@ -4,7 +4,7 @@ import com.iamkaf.konfig.api.v1.ConfigBuilder;
 import com.iamkaf.konfig.api.v1.ConfigValue;
 
 public final class LiteminerClientConfig {
-    public final ConfigValue<KeyMode> keyMode;
+    public final ConfigValue<String> keyMode;
     public final ConfigValue<Boolean> showHUD;
     public final ConfigValue<Double> hud_scale;
 
@@ -19,7 +19,9 @@ public final class LiteminerClientConfig {
                         .headerKey("liteminer.config.info.controls.header")
                         .inlineTextKey("liteminer.config.info.controls.text"))
                 .header("Controls");
-        keyMode = builder.enumValue("key_mode", KeyMode.HOLD)
+        keyMode = builder.dropdown("key_mode", KeyMode.HOLD.name(), options -> options
+                        .option(KeyMode.HOLD.name(), "Hold", option -> option.tooltip("Hold the vein mining key to stay active."))
+                        .option(KeyMode.TOGGLE.name(), "Toggle", option -> option.tooltip("Press the vein mining key to switch on or off.")))
                 .comment("Controls how the vein mining keybind activates vein mining.")
                 .info(info -> info.inlineTextKey("liteminer.config.key_mode.info"))
                 .clientOnly()
@@ -68,5 +70,9 @@ public final class LiteminerClientConfig {
                 .clientOnly()
                 .build();
         builder.pop();
+    }
+
+    public KeyMode keyMode() {
+        return KeyMode.valueOf(keyMode.get());
     }
 }

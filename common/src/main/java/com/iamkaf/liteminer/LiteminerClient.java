@@ -146,7 +146,7 @@ public class LiteminerClient {
             return;
         }
 
-        switch (CONFIG.keyMode.get()) {
+        switch (CONFIG.keyMode()) {
             case HOLD -> {
                 var newState = KEY_MAPPING.isDown();
 
