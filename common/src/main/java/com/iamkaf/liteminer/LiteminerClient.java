@@ -1,7 +1,6 @@
 package com.iamkaf.liteminer;
 
 import com.iamkaf.amber.api.event.v1.events.common.client.ClientCommandEvents;
-import com.iamkaf.amber.api.functions.v1.PlayerFunctions;
 import com.iamkaf.amber.api.event.v1.events.common.client.ClientTickEvents;
 import com.iamkaf.amber.api.event.v1.events.common.client.HudEvents;
 import com.iamkaf.amber.api.event.v1.events.common.client.InputEvents;
@@ -27,13 +26,10 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.world.phys.HitResult;
 import org.lwjgl.glfw.GLFW;
 
-import java.nio.file.Path;
 import java.util.HashSet;
 
 public class LiteminerClient {
@@ -201,26 +197,6 @@ public class LiteminerClient {
         pendingConfigScreenOpen = false;
         if (openConfigScreenCallback != null) {
             openConfigScreenCallback.run();
-            return;
-        }
-
-        showConfigScreenUnavailableMessage(null);
-    }
-
-    public static void showConfigScreenUnavailableMessage(Path configDirectory) {
-        if (Minecraft.getInstance().player != null) {
-            Component message = Component.literal("Liteminer's config screen is not available on this loader.");
-            if (configDirectory != null) {
-                message = Component.empty()
-                        .append(message)
-                        .append(Component.literal(" "))
-                        .append(Component.literal("[Open config folder]").withStyle(style -> style
-                                .withUnderlined(true)
-                                .withClickEvent(new ClickEvent.OpenFile(configDirectory))
-                                .withHoverEvent(new HoverEvent.ShowText(Component.literal(configDirectory.toString())))));
-            }
-
-            PlayerFunctions.sendMessage(Minecraft.getInstance().player, message);
         }
     }
 
