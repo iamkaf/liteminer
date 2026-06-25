@@ -34,6 +34,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 3.1.2
 
+### Changed
+
+- Backported the 3.1.x Liteminer line to Minecraft 1.21.11, 26.1, and 26.1.1.
+- Liteminer 3.1.2 now requires Amber 11.1.1 or newer.
+
 ### Fixed
 
 - Large block selection highlights now draw cleaner exterior outlines with better performance.

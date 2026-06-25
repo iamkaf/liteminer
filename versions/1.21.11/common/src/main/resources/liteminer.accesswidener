@@ -1,0 +1,11 @@
+accessWidener v2 named
+# mojang hates me fr bro - Kaf, 2025-04-20
+# they keep changing it dude! - Kaf, 2025-09-30
+# it's a day that ends in day, that means we have another rendering rewrite yippie! - Kaf, 2025-12-18
+
+# RenderPipelines
+accessible field net/minecraft/client/renderer/RenderPipelines MATRICES_FOG_SNIPPET Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+accessible field net/minecraft/client/renderer/RenderPipelines GLOBALS_SNIPPET Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+
+# RenderType.create() access for custom RenderTypes
+accessible method net/minecraft/client/renderer/rendertype/RenderType create (Ljava/lang/String;Lnet/minecraft/client/renderer/rendertype/RenderSetup;)Lnet/minecraft/client/renderer/rendertype/RenderType;

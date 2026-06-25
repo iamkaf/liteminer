@@ -4,7 +4,7 @@ plugins {
 
 def minecraftVersion = requiredProp(project, 'project.minecraft')
 def libs = catalogFor(project, minecraftVersion)
-def useKonfig = minecraftVersion != '26.1.2'
+def useKonfig = minecraftVersion == '26.2'
 
 dependencies {
     compileOnly library(libs, 'mixin')

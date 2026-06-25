@@ -4,19 +4,28 @@ plugins {
 
 def minecraftVersion = requiredProp(project, 'project.minecraft')
 def libs = catalogFor(project, minecraftVersion)
-def useKonfig = minecraftVersion != '26.1.2'
+def isModernLine = !minecraftVersion.startsWith('1.')
+def useKonfig = minecraftVersion == '26.2'
 
 dependencies {
-    compileOnly library(libs, 'amber')
-    implementation library(libs, 'fabric-api')
-    runtimeOnly library(libs, 'modmenu')
-    runtimeOnly library(libs, 'amber-fabric')
-    runtimeOnly library(libs, 'teakit-fabric')
+    if (isModernLine) {
+        compileOnly library(libs, 'amber')
+        implementation library(libs, 'fabric-api')
+        runtimeOnly library(libs, 'modmenu')
+        runtimeOnly library(libs, 'amber-fabric')
+        runtimeOnly library(libs, 'teakit-fabric')
 
-    if (useKonfig) {
-        compileOnly library(libs, 'konfig')
-        runtimeOnly library(libs, 'konfig-fabric')
+        if (useKonfig) {
+            compileOnly library(libs, 'konfig')
+            runtimeOnly library(libs, 'konfig-fabric')
+        } else {
+            implementation library(libs, 'forgeconfigapiport-fabric')
+        }
     } else {
-        implementation library(libs, 'forgeconfigapiport-fabric')
+        modImplementation library(libs, 'fabric-api')
+        modImplementation library(libs, 'amber-fabric')
+        modImplementation library(libs, 'forgeconfigapiport-fabric')
+        modLocalRuntime library(libs, 'modmenu')
+        modLocalRuntime library(libs, 'teakit-fabric')
     }
 }
