@@ -28,7 +28,8 @@ public class HUD {
             return;
         }
 
-        int selectedBlockCount = LiteminerClient.selectedBlocks.size();
+        LiteminerSelection.Snapshot selection = LiteminerSelection.refresh();
+        int selectedBlockCount = selection.blocks().size();
 
         if (selectedBlockCount == 0) {
             return;
