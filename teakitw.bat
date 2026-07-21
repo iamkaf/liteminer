@@ -16,7 +16,7 @@ rem limitations under the License.
 
 setlocal EnableExtensions EnableDelayedExpansion
 
-set "TEAKIT_RUNNER_PINNED_VERSION=0.3.0-SNAPSHOT"
+set "TEAKIT_RUNNER_PINNED_VERSION=0.13.2"
 set "TEAKIT_GROUP_PATH=com/iamkaf/teakit"
 set "TEAKIT_GROUP_PATH_WINDOWS=com\iamkaf\teakit"
 set "TEAKIT_ARTIFACT=teakit-runner"
@@ -28,8 +28,8 @@ if not "%TEAKIT_RUNNER_JAR%"=="" (
   exit /b %ERRORLEVEL%
 )
 
-if "%TEAKIT_MAVEN_RELEASES%"=="" set "TEAKIT_MAVEN_RELEASES=https://z.kaf.sh/releases"
-if "%TEAKIT_MAVEN_SNAPSHOTS%"=="" set "TEAKIT_MAVEN_SNAPSHOTS=https://z.kaf.sh/snapshots"
+if "%TEAKIT_MAVEN_RELEASES%"=="" set "TEAKIT_MAVEN_RELEASES=https://maven.kaf.sh"
+if "%TEAKIT_MAVEN_SNAPSHOTS%"=="" set "TEAKIT_MAVEN_SNAPSHOTS=https://maven.kaf.sh"
 if "%TEAKIT_MAVEN_LOCAL%"=="" set "TEAKIT_MAVEN_LOCAL=%USERPROFILE%\.m2\repository"
 if "%TEAKIT_CACHE_DIR%"=="" (
   set "TEAKIT_CACHE_ROOT=%USERPROFILE%\.cache\teakit"
