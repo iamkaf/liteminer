@@ -25,7 +25,7 @@ mods = [
   "maven:net.fabricmc.fabric-api:fabric-api:0.141.3+1.21.11",
   "maven:fuzs.forgeconfigapiport:forgeconfigapiport-fabric:21.11.1",
   "maven:com.iamkaf.amber:amber-fabric:11.1.1+1.21.11",
-  "maven:com.iamkaf.teakit:teakit-fabric:0.10.0+1.21.11",
+  "maven:com.iamkaf.teakit:teakit-fabric:0.13.2+1.21.11",
 ]
 
 [[instance]]
@@ -38,7 +38,7 @@ mods = [
   "maven:com.iamkaf.liteminer:liteminer-forge:3.1.2+1.21.11",
   "maven:fuzs.forgeconfigapiport:forgeconfigapiport-forge:21.11.1",
   "maven:com.iamkaf.amber:amber-forge:11.1.1+1.21.11",
-  "maven:com.iamkaf.teakit:teakit-forge:0.10.0+1.21.11",
+  "maven:com.iamkaf.teakit:teakit-forge:0.13.2+1.21.11",
 ]
 
 [[instance]]
@@ -50,7 +50,7 @@ sides = ["client", "server"]
 mods = [
   "maven:com.iamkaf.liteminer:liteminer-neoforge:3.1.2+1.21.11",
   "maven:com.iamkaf.amber:amber-neoforge:11.1.1+1.21.11",
-  "maven:com.iamkaf.teakit:teakit-neoforge:0.10.0+1.21.11",
+  "maven:com.iamkaf.teakit:teakit-neoforge:0.13.2+1.21.11",
 ]
 
 [[instance]]
@@ -64,7 +64,7 @@ mods = [
   "maven:net.fabricmc.fabric-api:fabric-api:0.144.0+26.1",
   "maven:fuzs.forgeconfigapiport:forgeconfigapiport-fabric:26.1.0.1",
   "maven:com.iamkaf.amber:amber-fabric:11.1.1+26.1",
-  "maven:com.iamkaf.teakit:teakit-fabric:0.10.0+26.1",
+  "maven:com.iamkaf.teakit:teakit-fabric:0.13.2+26.1",
 ]
 
 [[instance]]
@@ -77,7 +77,7 @@ mods = [
   "maven:com.iamkaf.liteminer:liteminer-forge:3.1.2+26.1",
   "maven:fuzs.forgeconfigapiport:forgeconfigapiport-forge:26.1.0.2",
   "maven:com.iamkaf.amber:amber-forge:11.1.1+26.1",
-  "maven:com.iamkaf.teakit:teakit-forge:0.10.0+26.1",
+  "maven:com.iamkaf.teakit:teakit-forge:0.13.2+26.1",
 ]
 
 [[instance]]
@@ -89,7 +89,7 @@ sides = ["client", "server"]
 mods = [
   "maven:com.iamkaf.liteminer:liteminer-neoforge:3.1.2+26.1",
   "maven:com.iamkaf.amber:amber-neoforge:11.1.1+26.1",
-  "maven:com.iamkaf.teakit:teakit-neoforge:0.10.0+26.1",
+  "maven:com.iamkaf.teakit:teakit-neoforge:0.13.2+26.1",
 ]
 
 [[instance]]
@@ -103,7 +103,7 @@ mods = [
   "maven:net.fabricmc.fabric-api:fabric-api:0.145.4+26.1.1",
   "maven:fuzs.forgeconfigapiport:forgeconfigapiport-fabric:26.1.3",
   "maven:com.iamkaf.amber:amber-fabric:11.1.1+26.1.1",
-  "maven:com.iamkaf.teakit:teakit-fabric:0.10.0+26.1.1",
+  "maven:com.iamkaf.teakit:teakit-fabric:0.13.2+26.1.1",
 ]
 
 [[instance]]
@@ -116,7 +116,7 @@ mods = [
   "maven:com.iamkaf.liteminer:liteminer-forge:3.1.2+26.1.1",
   "maven:fuzs.forgeconfigapiport:forgeconfigapiport-forge:26.1.3",
   "maven:com.iamkaf.amber:amber-forge:11.1.1+26.1.1",
-  "maven:com.iamkaf.teakit:teakit-forge:0.10.0+26.1.1",
+  "maven:com.iamkaf.teakit:teakit-forge:0.13.2+26.1.1",
 ]
 
 [[instance]]
@@ -128,7 +128,7 @@ sides = ["client", "server"]
 mods = [
   "maven:com.iamkaf.liteminer:liteminer-neoforge:3.1.2+26.1.1",
   "maven:com.iamkaf.amber:amber-neoforge:11.1.1+26.1.1",
-  "maven:com.iamkaf.teakit:teakit-neoforge:0.10.0+26.1.1",
+  "maven:com.iamkaf.teakit:teakit-neoforge:0.13.2+26.1.1",
 ]
 
 [[instance]]
@@ -142,7 +142,7 @@ mods = [
   "maven:net.fabricmc.fabric-api:fabric-api:0.152.1+26.1.2",
   "maven:fuzs.forgeconfigapiport:forgeconfigapiport-fabric:26.1.3",
   "maven:com.iamkaf.amber:amber-fabric:11.1.1+26.1.2",
-  "maven:com.iamkaf.teakit:teakit-fabric:0.10.0+26.1.2",
+  "maven:com.iamkaf.teakit:teakit-fabric:0.13.2+26.1.2",
 ]
 
 [[instance]]
@@ -155,7 +155,7 @@ mods = [
   "maven:com.iamkaf.liteminer:liteminer-forge:3.1.2+26.1.2",
   "maven:fuzs.forgeconfigapiport:forgeconfigapiport-forge:26.1.3",
   "maven:com.iamkaf.amber:amber-forge:11.1.1+26.1.2",
-  "maven:com.iamkaf.teakit:teakit-forge:0.10.0+26.1.2",
+  "maven:com.iamkaf.teakit:teakit-forge:0.13.2+26.1.2",
 ]
 
 [[instance]]
@@ -167,5 +167,5 @@ sides = ["client", "server"]
 mods = [
   "maven:com.iamkaf.liteminer:liteminer-neoforge:3.1.2+26.1.2",
   "maven:com.iamkaf.amber:amber-neoforge:11.1.1+26.1.2",
-  "maven:com.iamkaf.teakit:teakit-neoforge:0.10.0+26.1.2",
+  "maven:com.iamkaf.teakit:teakit-neoforge:0.13.2+26.1.2",
 ]

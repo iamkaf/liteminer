@@ -1,10 +1,7 @@
 package com.iamkaf.liteminer.rendering;
 
 import com.iamkaf.amber.api.functions.v1.WorldFunctions;
-import com.iamkaf.liteminer.Liteminer;
 import com.iamkaf.liteminer.LiteminerClient;
-import com.iamkaf.liteminer.api.shape.LiteminerShape;
-import com.iamkaf.liteminer.shapes.ShapelessWalker;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.ColorTargetState;
 import com.mojang.blaze3d.pipeline.DepthStencilState;
@@ -25,12 +22,9 @@ import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
@@ -106,14 +100,8 @@ public class BlockHighlightRenderer {
 
     public static InteractionResult renderLiteminerHighlight(Camera camera, MultiBufferSource multiBufferSource, PoseStack poseStack, BlockHitResult blockHitResult, BlockPos blockPos, BlockState blockState) {
         Minecraft mc = Minecraft.getInstance();
-        Level level = mc.level;
-        Player player = mc.player;
-        if (level == null || player == null) {
-            cache.invalidate();
-            return InteractionResult.PASS;
-        }
-
-        if (!LiteminerClient.isVeinMining()) {
+        LiteminerSelection.Snapshot selection = LiteminerSelection.refresh();
+        if (!selection.hasBlocks()) {
             cache.invalidate();
             return InteractionResult.PASS;
         }
@@ -123,46 +111,23 @@ public class BlockHighlightRenderer {
             return InteractionResult.PASS;
         }
 
-        HitResult result = mc.hitResult;
-        if (result == null || result.getType() != HitResult.Type.BLOCK) {
-            cache.invalidate();
-            return InteractionResult.PASS;
-        }
-
-        LiteminerShape shape = LiteminerClient.shapes.getCurrentItem();
-        int currentShapeIndex = LiteminerClient.shapes.getCurrentIndex();
-        int blockLimit = Liteminer.CONFIG.blockBreakLimit.get();
-        BlockPos origin = ShapelessWalker.raytraceBlock(level, player);
-
-        HashSet<BlockPos> blocksToHighlight;
         List<Line> linesToRender;
 
-        if (cache.isValid(origin, currentShapeIndex, blockLimit)) {
-            blocksToHighlight = cache.cachedBlocks;
+        if (cache.isValid(selection.origin(), selection.shapeIndex(), selection.blockLimit())) {
             linesToRender = cache.cachedLines;
         } else {
-            blocksToHighlight = shape.walk(level, player, ShapelessWalker.raytrace(level, player).getBlockPos());
-
-            if (blocksToHighlight.isEmpty()) {
-                cache.invalidate();
-                LiteminerClient.selectedBlocks = blocksToHighlight;
-                return InteractionResult.PASS;
-            }
-
-            linesToRender = createHighlightLines(blocksToHighlight, origin);
-            cache.update(origin, currentShapeIndex, blockLimit, blocksToHighlight, linesToRender);
+            linesToRender = createHighlightLines(selection.blocks(), selection.origin());
+            cache.update(selection.origin(), selection.shapeIndex(), selection.blockLimit(), selection.blocks(), linesToRender);
         }
-
-        LiteminerClient.selectedBlocks = blocksToHighlight;
 
         Camera renderInfo = mc.gameRenderer.getMainCamera();
         Vec3 projectedView = renderInfo.position();
         assert poseStack != null;
         poseStack.pushPose();
         poseStack.translate(
-                origin.getX() - projectedView.x,
-                origin.getY() - projectedView.y,
-                origin.getZ() - projectedView.z
+                selection.origin().getX() - projectedView.x,
+                selection.origin().getY() - projectedView.y,
+                selection.origin().getZ() - projectedView.z
         );
 
         MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
