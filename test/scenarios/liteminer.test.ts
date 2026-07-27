@@ -203,8 +203,15 @@ describe("Liteminer vein mining", () => {
       await ctx.runtime.wait(500);
       await ctx.client.keyState(96, true);
       await ctx.runtime.wait(1_200);
+      await setBlocks(ctx, [
+        block(69, 70, 2, "minecraft:stone"),
+        block(71, 70, 2, "minecraft:stone"),
+        block(70, 70, 1, "minecraft:stone"),
+        block(70, 70, 3, "minecraft:stone"),
+      ]);
       await ctx.world.setBlock({ x: 70, y: 70, z: 2 }, "minecraft:water");
       await setBlocks(ctx, [block(70, 71, 2), block(70, 72, 2)]);
+      await ctx.player.teleport({ x: 70, y: 71, z: 1 });
       await mine(ctx, { x: 70, y: 71, z: 2 }, { x: 70.5, y: 71.5, z: 2.01 });
       await waitForAir(ctx, [{ x: 70, y: 71, z: 2 }, { x: 70, y: 72, z: 2 }]);
       await assertBlock(ctx, { x: 70, y: 70, z: 2 }, "minecraft:water");
