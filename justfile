@@ -29,5 +29,5 @@ run-client node:
   @if ! just list-nodes | grep -Fxq "{{node}}"; then echo "Unknown node: {{node}}"; exit 1; fi
   @version="{{node}}"; loader="${version##*-}"; version="${version%-*}"; ./gradlew --configure-on-demand ":$loader:$version:runClient" --console=plain
 
-scenario-check node scenario="test/scenarios/liteminer.scenario.ts" timeout="240":
-  @./teakitw run --node "{{node}}" --scenario "{{scenario}}" --timeout "{{timeout}}"
+test-check node timeout="240":
+  @./teakitw check --node "{{node}}" --timeout "{{timeout}}"

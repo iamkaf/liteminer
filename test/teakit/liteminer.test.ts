@@ -1,4 +1,10 @@
-import { Capability, Readiness, describe, expect, test } from "@teakit/test";
+import {
+  Capability,
+  Readiness,
+  describe,
+  expect,
+  test,
+} from "@teakit/test";
 import type { BlockId, BlockPos, TeaKitTestContext, Vec3 } from "@teakit/test";
 
 describe.configure({

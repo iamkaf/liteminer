@@ -14,5 +14,5 @@
     "strict" : true,
     "target" : "ES2022"
   },
-  "include" : [ "scenarios/**/*.scenario.ts", "scenarios/**/*.test.ts", "test/scenarios/**/*.scenario.ts", "test/scenarios/**/*.test.ts" ]
+  "include" : [ "test/**/*.test.ts", "test/teakit/**/*.test.ts" ]
 }
