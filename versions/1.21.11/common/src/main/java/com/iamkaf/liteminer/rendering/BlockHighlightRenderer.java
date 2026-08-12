@@ -2,6 +2,7 @@ package com.iamkaf.liteminer.rendering;
 
 import com.iamkaf.amber.api.functions.v1.WorldFunctions;
 import com.iamkaf.liteminer.LiteminerClient;
+import com.iamkaf.liteminer.compat.IrisCompat;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.DepthTestFunction;
@@ -13,6 +14,8 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.rendertype.LayeringTransform;
+import net.minecraft.client.renderer.rendertype.OutputTarget;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
@@ -79,6 +82,7 @@ public class BlockHighlightRenderer {
                 .withBlend(BlendFunction.TRANSLUCENT)
                 .withCull(false)
                 .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+                .withDepthWrite(false)
                 .withVertexFormat(DefaultVertexFormat.POSITION_COLOR_NORMAL_LINE_WIDTH, VertexFormat.Mode.LINES)
                 .buildSnippet();
 
@@ -86,8 +90,11 @@ public class BlockHighlightRenderer {
                 .withLocation("pipeline/lines_translucent_no_depth")
                 .build();
 
+        IrisCompat.assignLinesPipeline(pipeline);
+
         RenderSetup setup = RenderSetup.builder(pipeline)
-                .useLightmap()
+                .setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
+                .setOutputTarget(OutputTarget.ITEM_ENTITY_TARGET)
                 .createRenderSetup();
 
         return RenderType.create("lines_translucent_no_depth_test", setup);

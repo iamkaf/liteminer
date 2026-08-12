@@ -9,6 +9,10 @@ val minecraftVersion = multiloader.minecraftVersion()
 val catalog = multiloader.catalogFor()
 
 dependencies {
+    compileOnly("maven.modrinth:iris:${multiloader.requiredProperty("dependencies.iris")}") {
+        isTransitive = false
+    }
+
     if (minecraftVersion != "26.2") {
         add("implementation", multiloader.library(catalog, "forgeconfigapiport-common-neoforgeapi"))
     }
