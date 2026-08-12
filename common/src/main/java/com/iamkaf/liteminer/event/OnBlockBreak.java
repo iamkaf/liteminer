@@ -17,11 +17,11 @@ import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ExperienceOrb;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.IceBlock;
 import net.minecraft.world.attribute.EnvironmentAttributes;
@@ -182,17 +182,7 @@ public class OnBlockBreak {
                 }
 
                 for (var stack : state.getDrops(builder)) {
-                    var itemEntity = new ItemEntity(
-                            level,
-                            absoluteOrigin.getX(),
-                            absoluteOrigin.getY(),
-                            absoluteOrigin.getZ(),
-                            stack,
-                            level.getRandom().nextFloat() / 10,
-                            0.25f,
-                            level.getRandom().nextFloat() / 10
-                    );
-                    level.addFreshEntity(itemEntity);
+                    Block.popResource(level, block, stack);
                 }
             }
 

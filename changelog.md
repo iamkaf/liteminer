@@ -10,12 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Block highlight lines now render correctly when Iris shaders are enabled.
+- Require Correct Tool no longer blocks vein mining for blocks that can be harvested without a tool.
+- Vein-mined item drops no longer spawn inside adjacent blocks and rise toward the surface.
 
 ## 3.1.4
 
 ### Fixed
 
 - Block highlight lines now render correctly when Iris shaders are enabled.
+- Require Correct Tool no longer blocks vein mining for blocks that can be harvested without a tool.
+- Vein-mined item drops no longer spawn inside adjacent blocks and rise toward the surface.
 
 ## 4.1.2
 
