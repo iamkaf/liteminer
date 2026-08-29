@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The Block Break Limit slider can now be adjusted one block at a time with the arrow keys and reset to 64 with right-click.
 - Block highlight lines now render correctly when Iris shaders are enabled.
 - Require Correct Tool no longer blocks vein mining for blocks that can be harvested without a tool.
 - Vein-mined item drops no longer spawn inside adjacent blocks and rise toward the surface.
@@ -17,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The Block Break Limit slider can now be adjusted one block at a time with the arrow keys and reset to 64 with right-click.
 - Block highlight lines now render correctly when Iris shaders are enabled.
 - Require Correct Tool no longer blocks vein mining for blocks that can be harvested without a tool.
 - Vein-mined item drops no longer spawn inside adjacent blocks and rise toward the surface.
