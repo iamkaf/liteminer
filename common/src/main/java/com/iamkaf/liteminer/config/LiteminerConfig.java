@@ -53,7 +53,7 @@ public final class LiteminerConfig {
                         .inlineTextKey("liteminer.config.info.harvest.text"))
                 .header("Harvest Cost");
         harvestTimePerBlockModifierEnabled =
-                builder.bool("harvest_time_per_block_modifier_enabled", true)
+                builder.bool("harvest_time_per_block_modifier_enabled", false)
                         .comment("Enables additional mining time based on how many blocks are selected.")
                         .info(info -> info.inlineTextKey("liteminer.config.harvest_time_per_block_modifier_enabled.info"))
                         .sync(true)

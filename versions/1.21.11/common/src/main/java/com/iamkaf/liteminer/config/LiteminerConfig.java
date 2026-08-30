@@ -28,7 +28,7 @@ public final class LiteminerConfig {
         harvestTimePerBlockModifierEnabled =
                 builder.translation("liteminer.config.harvest_time_per_block_modifier_enabled")
                         .comment(":)")
-                        .define("harvest_time_per_block_modifier_enabled", true);
+                        .define("harvest_time_per_block_modifier_enabled", false);
         harvestTimePerBlockModifier = builder.translation("liteminer.config.harvest_time_per_block_modifier")
                 .comment(":)")
                 .defineInRange("harvest_time_per_block_modifier", 2d, 1.0d, 10d);
