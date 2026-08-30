@@ -80,10 +80,8 @@ describe("Liteminer vein mining", () => {
     }
   });
 
-  test("keeps collected drops inside the mined block", {
-    target: { minecraft: "26.2", loader: "fabric" },
-  }, async (ctx) => {
-    const area = box({ x: 98, y: 69, z: 0 }, { x: 102, y: 72, z: 7 });
+  test("collects secondary drops at the player-broken block", { tags: ["drops"] }, async (ctx) => {
+    const area = box({ x: 98, y: 69, z: 0 }, { x: 102, y: 72, z: 11 });
     const origin = { x: 100, y: 70, z: 3 };
     let ticksFrozen = false;
     try {
@@ -91,35 +89,48 @@ describe("Liteminer vein mining", () => {
       await ctx.client.keyState(96, false);
       await ctx.client.command("/liteminer shape set 0");
       await ctx.player.reset({ gameMode: "survival", inventory: "clear" });
-      await ctx.player.teleport({ x: 100, y: 70, z: 0 });
+      await ctx.player.teleport({ x: 100, y: 70, z: -1 });
       await removeEntities(ctx, origin, 16, "minecraft:item");
       await ctx.world.clear(area.min, area.max);
-      await ctx.world.fill({ x: 98, y: 69, z: 0 }, { x: 102, y: 69, z: 7 }, "minecraft:stone");
+      await ctx.world.fill({ x: 98, y: 69, z: 0 }, { x: 102, y: 69, z: 11 }, "minecraft:stone");
       await ctx.player.give("minecraft:netherite_pickaxe");
       await ctx.player.inventory().selectHotbar(0);
       await ctx.commands.assert("/enchant @s minecraft:silk_touch 1");
+      await ctx.commands.batch([
+        ...Array.from({ length: 8 }, (_, slot) => `/item replace entity @s hotbar.${slot + 1} with minecraft:stone 64`),
+        ...Array.from({ length: 27 }, (_, slot) => `/item replace entity @s inventory.${slot} with minecraft:stone 64`),
+      ], { requireSuccess: true });
       await ctx.world.setBlock(origin, "minecraft:coal_ore");
-      await ctx.world.setBlock({ x: 100, y: 70, z: 4 }, "minecraft:deepslate_coal_ore");
+      for (let z = 4; z < 9; z += 1) {
+        await ctx.world.setBlock({ x: 100, y: 70, z }, "minecraft:coal_ore");
+      }
+      await ctx.world.setBlock({ x: 100, y: 70, z: 9 }, "minecraft:deepslate_coal_ore");
 
       await ctx.client.lookAt({ x: 100.5, y: 70.5, z: 3.5 });
       await ctx.client.keyState(96, true);
       await ctx.runtime.wait(1_200);
       await ctx.player.mine(origin, { timeoutMs: 5_000 });
       await ctx.client.keyState(96, false);
+      await ctx.runtime.wait(50);
       await ctx.commands.assert("/tick freeze");
       ticksFrozen = true;
-      const drops = await ctx.loot
-        .near(origin, { item: "minecraft:deepslate_coal_ore", radius: 8 })
+      const drops = await ctx.entities
+        .query({ origin, radius: 16, type: "minecraft:item", item: "minecraft:deepslate_coal_ore" })
         .waitForCountAtLeast(1, { timeout: 3_000 });
-      const dropPosition = drops[0]?.pos;
+      const dropPosition = (await drops[0]?.inspect())?.position;
       if (!dropPosition) throw new Error("The collected secondary drop had no reported position");
-      expect(dropPosition.x).toBeGreaterThanOrEqual(100.2);
-      expect(dropPosition.x).toBeLessThanOrEqual(100.8);
-      expect(dropPosition.z).toBeGreaterThanOrEqual(4.2);
-      expect(dropPosition.z).toBeLessThanOrEqual(4.8);
+      expect(dropPosition).toBeNear(origin, { distance: 3 });
       await ctx.commands.assert("/tick unfreeze");
       ticksFrozen = false;
-      await waitForAir(ctx, [origin, { x: 100, y: 70, z: 4 }]);
+      await waitForAir(ctx, [
+        origin,
+        { x: 100, y: 70, z: 4 },
+        { x: 100, y: 70, z: 5 },
+        { x: 100, y: 70, z: 6 },
+        { x: 100, y: 70, z: 7 },
+        { x: 100, y: 70, z: 8 },
+        { x: 100, y: 70, z: 9 },
+      ]);
     } finally {
       if (ticksFrozen) await ctx.commands.assert("/tick unfreeze");
       await ctx.client.keyState(96, false);
