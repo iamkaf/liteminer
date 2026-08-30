@@ -47,7 +47,8 @@ public interface Walker {
         if (TagHelper.isExcludedTool(tool)) {
             return false;
         }
-        return !Liteminer.CONFIG.requireCorrectToolEnabled.get() || (!tool.isEmpty() && (tool.isCorrectToolForDrops(state) || TagHelper.isIncludedTool(
-                tool)));
+        return !Liteminer.CONFIG.requireCorrectToolEnabled.get()
+                || !state.requiresCorrectToolForDrops()
+                || (!tool.isEmpty() && (tool.isCorrectToolForDrops(state) || TagHelper.isIncludedTool(tool)));
     }
 }

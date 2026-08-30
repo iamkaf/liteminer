@@ -2,6 +2,7 @@ package com.iamkaf.liteminer.rendering;
 
 import com.iamkaf.amber.api.functions.v1.WorldFunctions;
 import com.iamkaf.liteminer.LiteminerClient;
+import com.iamkaf.liteminer.compat.IrisCompat;
 import com.mojang.blaze3d.PrimitiveTopology;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.ColorTargetState;
@@ -90,6 +91,8 @@ public class BlockHighlightRenderer {
         RenderPipeline pipeline = RenderPipeline.builder(snippet)
                 .withLocation("pipeline/lines_translucent_no_depth")
                 .build();
+
+        IrisCompat.assignLinesPipeline(pipeline);
 
         RenderSetup setup = RenderSetup.builder(pipeline)
                 .setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)

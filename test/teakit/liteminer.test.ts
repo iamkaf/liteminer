@@ -12,6 +12,7 @@ describe.configure({
   readiness: [Readiness.World, Readiness.Player],
   capabilities: [
     Capability.ClientInput,
+    Capability.ClientScreen,
     Capability.ClientScreens,
     Capability.ClientScreenshot,
     Capability.PlayerInteractions,
@@ -23,6 +24,7 @@ describe.configure({
     Capability.WorldClear,
     Capability.WorldEntities,
     Capability.WorldFill,
+    Capability.WorldLoot,
     Capability.WorldSetBlock,
   ],
 });
@@ -75,6 +77,99 @@ describe("Liteminer vein mining", () => {
       await ctx.client.screenshot("liteminer-highlight-lines");
     } finally {
       await cleanup(ctx, area, { x: 12, y: 70, z: 0 }, 12);
+    }
+  });
+
+  test("keeps collected drops inside the mined block", {
+    target: { minecraft: "26.2", loader: "fabric" },
+  }, async (ctx) => {
+    const area = box({ x: 98, y: 69, z: 0 }, { x: 102, y: 72, z: 7 });
+    const origin = { x: 100, y: 70, z: 3 };
+    let ticksFrozen = false;
+    try {
+      await ctx.client.closeMenus();
+      await ctx.client.keyState(96, false);
+      await ctx.client.command("/liteminer shape set 0");
+      await ctx.player.reset({ gameMode: "survival", inventory: "clear" });
+      await ctx.player.teleport({ x: 100, y: 70, z: 0 });
+      await removeEntities(ctx, origin, 16, "minecraft:item");
+      await ctx.world.clear(area.min, area.max);
+      await ctx.world.fill({ x: 98, y: 69, z: 0 }, { x: 102, y: 69, z: 7 }, "minecraft:stone");
+      await ctx.player.give("minecraft:netherite_pickaxe");
+      await ctx.player.inventory().selectHotbar(0);
+      await ctx.commands.assert("/enchant @s minecraft:silk_touch 1");
+      await ctx.world.setBlock(origin, "minecraft:coal_ore");
+      await ctx.world.setBlock({ x: 100, y: 70, z: 4 }, "minecraft:deepslate_coal_ore");
+
+      await ctx.client.lookAt({ x: 100.5, y: 70.5, z: 3.5 });
+      await ctx.client.keyState(96, true);
+      await ctx.runtime.wait(1_200);
+      await ctx.player.mine(origin, { timeoutMs: 5_000 });
+      await ctx.client.keyState(96, false);
+      await ctx.commands.assert("/tick freeze");
+      ticksFrozen = true;
+      const drops = await ctx.loot
+        .near(origin, { item: "minecraft:deepslate_coal_ore", radius: 8 })
+        .waitForCountAtLeast(1, { timeout: 3_000 });
+      const dropPosition = drops[0]?.pos;
+      if (!dropPosition) throw new Error("The collected secondary drop had no reported position");
+      expect(dropPosition.x).toBeGreaterThanOrEqual(100.2);
+      expect(dropPosition.x).toBeLessThanOrEqual(100.8);
+      expect(dropPosition.z).toBeGreaterThanOrEqual(4.2);
+      expect(dropPosition.z).toBeLessThanOrEqual(4.8);
+      await ctx.commands.assert("/tick unfreeze");
+      ticksFrozen = false;
+      await waitForAir(ctx, [origin, { x: 100, y: 70, z: 4 }]);
+    } finally {
+      if (ticksFrozen) await ctx.commands.assert("/tick unfreeze");
+      await ctx.client.keyState(96, false);
+      await ctx.player.reset({ gameMode: "creative", inventory: "clear" });
+      await removeEntities(ctx, origin, 16, "minecraft:item");
+      await removeEntities(ctx, origin, 16, "minecraft:experience_orb");
+      await ctx.world.clear(area.min, area.max);
+    }
+  });
+
+  test("allows no-tool blocks when the correct-tool check is enabled", {
+    target: { minecraft: "26.2" },
+  }, async (ctx) => {
+    const area = box({ x: 108, y: 69, z: 0 }, { x: 114, y: 72, z: 6 });
+    let correctToolToggled = false;
+    try {
+      await toggleRequireCorrectTool(ctx);
+      correctToolToggled = true;
+      await ctx.client.command("/liteminer shape set 0");
+      await ctx.player.reset({ gameMode: "survival", inventory: "clear" });
+      await ctx.player.teleport({ x: 111, y: 70, z: 0 });
+      await ctx.world.clear(area.min, area.max);
+      await ctx.world.fill({ x: 108, y: 69, z: 0 }, { x: 114, y: 69, z: 6 }, "minecraft:dirt");
+
+      await ctx.player.give("minecraft:golden_pickaxe");
+      await ctx.player.inventory().selectHotbar(0);
+      await setBlocks(ctx, [
+        block(111, 70, 2, "minecraft:diamond_ore"),
+        block(111, 70, 3, "minecraft:diamond_ore"),
+      ]);
+      await holdVeinmineAndMine(ctx, { x: 111, y: 70, z: 2 }, { x: 111.5, y: 70.5, z: 2.5 });
+      await waitForAir(ctx, [{ x: 111, y: 70, z: 2 }]);
+      await assertBlock(ctx, { x: 111, y: 70, z: 3 }, "minecraft:diamond_ore");
+
+      await ctx.player.reset({ gameMode: "survival", inventory: "clear" });
+      await ctx.world.clear({ x: 108, y: 70, z: 0 }, area.max);
+      for (let z = 2; z <= 4; z += 1) {
+        await ctx.world.setBlock({ x: 111, y: 70, z }, "minecraft:short_grass");
+      }
+      await holdVeinmineAndMine(ctx, { x: 111, y: 70, z: 2 }, { x: 111.5, y: 70.25, z: 2.5 });
+      await waitForAir(ctx, [
+        { x: 111, y: 70, z: 2 },
+        { x: 111, y: 70, z: 3 },
+        { x: 111, y: 70, z: 4 },
+      ]);
+    } finally {
+      await ctx.client.keyState(96, false);
+      await ctx.player.reset({ gameMode: "creative", inventory: "clear" });
+      await ctx.world.clear(area.min, area.max);
+      if (correctToolToggled) await toggleRequireCorrectTool(ctx);
     }
   });
 
@@ -327,6 +422,27 @@ async function removeEntities(ctx: TeaKitTestContext, origin: BlockPos, radius: 
 async function setExperience(ctx: TeaKitTestContext, points: number) {
   await ctx.commands.assert("/xp set @s 0 levels");
   await ctx.commands.assert(`/xp set @s ${points} points`);
+}
+
+async function toggleRequireCorrectTool(ctx: TeaKitTestContext) {
+  await ctx.client.closeMenus();
+  await ctx.client.command("/liteminer config");
+  let screen = await ctx.client.waitForScreen("Liteminer Configuration", { timeoutMs: 10_000 });
+  screen = await scrollToConfigEntry(ctx, "Require Correct Tool");
+  await screen.lists("selection_list").entry({ label: "Require Correct Tool" }).activate();
+  await ctx.runtime.wait(300);
+  await ctx.client.closeMenus();
+  await ctx.runtime.wait(500);
+}
+
+async function scrollToConfigEntry(ctx: TeaKitTestContext, label: string) {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    let screen = await ctx.client.screen();
+    if (screen.lists().entries().some((entry) => entry.label === label)) return screen;
+    screen = await screen.scroll({ vertical: -4 });
+    await ctx.runtime.wait(150);
+  }
+  throw new Error(`Timed out scrolling to Liteminer config entry: ${label}`);
 }
 
 async function holdVeinmineAndMine(ctx: TeaKitTestContext, target: BlockPos, lookTarget: Vec3) {
