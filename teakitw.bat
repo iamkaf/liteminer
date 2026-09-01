@@ -16,7 +16,7 @@ rem limitations under the License.
 
 setlocal EnableExtensions EnableDelayedExpansion
 
-set "TEAKIT_RUNNER_PINNED_VERSION=0.13.2"
+set "TEAKIT_RUNNER_PINNED_VERSION=0.15.0"
 set "TEAKIT_GROUP_PATH=com/iamkaf/teakit"
 set "TEAKIT_GROUP_PATH_WINDOWS=com\iamkaf\teakit"
 set "TEAKIT_ARTIFACT=teakit-runner"
