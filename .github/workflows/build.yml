@@ -24,23 +24,51 @@ jobs:
       - name: Detect changed versions
         id: set-versions
         shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE_SHA: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-
-          all_versions=$(find versions -mindepth 2 -maxdepth 2 -type f -name gradle.properties -printf '%h\n' | xargs -r -n1 basename | sort -V)
-
-          changed_files=""
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            changed_files=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
-          elif [ "${{ github.event_name }}" = "push" ] && [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
-            changed_files=$(git diff --name-only "${{ github.event.before }}...${{ github.sha }}")
+          export LC_ALL=C
+          all_versions=$(find versions -mindepth 2 -maxdepth 2 -type f -name gradle.properties -printf '%h\n' | xargs -r -n1 basename | sort -u)
+          if [ -z "$all_versions" ]; then
+            echo "No version metadata found under versions/" >&2
+            exit 1
           fi
 
-          if [ -z "$changed_files" ] || printf '%s\n' "$changed_files" | grep -Eq '^(common|fabric|forge|neoforge|gradle|\.github/workflows|settings\.gradle\.kts|stonecutter\.gradle\.kts|gradle\.properties|justfile|gradlew|gradlew\.bat)(/|$)'; then
+          changed_files=""
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            changed_files=$(git diff --name-only "origin/$BASE_REF...HEAD")
+          elif [ "$EVENT_NAME" = "push" ] && [ "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
+            changed_files=$(git diff --name-only "$BEFORE_SHA...$HEAD_SHA")
+          fi
+
+          # Version overlays affect their own line; all other build inputs affect every line.
+          shared=false
+          changed_versions=""
+          while IFS= read -r path; do
+            [ -n "$path" ] || continue
+            version=$(printf '%s\n' "$path" | sed -nE 's#^(common/|fabric/|forge/|neoforge/)?versions/([^/]+)/.*#\2#p')
+            if [ -n "$version" ]; then
+              if printf '%s\n' "$all_versions" | grep -Fx "$version" >/dev/null; then
+                changed_versions+="$version"$'\n'
+              else
+                shared=true
+              fi
+            else
+              case "$path" in
+                *.md|LICENSE*|.gitignore|.gitattributes|.editorconfig|.github/ISSUE_TEMPLATE/*) ;;
+                *) shared=true ;;
+              esac
+            fi
+          done <<< "$changed_files"
+
+          if [ -z "$changed_files" ] || [ "$shared" = true ]; then
             versions="$all_versions"
           else
-            changed_versions=$(printf '%s\n' "$changed_files" | sed -nE 's|^versions/([^/]+)/.*|\1|p' | sort -u)
-            versions=$(comm -12 <(printf '%s\n' "$all_versions") <(printf '%s\n' "$changed_versions"))
+            versions=$(printf '%s' "$changed_versions" | sed '/^$/d' | sort -u)
           fi
 
           versions_json=$(printf '%s\n' "$versions" | jq -R -s -c 'split("\n") | map(select(length > 0))')
@@ -50,12 +78,22 @@ jobs:
             enabled_loaders=$(sed -nE 's/^project\.enabled-loaders=(.*)$/\1/p' "$props" | head -n1)
 
             for loader in fabric forge neoforge; do
-              [ -f "$loader/build.gradle" ] || continue
               if printf '%s\n' "$enabled_loaders" | tr ',' '\n' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' | grep -Fxq "$loader"; then
+                if [ ! -f "$loader/build.gradle" ] && [ ! -f "$loader/build.gradle.kts" ]; then
+                  echo "Missing build file for enabled loader $loader on $version" >&2
+                  exit 1
+                fi
                 jq -cn --arg version "$version" --arg loader "$loader" --arg node "$version-$loader" '{version: $version, loader: $loader, node: $node}'
               fi
             done
           done | jq -s -c '.')
+
+          if [ "$versions_json" != '[]' ]; then
+            jq -e --argjson versions "$versions_json" '[.[].version] | unique | sort == ($versions | sort)' <<< "$build_matrix" >/dev/null || {
+              echo "Selected versions have no build nodes" >&2
+              exit 1
+            }
+          fi
 
           echo "versions=$versions_json" >> "$GITHUB_OUTPUT"
           echo "build-matrix=$build_matrix" >> "$GITHUB_OUTPUT"
@@ -155,12 +193,18 @@ jobs:
         run: just compile-all
 
   summary:
-    needs: [build, test]
+    needs: [detect-changes, build, test]
     if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Build Summary
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
         run: |
-          echo "## Build Results" >> "$GITHUB_STEP_SUMMARY"
-          echo "Build status: ${{ needs.build.result }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "Test status: ${{ needs.test.result }}" >> "$GITHUB_STEP_SUMMARY"
+          printf '%s\n' "$NEEDS_JSON" >> "$GITHUB_STEP_SUMMARY"
+          jq -e '
+            .["detect-changes"].result == "success" and
+            (.["detect-changes"].outputs.versions as $versions |
+              [to_entries[] | select(.key != "detect-changes") | .value.result] |
+              if $versions == "[]" then all(. == "skipped") else all(. == "success") end)
+          ' <<< "$NEEDS_JSON"
