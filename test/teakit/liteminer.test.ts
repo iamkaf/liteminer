@@ -333,6 +333,121 @@ describe("Liteminer vein mining", () => {
     }
   });
 
+  test("does not expand a tunnel from a torch into obsidian", { tags: ["shape-safety"] }, async (ctx) => {
+    const area = box({ x: 118, y: 69, z: 0 }, { x: 122, y: 72, z: 6 });
+    try {
+      await prepareCreativeTest(ctx, { x: 120, y: 70, z: 0 }, area, 16);
+      await ctx.world.fill({ x: 118, y: 69, z: 0 }, { x: 122, y: 69, z: 6 }, "minecraft:stone");
+      await ctx.client.command("/liteminer shape set 1");
+      await ctx.runtime.wait(500);
+      await ctx.world.setBlock({ x: 120, y: 70, z: 2 }, "minecraft:torch");
+      await ctx.world.setBlock({ x: 120, y: 70, z: 3 }, "minecraft:obsidian");
+      await ctx.world.setBlock({ x: 120, y: 70, z: 4 }, "minecraft:obsidian");
+      await mine(ctx, { x: 120, y: 70, z: 2 }, { x: 120.5, y: 70.5, z: 2.5 });
+      await waitForAir(ctx, [{ x: 120, y: 70, z: 2 }]);
+      await assertBlock(ctx, { x: 120, y: 70, z: 3 }, "minecraft:obsidian");
+      await assertBlock(ctx, { x: 120, y: 70, z: 4 }, "minecraft:obsidian");
+      await ctx.client.screenshot("liteminer-torch-tunnel-leaves-obsidian");
+      await ctx.client.command("/liteminer shape set 0");
+    } finally {
+      await cleanup(ctx, area, { x: 120, y: 70, z: 0 }, 16);
+    }
+  });
+
+  test("does not expand a staircase from a torch into surrounding blocks", { tags: ["shape-safety"] }, async (ctx) => {
+    const area = box({ x: 138, y: 69, z: 0 }, { x: 142, y: 74, z: 6 });
+    try {
+      await prepareCreativeTest(ctx, { x: 140, y: 70, z: 0 }, area, 16);
+      await ctx.world.fill({ x: 138, y: 69, z: 0 }, { x: 142, y: 69, z: 6 }, "minecraft:stone");
+      await ctx.client.command("/liteminer shape set 2");
+      await ctx.runtime.wait(500);
+      await ctx.world.setBlock({ x: 140, y: 70, z: 2 }, "minecraft:torch");
+      await setBlocks(ctx, [
+        block(140, 71, 2, "minecraft:obsidian"),
+        block(140, 70, 3, "minecraft:obsidian"),
+        block(140, 71, 3, "minecraft:obsidian"),
+        block(140, 72, 3, "minecraft:obsidian"),
+      ]);
+      // player.mine targets the torch block. A screen-center click can miss the
+      // torch hitbox, break the floor, and staircase into these sentinels.
+      await mine(ctx, { x: 140, y: 70, z: 2 }, { x: 140.5, y: 70.5, z: 2.5 });
+      await waitForAir(ctx, [{ x: 140, y: 70, z: 2 }]);
+      await assertBlock(ctx, { x: 140, y: 69, z: 2 }, "minecraft:stone");
+      await assertBlock(ctx, { x: 140, y: 71, z: 2 }, "minecraft:obsidian");
+      await assertBlock(ctx, { x: 140, y: 70, z: 3 }, "minecraft:obsidian");
+      await assertBlock(ctx, { x: 140, y: 71, z: 3 }, "minecraft:obsidian");
+      await assertBlock(ctx, { x: 140, y: 72, z: 3 }, "minecraft:obsidian");
+      await ctx.client.screenshot("liteminer-torch-staircase-leaves-structure");
+      await ctx.client.command("/liteminer shape set 0");
+    } finally {
+      await cleanup(ctx, area, { x: 140, y: 70, z: 0 }, 16);
+    }
+  });
+
+  test("does not expand a 3x3 from a torch into obsidian", { tags: ["shape-safety"] }, async (ctx) => {
+    const area = box({ x: 158, y: 69, z: 0 }, { x: 162, y: 72, z: 4 });
+    try {
+      await prepareCreativeTest(ctx, { x: 160, y: 70, z: 0 }, area, 16);
+      await ctx.world.fill({ x: 158, y: 69, z: 0 }, { x: 162, y: 69, z: 4 }, "minecraft:stone");
+      await ctx.client.command("/liteminer shape set 4");
+      await ctx.runtime.wait(500);
+      await ctx.world.setBlock({ x: 159, y: 70, z: 2 }, "minecraft:obsidian");
+      await ctx.world.setBlock({ x: 161, y: 70, z: 2 }, "minecraft:obsidian");
+      await ctx.world.setBlock({ x: 160, y: 70, z: 2 }, "minecraft:torch");
+      await mine(ctx, { x: 160, y: 70, z: 2 }, { x: 160.5, y: 70.5, z: 2.5 });
+      await waitForAir(ctx, [{ x: 160, y: 70, z: 2 }]);
+      await assertBlock(ctx, { x: 159, y: 70, z: 2 }, "minecraft:obsidian");
+      await assertBlock(ctx, { x: 161, y: 70, z: 2 }, "minecraft:obsidian");
+      await ctx.client.screenshot("liteminer-torch-3x3-leaves-obsidian");
+      await ctx.client.command("/liteminer shape set 0");
+    } finally {
+      await cleanup(ctx, area, { x: 160, y: 70, z: 0 }, 16);
+    }
+  });
+
+  test("tunnels through mixed stone and dirt", { tags: ["shape-safety"] }, async (ctx) => {
+    const area = box({ x: 168, y: 69, z: 0 }, { x: 172, y: 72, z: 6 });
+    try {
+      await prepareCreativeTest(ctx, { x: 170, y: 70, z: 0 }, area, 16);
+      await ctx.world.fill({ x: 168, y: 69, z: 0 }, { x: 172, y: 69, z: 6 }, "minecraft:stone");
+      await ctx.client.command("/liteminer shape set 1");
+      await ctx.runtime.wait(500);
+      await ctx.world.setBlock({ x: 170, y: 70, z: 2 }, "minecraft:stone");
+      await ctx.world.setBlock({ x: 170, y: 70, z: 3 }, "minecraft:dirt");
+      await ctx.world.setBlock({ x: 170, y: 70, z: 4 }, "minecraft:stone");
+      await mineWithClientAttack(ctx, { x: 170, y: 70, z: 2 }, { x: 170.5, y: 70.5, z: 2.5 });
+      await waitForAir(ctx, [
+        { x: 170, y: 70, z: 2 },
+        { x: 170, y: 70, z: 3 },
+        { x: 170, y: 70, z: 4 },
+      ]);
+      await ctx.client.command("/liteminer shape set 0");
+    } finally {
+      await cleanup(ctx, area, { x: 170, y: 70, z: 0 }, 16);
+    }
+  });
+
+  test("shapeless still veins connected torches", { tags: ["shape-safety"] }, async (ctx) => {
+    const area = box({ x: 178, y: 69, z: 0 }, { x: 182, y: 72, z: 6 });
+    try {
+      await prepareCreativeTest(ctx, { x: 180, y: 70, z: 0 }, area, 16);
+      await ctx.world.fill({ x: 178, y: 69, z: 0 }, { x: 182, y: 69, z: 6 }, "minecraft:stone");
+      await ctx.client.command("/liteminer shape set 0");
+      await ctx.runtime.wait(500);
+      await ctx.world.setBlock({ x: 180, y: 70, z: 2 }, "minecraft:torch");
+      await ctx.world.setBlock({ x: 180, y: 70, z: 3 }, "minecraft:torch");
+      await ctx.world.setBlock({ x: 180, y: 70, z: 4 }, "minecraft:torch");
+      await mine(ctx, { x: 180, y: 70, z: 2 }, { x: 180.5, y: 70.5, z: 2.5 });
+      await waitForAir(ctx, [
+        { x: 180, y: 70, z: 2 },
+        { x: 180, y: 70, z: 3 },
+        { x: 180, y: 70, z: 4 },
+      ]);
+    } finally {
+      await cleanup(ctx, area, { x: 180, y: 70, z: 0 }, 16);
+    }
+  });
+
   test("limits a staircase selection to three layers", async (ctx) => {
     const area = box({ x: 86, y: 66, z: 0 }, { x: 96, y: 76, z: 6 });
     try {

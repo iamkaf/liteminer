@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 4.1.5
+
+### Changed
+
+- Matching settings now say they apply to shapeless vein mining, not tunnel, staircase, or 3x3 shapes.
+
+### Fixed
+
+- Small Tunnel, Staircase, and 3x3 no longer expand from torches and other instant-break blocks.
+
+## 3.1.6
+
+### Changed
+
+- Matching settings now say they apply to shapeless vein mining, not tunnel, staircase, or 3x3 shapes.
+
+### Fixed
+
+- Small Tunnel, Staircase, and 3x3 no longer expand from torches and other instant-break blocks.
+
 ## 4.1.4
 
 ### Added

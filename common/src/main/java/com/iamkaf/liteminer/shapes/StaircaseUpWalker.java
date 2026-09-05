@@ -1,6 +1,7 @@
 package com.iamkaf.liteminer.shapes;
 
 import com.iamkaf.liteminer.Liteminer;
+import com.iamkaf.liteminer.api.shape.ShapeWalker;
 import com.iamkaf.liteminer.tags.TagHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -12,7 +13,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.HashSet;
 
-public class StaircaseUpWalker implements Walker {
+public class StaircaseUpWalker implements ShapeWalker {
     public HashSet<BlockPos> walk(Level level, Player player, BlockPos origin) {
         Direction direction = getStairDirection(level, player);
         HashSet<BlockPos> potentialBrokenBlocks = new HashSet<>();
@@ -48,9 +49,9 @@ public class StaircaseUpWalker implements Walker {
         int blockLimit = Liteminer.CONFIG.blockBreakLimit.get();
 
         while (blocksToCollapse.size() < blockLimit) {
-            boolean shouldMineAboveCursor = shouldMine(player, level, cursor.above());
-            boolean shouldMineCursor = shouldMine(player, level, cursor);
-            boolean shouldMineBelowCursor = shouldMine(player, level, cursor.below());
+            boolean shouldMineAboveCursor = VeinmineChecks.shouldMine(player, level, cursor.above());
+            boolean shouldMineCursor = VeinmineChecks.shouldMine(player, level, cursor);
+            boolean shouldMineBelowCursor = VeinmineChecks.shouldMine(player, level, cursor.below());
             if (!shouldMineAboveCursor && !shouldMineCursor && !shouldMineBelowCursor) {
                 break;
             }

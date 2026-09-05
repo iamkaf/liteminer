@@ -6,6 +6,7 @@ import com.iamkaf.liteminer.LiteminerPlayerState;
 import com.iamkaf.liteminer.api.event.LiteminerEvents;
 import com.iamkaf.liteminer.api.shape.LiteminerShape;
 import com.iamkaf.liteminer.api.shape.LiteminerShapes;
+import com.iamkaf.liteminer.shapes.VeinmineChecks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
@@ -90,9 +91,17 @@ public class OnBlockInteraction {
                 .toList();
         List<BlockPos> processed = new ArrayList<>();
         List<BlockPos> skipped = new ArrayList<>();
+        int processedIncludingOrigin = 1;
 
         for (var block : blocks) {
             if (block.equals(blockPos)) {
+                continue;
+            }
+            if (processedIncludingOrigin >= blockLimit) {
+                break;
+            }
+            if (!VeinmineChecks.shouldMine(player, level, block)) {
+                skipped.add(block);
                 continue;
             }
 
@@ -135,6 +144,7 @@ public class OnBlockInteraction {
             }
 
             processed.add(block);
+            processedIncludingOrigin++;
 
             boolean exhaustionEnabled = Liteminer.CONFIG.foodExhaustionEnabled.get();
             float exhaustion = Liteminer.CONFIG.foodExhaustion.get().floatValue();

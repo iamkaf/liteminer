@@ -8,6 +8,7 @@ import com.iamkaf.liteminer.api.event.LiteminerEvents;
 import com.iamkaf.liteminer.api.shape.LiteminerShape;
 import com.iamkaf.liteminer.api.shape.LiteminerShapes;
 import com.iamkaf.liteminer.platform.Services;
+import com.iamkaf.liteminer.shapes.VeinmineChecks;
 import com.iamkaf.liteminer.tags.TagHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -92,9 +93,17 @@ public class OnBlockBreak {
                 .toList();
         List<BlockPos> processed = new ArrayList<>();
         List<BlockPos> skipped = new ArrayList<>();
+        int processedIncludingOrigin = 1;
 
         for (var block : blocks) {
             if (block.equals(absoluteOrigin)) {
+                continue;
+            }
+            if (processedIncludingOrigin >= blockLimit) {
+                break;
+            }
+            if (!VeinmineChecks.shouldMine(player, level, block)) {
+                skipped.add(block);
                 continue;
             }
 
@@ -124,6 +133,7 @@ public class OnBlockBreak {
             if (player.isCreative()) {
                 level.setBlockAndUpdate(block, Blocks.AIR.defaultBlockState());
                 processed.add(block);
+                processedIncludingOrigin++;
                 continue;
             }
             player.awardStat(Stats.BLOCK_MINED.get(state.getBlock()));
@@ -199,6 +209,7 @@ public class OnBlockBreak {
 
             level.setBlockAndUpdate(block, Blocks.AIR.defaultBlockState());
             processed.add(block);
+            processedIncludingOrigin++;
 
             // pray that mojang doesn't add more ice, or I'll have to come back here
             // The comment above doesn't help me at all. What the heck, Kaf??? What does this do??? - Kaf, 2025-12-18
