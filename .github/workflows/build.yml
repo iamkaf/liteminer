@@ -16,4 +16,4 @@ concurrency:
 
 jobs:
   build:
-    uses: iamkaf/multiloader-conventions/.github/workflows/mod-build.yml@49456a45df2cb44dac296709dc74553a2173900f
+    uses: iamkaf/multiloader-conventions/.github/workflows/mod-build.yml@e808aac57fd30afcfc3e7b517f88b3143fd3211d
