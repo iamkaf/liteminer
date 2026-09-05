@@ -135,7 +135,9 @@ jobs:
           java-version: ${{ steps.java.outputs.version }}
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@017a9effdb900e5b5b2fddfb590a105619dca3c3 # v4.4.2
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
 
       - name: Setup just
         uses: taiki-e/install-action@just
@@ -154,9 +156,14 @@ jobs:
           if-no-files-found: error
 
   test:
+    name: Compile common (${{ matrix.version }})
     needs: detect-changes
     if: needs.detect-changes.outputs.versions != '[]'
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version: ${{ fromJson(needs.detect-changes.outputs.versions) }}
+      fail-fast: false
 
     steps:
       - uses: actions/checkout@v4
@@ -166,11 +173,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          first_version=$(printf '%s\n' '${{ needs.detect-changes.outputs.versions }}' | jq -r '.[0]')
-          props="versions/$first_version/gradle.properties"
+          props="versions/${{ matrix.version }}/gradle.properties"
           v=$(sed -nE 's/^project\.build-java=([0-9]+).*/\1/p' "$props" | head -n1)
           if [ -z "$v" ]; then
             v=$(sed -nE 's/^project\.java=([0-9]+).*/\1/p' "$props" | head -n1)
+          fi
+          if [ -z "$v" ]; then
+            echo "project.build-java/project.java not found in $props" >&2
+            exit 1
           fi
           echo "version=$v" >> "$GITHUB_OUTPUT"
 
@@ -181,16 +191,16 @@ jobs:
           java-version: ${{ steps.java.outputs.version }}
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-
-      - name: Setup just
-        uses: taiki-e/install-action@just
+        uses: gradle/actions/setup-gradle@017a9effdb900e5b5b2fddfb590a105619dca3c3 # v4.4.2
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
 
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Compile all changed nodes
-        run: just compile-all
+      # Loader builds compile the merged sources; check the common classpath separately.
+      - name: Compile common sources
+        run: ./gradlew --configure-on-demand ":common:${{ matrix.version }}:compileJava" --console=plain
 
   summary:
     needs: [detect-changes, build, test]
