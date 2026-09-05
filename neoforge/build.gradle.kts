@@ -7,7 +7,9 @@ plugins {
 val multiloader = MultiloaderProjectContext.of(project)
 
 dependencies {
-    compileOnly("maven.modrinth:iris:${multiloader.requiredProperty("dependencies.iris")}") {
-        isTransitive = false
+    multiloader.optionalProperty("dependencies.iris")?.let { irisVersion ->
+        compileOnly("maven.modrinth:iris:$irisVersion") {
+            isTransitive = false
+        }
     }
 }

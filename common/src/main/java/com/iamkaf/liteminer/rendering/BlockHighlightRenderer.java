@@ -3,20 +3,32 @@ package com.iamkaf.liteminer.rendering;
 import com.iamkaf.amber.api.functions.v1.WorldFunctions;
 import com.iamkaf.liteminer.LiteminerClient;
 import com.iamkaf.liteminer.compat.IrisCompat;
+//? if <26.3 {
 import com.mojang.blaze3d.PrimitiveTopology;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.ColorTargetState;
 import com.mojang.blaze3d.pipeline.DepthStencilState;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.CompareOp;
+//?} else {
+/*import com.mojang.renderpearl.api.pipeline.BlendFunction;
+import com.mojang.renderpearl.api.pipeline.ColorTargetState;
+import com.mojang.renderpearl.api.pipeline.CompareOp;
+import com.mojang.renderpearl.api.pipeline.DepthStencilState;
+import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;*/
+//?}
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+//? if >=26.3
+import net.minecraft.client.renderer.BindGroupLayouts;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.rendertype.LayeringTransform;
+//? if <26.3
 import net.minecraft.client.renderer.rendertype.OutputTarget;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
@@ -78,7 +90,17 @@ public class BlockHighlightRenderer {
     private static final HighlightCache cache = new HighlightCache();
 
     private static RenderType createLinesTranslucentNoDepthTestRenderType() {
-        RenderPipeline.Snippet snippet = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET)
+        RenderPipeline.Builder builder = RenderPipeline.builder(
+                //? if <26.3
+                RenderPipelines.MATRICES_FOG_SNIPPET
+        );
+        //? if >=26.3 {
+        /*builder.withBindGroupLayout(BindGroupLayouts.GLOBALS)
+                .withBindGroupLayout(BindGroupLayouts.PROJECTION)
+                .withBindGroupLayout(BindGroupLayouts.DYNAMIC_TRANSFORMS)
+                .withBindGroupLayout(BindGroupLayouts.FOG);*/
+        //?}
+        RenderPipeline.Snippet snippet = builder
                 .withVertexShader("core/rendertype_lines")
                 .withFragmentShader("core/rendertype_lines")
                 .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
@@ -96,6 +118,7 @@ public class BlockHighlightRenderer {
 
         RenderSetup setup = RenderSetup.builder(pipeline)
                 .setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
+                //? if <26.3
                 .setOutputTarget(OutputTarget.ITEM_ENTITY_TARGET)
                 .createRenderSetup();
 
