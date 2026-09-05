@@ -16,6 +16,6 @@ concurrency:
 
 jobs:
   build:
-    uses: iamkaf/multiloader-conventions/.github/workflows/mod-build.yml@c0ae7d9d2950cf1bf7894bbda00e0e7636eebe9e
+    uses: iamkaf/multiloader-conventions/.github/workflows/mod-build.yml@6c991b2858e9b008d2c62647ed75c0d948640691
     with:
       teakit-runner: wrapper
