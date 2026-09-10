@@ -81,7 +81,7 @@ describe("Liteminer vein mining", () => {
   });
 
   test("collects secondary drops at the player-broken block", { tags: ["drops"] }, async (ctx) => {
-    const area = box({ x: 98, y: 69, z: 0 }, { x: 102, y: 72, z: 11 });
+    const area = box({ x: 98, y: 69, z: -2 }, { x: 102, y: 72, z: 11 });
     const origin = { x: 100, y: 70, z: 3 };
     let ticksFrozen = false;
     try {
@@ -92,7 +92,7 @@ describe("Liteminer vein mining", () => {
       await ctx.player.teleport({ x: 100, y: 70, z: -1 });
       await removeEntities(ctx, origin, 16, "minecraft:item");
       await ctx.world.clear(area.min, area.max);
-      await ctx.world.fill({ x: 98, y: 69, z: 0 }, { x: 102, y: 69, z: 11 }, "minecraft:stone");
+      await ctx.world.fill({ x: 98, y: 69, z: -2 }, { x: 102, y: 69, z: 11 }, "minecraft:stone");
       await ctx.player.give("minecraft:netherite_pickaxe");
       await ctx.player.inventory().selectHotbar(0);
       await ctx.commands.assert("/enchant @s minecraft:silk_touch 1");
@@ -209,7 +209,7 @@ describe("Liteminer vein mining", () => {
         block(10, 70, 2), block(10, 70, 3), block(10, 70, 4), block(11, 70, 3),
       ]);
       await ctx.player.teleport({ x: 10, y: 70, z: 0 });
-      await mine(ctx, { x: 10, y: 70, z: 2 }, { x: 10.5, y: 70.5, z: 2.5 });
+      await mineWithClientAttack(ctx, { x: 10, y: 70, z: 2 }, { x: 10.5, y: 70.5, z: 2.5 });
       await waitForAir(ctx, [
         { x: 10, y: 70, z: 2 }, { x: 10, y: 70, z: 3 }, { x: 10, y: 70, z: 4 },
       ]);
@@ -224,7 +224,7 @@ describe("Liteminer vein mining", () => {
         block(20, 72, 4), block(20, 73, 4), block(20, 74, 4), block(21, 72, 3),
       ]);
       await ctx.player.teleport({ x: 20, y: 70, z: 0 });
-      await mine(ctx, { x: 20, y: 71, z: 2 }, { x: 20.5, y: 71.5, z: 2.5 });
+      await mineWithClientAttack(ctx, { x: 20, y: 71, z: 2 }, { x: 20.5, y: 71.5, z: 2.5 });
       await waitForAir(ctx, [
         { x: 20, y: 70, z: 2 }, { x: 20, y: 71, z: 2 }, { x: 20, y: 72, z: 2 },
         { x: 20, y: 71, z: 3 }, { x: 20, y: 72, z: 3 }, { x: 20, y: 73, z: 3 },
@@ -241,7 +241,7 @@ describe("Liteminer vein mining", () => {
         block(30, 69, 4), block(30, 68, 4), block(30, 67, 4), block(31, 69, 3),
       ]);
       await ctx.player.teleport({ x: 30, y: 70, z: 0 });
-      await mine(ctx, { x: 30, y: 70, z: 2 }, { x: 30.5, y: 70.5, z: 2.5 });
+      await mineWithClientAttack(ctx, { x: 30, y: 70, z: 2 }, { x: 30.5, y: 70.5, z: 2.5 });
       await waitForAir(ctx, [
         { x: 30, y: 70, z: 2 }, { x: 30, y: 69, z: 2 }, { x: 30, y: 68, z: 2 },
         { x: 30, y: 69, z: 3 }, { x: 30, y: 68, z: 3 }, { x: 30, y: 67, z: 3 },

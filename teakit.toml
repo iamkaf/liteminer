@@ -21,6 +21,12 @@ configureOnDemand = false
 "teakit.worldId" = "liteminer_teakit"
 "teakit.worldName" = "Liteminer TeaKit"
 
+[nodes."26.3-fabric"]
+loader = "fabric"
+minecraft = "26.3"
+tasks = [":fabric:26.3:runClient"]
+gameDirectory = "fabric/versions/26.3/runs/client"
+
 [nodes."1.21.11-fabric"]
 loader = "fabric"
 minecraft = "1.21.11"

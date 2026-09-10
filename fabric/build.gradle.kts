@@ -9,12 +9,14 @@ val minecraftVersion = multiloader.minecraftVersion()
 val catalog = multiloader.catalogFor()
 
 dependencies {
-    val irisConfiguration = if (multiloader.useUnobfuscatedMinecraft()) "compileOnly" else "modCompileOnly"
-    add(irisConfiguration, "maven.modrinth:iris:${multiloader.requiredProperty("dependencies.iris")}") {
-        isTransitive = false
+    multiloader.optionalProperty("dependencies.iris")?.let { irisVersion ->
+        val irisConfiguration = if (multiloader.useUnobfuscatedMinecraft()) "compileOnly" else "modCompileOnly"
+        add(irisConfiguration, "maven.modrinth:iris:$irisVersion") {
+            isTransitive = false
+        }
     }
 
-    if (minecraftVersion != "26.2") {
+    if (minecraftVersion !in setOf("26.2", "26.3")) {
         val configuration = if (multiloader.useUnobfuscatedMinecraft()) "implementation" else "modImplementation"
         add(configuration, multiloader.library(catalog, "forgeconfigapiport-fabric"))
     }

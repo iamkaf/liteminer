@@ -28,6 +28,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.HitResult;
+//? if <26.3
 import org.lwjgl.glfw.GLFW;
 
 import java.util.HashSet;
@@ -37,7 +38,16 @@ public class LiteminerClient {
     public static final KeyMapping.Category KEY_CATEGORY =
             KeyMapping.Category.register(Constants.resource(Constants.MOD_ID));
     public static final KeyMapping KEY_MAPPING =
-            new KeyMapping("key.liteminer.veinmine", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_GRAVE_ACCENT, KEY_CATEGORY);
+            new KeyMapping("key.liteminer.veinmine",
+                    //? if >=26.3
+                    InputConstants.Type.KEYBOARD,
+                    //? if <26.3
+                    /*InputConstants.Type.KEYSYM,*/
+                    //? if >=26.3
+                    InputConstants.KEY_GRAVE,
+                    //? if <26.3
+                    /*GLFW.GLFW_KEY_GRAVE_ACCENT,*/
+                    KEY_CATEGORY);
     public static final LiteminerClientConfig CONFIG;
     public static final ConfigHandle CONFIG_HANDLE;
     public static HashSet<BlockPos> selectedBlocks = HashSet.newHashSet(0);
