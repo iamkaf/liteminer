@@ -14,6 +14,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
 import net.minecraft.tags.EnchantmentTags;
+//? if >=26.3
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ExperienceOrb;
@@ -242,6 +244,9 @@ public class OnBlockBreak {
     // it's okay, i'll fix it if mojang breaks it
     @SuppressWarnings("deprecation")
     private static boolean shouldMelt(BlockState below) {
-        return below.blocksMotion() || below.liquid();
+        //? if >=26.3
+        return below.is(BlockTags.ICE_MELTS_WHEN_DESTROYED_ABOVE) || below.liquid();
+        //? if <26.3
+        /*return below.blocksMotion() || below.liquid();*/
     }
 }
