@@ -11,6 +11,7 @@ public final class LiteminerConfig {
     public final ConfigValue<Double> harvestTimePerBlockModifier;
     public final ConfigValue<Boolean> foodExhaustionEnabled;
     public final ConfigValue<Double> foodExhaustion;
+    public final ConfigValue<Boolean> allowVeinMiningAtZeroHunger;
     public final ConfigValue<Boolean> distinguishGrownCrops;
     public final ConfigValue<Boolean> matchDeepslateOreVariants;
 
@@ -72,6 +73,11 @@ public final class LiteminerConfig {
         foodExhaustion = builder.doubleRange("food_exhaustion", 0.2d, 0.0d, 1d)
                 .comment("Food exhaustion applied for each block broken by vein mining.")
                 .info(info -> info.inlineTextKey("liteminer.config.food_exhaustion.info"))
+                .sync(true)
+                .build();
+        allowVeinMiningAtZeroHunger = builder.bool("allow_vein_mining_at_zero_hunger", false)
+                .comment("Allows vein mining when the player's food level is zero.")
+                .info(info -> info.inlineTextKey("liteminer.config.allow_vein_mining_at_zero_hunger.info"))
                 .sync(true)
                 .build();
         builder.pop();

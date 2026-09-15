@@ -58,6 +58,63 @@ describe("Liteminer vein mining", () => {
     }
   });
 
+  test("gates vein mining when the hunger bar is empty", {
+    target: { minecraft: "26.2" },
+  }, async (ctx) => {
+    const area = box({ x: 118, y: 69, z: 0 }, { x: 126, y: 72, z: 5 });
+    const origin = { x: 122, y: 70, z: 2 };
+    const secondary = { x: 122, y: 70, z: 3 };
+    let allowZeroHungerEnabled = false;
+    let foodExhaustionDisabled = false;
+    try {
+      await ctx.client.closeMenus();
+      await ctx.client.keyState(96, false);
+      await ctx.client.command("/liteminer shape set 0");
+      await ctx.player.reset({
+        gameMode: "survival",
+        inventory: "clear",
+        effects: "clear",
+        food: 0,
+        saturation: 0,
+      });
+      await ctx.player.teleport({ x: 122, y: 70, z: 0 });
+      await ctx.world.clear(area.min, area.max);
+      await ctx.world.fill({ x: 118, y: 69, z: 0 }, { x: 126, y: 69, z: 5 }, "minecraft:stone");
+      await ctx.player.give("minecraft:netherite_pickaxe");
+      await ctx.player.inventory().selectHotbar(0);
+
+      await setBlocks(ctx, [
+        block(origin.x, origin.y, origin.z),
+        block(secondary.x, secondary.y, secondary.z),
+      ]);
+      await holdVeinmineAndMine(ctx, origin, { x: 122.5, y: 70.5, z: 2.5 });
+      await waitForAir(ctx, [origin]);
+      await assertBlock(ctx, secondary, "minecraft:coal_ore");
+
+      await toggleConfigEntry(ctx, "Allow Vein Mining at Zero Hunger");
+      allowZeroHungerEnabled = true;
+      await ctx.world.setBlock(origin, "minecraft:coal_ore");
+      await holdVeinmineAndMine(ctx, origin, { x: 122.5, y: 70.5, z: 2.5 });
+      await waitForAir(ctx, [origin, secondary]);
+
+      await toggleConfigEntry(ctx, "Allow Vein Mining at Zero Hunger");
+      allowZeroHungerEnabled = false;
+      await toggleConfigEntry(ctx, "Food Exhaustion");
+      foodExhaustionDisabled = true;
+      await setBlocks(ctx, [
+        block(origin.x, origin.y, origin.z),
+        block(secondary.x, secondary.y, secondary.z),
+      ]);
+      await holdVeinmineAndMine(ctx, origin, { x: 122.5, y: 70.5, z: 2.5 });
+      await waitForAir(ctx, [origin, secondary]);
+    } finally {
+      await ctx.client.keyState(96, false);
+      if (foodExhaustionDisabled) await toggleConfigEntry(ctx, "Food Exhaustion");
+      if (allowZeroHungerEnabled) await toggleConfigEntry(ctx, "Allow Vein Mining at Zero Hunger");
+      await cleanup(ctx, area, { x: 122, y: 70, z: 0 }, 12);
+    }
+  });
+
   test("renders highlight lines while selecting a vein", { tags: ["highlights"] }, async (ctx) => {
     await checkHighlightRendering(ctx);
   });
@@ -586,11 +643,15 @@ async function setExperience(ctx: TeaKitTestContext, points: number) {
 }
 
 async function toggleRequireCorrectTool(ctx: TeaKitTestContext) {
+  await toggleConfigEntry(ctx, "Require Correct Tool");
+}
+
+async function toggleConfigEntry(ctx: TeaKitTestContext, label: string) {
   await ctx.client.closeMenus();
   await ctx.client.command("/liteminer config");
   let screen = await ctx.client.waitForScreen("Liteminer Configuration", { timeoutMs: 10_000 });
-  screen = await scrollToConfigEntry(ctx, "Require Correct Tool");
-  await screen.lists("selection_list").entry({ label: "Require Correct Tool" }).activate();
+  screen = await scrollToConfigEntry(ctx, label);
+  await screen.lists("selection_list").entry({ label }).activate();
   await ctx.runtime.wait(300);
   await ctx.client.closeMenus();
   await ctx.runtime.wait(500);
