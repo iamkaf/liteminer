@@ -33,6 +33,10 @@
   "liteminer.config.food_exhaustion_enabled.tooltip": "Causes your hunger to go down per block mined.",
   "liteminer.config.food_exhaustion": "Food Exhaustion Amount",
   "liteminer.config.food_exhaustion.tooltip": "How much food exhaustion to cause per block broken.",
+  "liteminer.config.allow_vein_mining_at_zero_hunger": "Allow Vein Mining at Zero Hunger",
+  "liteminer.config.allow_vein_mining_at_zero_hunger.tooltip": "Allows vein mining when the hunger bar is empty.",
+
+  "message.liteminer.insufficient_hunger": "Not enough hunger to vein mine.",
 
   "liteminer.config.prevent_tool_breaking": "Prevent Tool Breaking",
   "liteminer.config.prevent_tool_breaking.tooltip": "Stops vein mining when the durability of the tool gets to 1."
