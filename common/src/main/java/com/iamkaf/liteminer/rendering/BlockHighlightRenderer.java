@@ -27,6 +27,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BindGroupLayouts;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.SubmitNodeCollector;
+//? if >=26.3
+/*import net.minecraft.client.renderer.oit.OitPipelineSet;*/
 import net.minecraft.client.renderer.rendertype.LayeringTransform;
 //? if <26.3
 import net.minecraft.client.renderer.rendertype.OutputTarget;
@@ -100,24 +102,30 @@ public class BlockHighlightRenderer {
                 .withBindGroupLayout(BindGroupLayouts.DYNAMIC_TRANSFORMS)
                 .withBindGroupLayout(BindGroupLayouts.FOG);*/
         //?}
+        // OIT passes supply their own color targets and depth state.
         RenderPipeline.Snippet snippet = builder
                 .withVertexShader("core/rendertype_lines")
                 .withFragmentShader("core/rendertype_lines")
-                .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
                 .withCull(false)
                 .withVertexBinding(0, DefaultVertexFormat.POSITION_COLOR_NORMAL_LINE_WIDTH)
                 .withPrimitiveTopology(PrimitiveTopology.LINES)
-                .withDepthStencilState(new DepthStencilState(CompareOp.ALWAYS_PASS, false))
                 .buildSnippet();
 
         RenderPipeline pipeline = RenderPipeline.builder(snippet)
                 .withLocation("pipeline/lines_translucent_no_depth")
+                .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
+                .withDepthStencilState(new DepthStencilState(CompareOp.ALWAYS_PASS, false))
                 .build();
 
         IrisCompat.assignLinesPipeline(pipeline);
 
         RenderSetup setup = RenderSetup.builder(pipeline)
                 .setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
+                //? if >=26.3 {
+                /*.setOitPipelines(OitPipelineSet.builder("lines_translucent_no_depth", RenderPipeline.builder(snippet))
+                        .withoutDepthTest()
+                        .build())*/
+                //?}
                 //? if <26.3
                 .setOutputTarget(OutputTarget.ITEM_ENTITY_TARGET)
                 .createRenderSetup();

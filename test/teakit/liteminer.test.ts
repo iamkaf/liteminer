@@ -58,26 +58,16 @@ describe("Liteminer vein mining", () => {
     }
   });
 
-  test("renders highlight lines while selecting a vein", async (ctx) => {
-    const area = box({ x: 8, y: 69, z: 0 }, { x: 16, y: 72, z: 6 });
-    try {
-      await prepareCreativeTest(ctx, { x: 12, y: 70, z: 0 }, area, 12);
-      await ctx.world.fill({ x: 8, y: 69, z: 0 }, { x: 16, y: 69, z: 6 }, "minecraft:stone");
-      await setBlocks(ctx, [
-        block(12, 70, 3),
-        block(12, 70, 4),
-        block(12, 70, 5),
-        block(12, 71, 5),
-      ]);
-      await ctx.client.command("/liteminer shape set 0");
-      await ctx.runtime.wait(500);
-      await ctx.client.lookAt({ x: 12.5, y: 70.5, z: 3.5 });
-      await ctx.client.keyState(96, true);
-      await ctx.runtime.wait(1_600);
-      await ctx.client.screenshot("liteminer-highlight-lines");
-    } finally {
-      await cleanup(ctx, area, { x: 12, y: 70, z: 0 }, 12);
-    }
+  test("renders highlight lines while selecting a vein", { tags: ["highlights"] }, async (ctx) => {
+    await checkHighlightRendering(ctx);
+  });
+
+  test("keeps highlights visible when switching improved transparency", {
+    target: { minecraft: ">=26.3" },
+    tags: ["highlights"],
+    capabilities: [Capability.ClientRenderProbes],
+  }, async (ctx) => {
+    await checkHighlightRendering(ctx, true);
   });
 
   test("collects secondary drops at the player-broken block", { tags: ["drops"] }, async (ctx) => {
@@ -393,6 +383,51 @@ describe("Liteminer vein mining", () => {
     }
   });
 });
+
+async function checkHighlightRendering(ctx: TeaKitTestContext, switchTransparency = false) {
+  const area = box({ x: 8, y: 69, z: 0 }, { x: 16, y: 72, z: 6 });
+  let transparencyToggled = false;
+  try {
+    await prepareCreativeTest(ctx, { x: 12, y: 70, z: 0 }, area, 12);
+    await ctx.world.fill({ x: 8, y: 69, z: 0 }, { x: 16, y: 69, z: 6 }, "minecraft:stone");
+    await setBlocks(ctx, [
+      block(12, 70, 3),
+      block(12, 70, 4),
+      block(12, 70, 5),
+      block(12, 71, 5),
+    ]);
+    await ctx.client.command("/liteminer shape set 0");
+    await ctx.runtime.wait(500);
+    await ctx.client.lookAt({ x: 12.5, y: 70.5, z: 3.5 });
+    await ctx.client.keyState(96, true);
+    await ctx.runtime.wait(1_600);
+    await ctx.client.screenshot("liteminer-highlight-lines");
+
+    if (switchTransparency) {
+      // Two toggles exercise both modes and restore the original setting.
+      for (let mode = 0; mode < 2; mode++) {
+        await toggleImprovedTransparency(ctx);
+        transparencyToggled = !transparencyToggled;
+        await ctx.runtime.wait(1_600);
+        expect((await ctx.client.waitForFrames(5)).ok).toBe(true);
+        await ctx.client.screenshot(`liteminer-highlight-transparency-${mode}`);
+      }
+    }
+  } finally {
+    await ctx.client.keyState(96, false);
+    if (transparencyToggled) await toggleImprovedTransparency(ctx);
+    await cleanup(ctx, area, { x: 12, y: 70, z: 0 }, 12);
+  }
+}
+
+async function toggleImprovedTransparency(ctx: TeaKitTestContext) {
+  await ctx.client.keyState(292, true);
+  try {
+    await ctx.client.key(88);
+  } finally {
+    await ctx.client.keyState(292, false);
+  }
+}
 
 async function prepareCreativeTest(ctx: TeaKitTestContext, playerPos: BlockPos, area: Area, radius: number) {
   await ctx.client.closeMenus();
