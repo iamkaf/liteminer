@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Requires Amber 11.4.0 or newer.
+- Requires Konfig 0.7.3 on Minecraft 26.2 and 0.8.1 on Minecraft 26.3 so clients can join servers without the mod.
 
 ## 4.2.1
 
