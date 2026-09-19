@@ -23,6 +23,8 @@ dependencies {
 
 sourceSets.named("test") {
     java.srcDir(rootProject.file("test/unit"))
+    compileClasspath += sourceSets.main.get().compileClasspath
+    runtimeClasspath += sourceSets.main.get().compileClasspath
 }
 
 dependencies {

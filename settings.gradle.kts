@@ -11,3 +11,12 @@ pluginManagement {
 plugins {
     id("com.iamkaf.multiloader.settings") version providers.gradleProperty("project.plugins").get()
 }
+
+// The confirmation protocol and Doctor contributors require Amber 11.4.0.
+dependencyResolutionManagement {
+    for (minecraft in listOf("1.21.11", "26.1", "26.1.1", "26.1.2", "26.2", "26.3")) {
+        versionCatalogs.named("libsMc${minecraft.replace(".", "")}") {
+            version("amber", "11.4.0+$minecraft")
+        }
+    }
+}
