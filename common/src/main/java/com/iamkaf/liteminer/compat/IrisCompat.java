@@ -1,7 +1,11 @@
 package com.iamkaf.liteminer.compat;
 
 import com.iamkaf.amber.api.platform.v1.Platform;
+//? if <26.3 {
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+//?} else {
+/*import com.mojang.renderpearl.api.pipeline.RenderPipeline;*/
+//?}
 import net.irisshaders.iris.api.v0.IrisApi;
 import net.irisshaders.iris.api.v0.IrisProgram;
 

@@ -5,4 +5,4 @@ plugins {
     id("com.iamkaf.multiloader.root")
 }
 
-stonecutter active "26.1.2".let { multiloaderStonecutter.active(it) }
+stonecutter active "26.3".let { multiloaderStonecutter.active(it) }

@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 4.1.5
+## 4.3.1 / 3.2.1
 
 ### Changed
 
@@ -15,15 +15,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Small Tunnel, Staircase, and 3x3 no longer expand from torches and other instant-break blocks.
 
-## 3.1.6
+## 4.3.0 / 3.2.0
+
+### Added
+
+- Liteminer shows server-support warnings in red in its HUD and colors selection outlines crimson when server support is missing or confirmation fails. Connection checks are also available in `/amber doctor`.
+- Mining controls now wait for confirmation from compatible servers. Older servers retain their existing mining behavior.
 
 ### Changed
 
-- Matching settings now say they apply to shapeless vein mining, not tunnel, staircase, or 3x3 shapes.
+- Requires Amber 11.4.0 or newer.
+- Requires Konfig 0.8.1 on Minecraft 26.2 and newer so clients can join servers without the mod.
 
 ### Fixed
 
-- Small Tunnel, Staircase, and 3x3 no longer expand from torches and other instant-break blocks.
+- Client settings now load after Konfig initializes on Forge and NeoForge.
+
+## 4.2.1
+
+### Fixed
+
+- Fixed a crash when block highlights are shown with Improved Transparency enabled.
+- Restored block highlight compatibility with Iris shader packs on Minecraft 26.3.
+
+## 4.2.0
+
+### Changed
+
+- Ported to Minecraft 26.3.
 
 ## 4.1.4
 

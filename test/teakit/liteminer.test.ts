@@ -58,30 +58,20 @@ describe("Liteminer vein mining", () => {
     }
   });
 
-  test("renders highlight lines while selecting a vein", async (ctx) => {
-    const area = box({ x: 8, y: 69, z: 0 }, { x: 16, y: 72, z: 6 });
-    try {
-      await prepareCreativeTest(ctx, { x: 12, y: 70, z: 0 }, area, 12);
-      await ctx.world.fill({ x: 8, y: 69, z: 0 }, { x: 16, y: 69, z: 6 }, "minecraft:stone");
-      await setBlocks(ctx, [
-        block(12, 70, 3),
-        block(12, 70, 4),
-        block(12, 70, 5),
-        block(12, 71, 5),
-      ]);
-      await ctx.client.command("/liteminer shape set 0");
-      await ctx.runtime.wait(500);
-      await ctx.client.lookAt({ x: 12.5, y: 70.5, z: 3.5 });
-      await ctx.client.keyState(96, true);
-      await ctx.runtime.wait(1_600);
-      await ctx.client.screenshot("liteminer-highlight-lines");
-    } finally {
-      await cleanup(ctx, area, { x: 12, y: 70, z: 0 }, 12);
-    }
+  test("renders highlight lines while selecting a vein", { tags: ["highlights"] }, async (ctx) => {
+    await checkHighlightRendering(ctx);
+  });
+
+  test("keeps highlights visible when switching improved transparency", {
+    target: { minecraft: ">=26.3" },
+    tags: ["highlights"],
+    capabilities: [Capability.ClientRenderProbes],
+  }, async (ctx) => {
+    await checkHighlightRendering(ctx, true);
   });
 
   test("collects secondary drops at the player-broken block", { tags: ["drops"] }, async (ctx) => {
-    const area = box({ x: 98, y: 69, z: 0 }, { x: 102, y: 72, z: 11 });
+    const area = box({ x: 98, y: 69, z: -2 }, { x: 102, y: 72, z: 11 });
     const origin = { x: 100, y: 70, z: 3 };
     let ticksFrozen = false;
     try {
@@ -92,7 +82,7 @@ describe("Liteminer vein mining", () => {
       await ctx.player.teleport({ x: 100, y: 70, z: -1 });
       await removeEntities(ctx, origin, 16, "minecraft:item");
       await ctx.world.clear(area.min, area.max);
-      await ctx.world.fill({ x: 98, y: 69, z: 0 }, { x: 102, y: 69, z: 11 }, "minecraft:stone");
+      await ctx.world.fill({ x: 98, y: 69, z: -2 }, { x: 102, y: 69, z: 11 }, "minecraft:stone");
       await ctx.player.give("minecraft:netherite_pickaxe");
       await ctx.player.inventory().selectHotbar(0);
       await ctx.commands.assert("/enchant @s minecraft:silk_touch 1");
@@ -209,7 +199,7 @@ describe("Liteminer vein mining", () => {
         block(10, 70, 2), block(10, 70, 3), block(10, 70, 4), block(11, 70, 3),
       ]);
       await ctx.player.teleport({ x: 10, y: 70, z: 0 });
-      await mine(ctx, { x: 10, y: 70, z: 2 }, { x: 10.5, y: 70.5, z: 2.5 });
+      await mineWithClientAttack(ctx, { x: 10, y: 70, z: 2 }, { x: 10.5, y: 70.5, z: 2.5 });
       await waitForAir(ctx, [
         { x: 10, y: 70, z: 2 }, { x: 10, y: 70, z: 3 }, { x: 10, y: 70, z: 4 },
       ]);
@@ -224,7 +214,7 @@ describe("Liteminer vein mining", () => {
         block(20, 72, 4), block(20, 73, 4), block(20, 74, 4), block(21, 72, 3),
       ]);
       await ctx.player.teleport({ x: 20, y: 70, z: 0 });
-      await mine(ctx, { x: 20, y: 71, z: 2 }, { x: 20.5, y: 71.5, z: 2.5 });
+      await mineWithClientAttack(ctx, { x: 20, y: 71, z: 2 }, { x: 20.5, y: 71.5, z: 2.5 });
       await waitForAir(ctx, [
         { x: 20, y: 70, z: 2 }, { x: 20, y: 71, z: 2 }, { x: 20, y: 72, z: 2 },
         { x: 20, y: 71, z: 3 }, { x: 20, y: 72, z: 3 }, { x: 20, y: 73, z: 3 },
@@ -241,7 +231,7 @@ describe("Liteminer vein mining", () => {
         block(30, 69, 4), block(30, 68, 4), block(30, 67, 4), block(31, 69, 3),
       ]);
       await ctx.player.teleport({ x: 30, y: 70, z: 0 });
-      await mine(ctx, { x: 30, y: 70, z: 2 }, { x: 30.5, y: 70.5, z: 2.5 });
+      await mineWithClientAttack(ctx, { x: 30, y: 70, z: 2 }, { x: 30.5, y: 70.5, z: 2.5 });
       await waitForAir(ctx, [
         { x: 30, y: 70, z: 2 }, { x: 30, y: 69, z: 2 }, { x: 30, y: 68, z: 2 },
         { x: 30, y: 69, z: 3 }, { x: 30, y: 68, z: 3 }, { x: 30, y: 67, z: 3 },
@@ -508,6 +498,51 @@ describe("Liteminer vein mining", () => {
     }
   });
 });
+
+async function checkHighlightRendering(ctx: TeaKitTestContext, switchTransparency = false) {
+  const area = box({ x: 8, y: 69, z: 0 }, { x: 16, y: 72, z: 6 });
+  let transparencyToggled = false;
+  try {
+    await prepareCreativeTest(ctx, { x: 12, y: 70, z: 0 }, area, 12);
+    await ctx.world.fill({ x: 8, y: 69, z: 0 }, { x: 16, y: 69, z: 6 }, "minecraft:stone");
+    await setBlocks(ctx, [
+      block(12, 70, 3),
+      block(12, 70, 4),
+      block(12, 70, 5),
+      block(12, 71, 5),
+    ]);
+    await ctx.client.command("/liteminer shape set 0");
+    await ctx.runtime.wait(500);
+    await ctx.client.lookAt({ x: 12.5, y: 70.5, z: 3.5 });
+    await ctx.client.keyState(96, true);
+    await ctx.runtime.wait(1_600);
+    await ctx.client.screenshot("liteminer-highlight-lines");
+
+    if (switchTransparency) {
+      // Two toggles exercise both modes and restore the original setting.
+      for (let mode = 0; mode < 2; mode++) {
+        await toggleImprovedTransparency(ctx);
+        transparencyToggled = !transparencyToggled;
+        await ctx.runtime.wait(1_600);
+        expect((await ctx.client.waitForFrames(5)).ok).toBe(true);
+        await ctx.client.screenshot(`liteminer-highlight-transparency-${mode}`);
+      }
+    }
+  } finally {
+    await ctx.client.keyState(96, false);
+    if (transparencyToggled) await toggleImprovedTransparency(ctx);
+    await cleanup(ctx, area, { x: 12, y: 70, z: 0 }, 12);
+  }
+}
+
+async function toggleImprovedTransparency(ctx: TeaKitTestContext) {
+  await ctx.client.keyState(292, true);
+  try {
+    await ctx.client.key(88);
+  } finally {
+    await ctx.client.keyState(292, false);
+  }
+}
 
 async function prepareCreativeTest(ctx: TeaKitTestContext, playerPos: BlockPos, area: Area, radius: number) {
   await ctx.client.closeMenus();

@@ -22,6 +22,7 @@ public record C2SVeinmineKeybindChange(boolean keybindState, int shape) implemen
     public static final PacketHandler<C2SVeinmineKeybindChange> HANDLER = (packet, context) -> {
         if (context.isServerSide()) {
             context.execute(() -> {
+                if (ServerHandshake.negotiated((ServerPlayer) context.getPlayer())) return;
                 Liteminer.LOGGER.debug(
                         "Received C2SVeinmineKeybindChange: keybindState={}, shape={}, player={}",
                         packet.keybindState,

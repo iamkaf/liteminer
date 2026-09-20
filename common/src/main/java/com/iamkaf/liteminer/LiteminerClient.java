@@ -28,6 +28,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.HitResult;
+//? if <26.3
 import org.lwjgl.glfw.GLFW;
 
 import java.util.HashSet;
@@ -37,7 +38,16 @@ public class LiteminerClient {
     public static final KeyMapping.Category KEY_CATEGORY =
             KeyMapping.Category.register(Constants.resource(Constants.MOD_ID));
     public static final KeyMapping KEY_MAPPING =
-            new KeyMapping("key.liteminer.veinmine", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_GRAVE_ACCENT, KEY_CATEGORY);
+            new KeyMapping("key.liteminer.veinmine",
+                    //? if >=26.3
+                    InputConstants.Type.KEYBOARD,
+                    //? if <26.3
+                    /*InputConstants.Type.KEYSYM,*/
+                    //? if >=26.3
+                    InputConstants.KEY_GRAVE,
+                    //? if <26.3
+                    /*GLFW.GLFW_KEY_GRAVE_ACCENT,*/
+                    KEY_CATEGORY);
     public static final LiteminerClientConfig CONFIG;
     public static final ConfigHandle CONFIG_HANDLE;
     public static HashSet<BlockPos> selectedBlocks = HashSet.newHashSet(0);
@@ -117,6 +127,7 @@ public class LiteminerClient {
     }
 
     public static void init() {
+        com.iamkaf.liteminer.networking.ClientLiteminerDoctor.initialize();
         KeybindHelper.register(KEY_MAPPING);
         ClientTickEvents.END_CLIENT_TICK.register(LiteminerClient::onPostTick);
         HudEvents.RENDER_HUD.register(HUD::onRenderHUD);
@@ -137,6 +148,8 @@ public class LiteminerClient {
 
     public static void onPostTick() {
         openPendingConfigScreen();
+        com.iamkaf.liteminer.networking.ClientHandshake.tick();
+        if (Minecraft.getInstance().player == null) return;
 
         if ((System.currentTimeMillis() - getLastChange()) < PACKET_DELAY) {
             return;
@@ -146,7 +159,7 @@ public class LiteminerClient {
             case HOLD -> {
                 var newState = KEY_MAPPING.isDown();
 
-                if (newState == isVeinMining()) {
+                if (newState == currentState) {
                     return;
                 }
 
@@ -155,7 +168,7 @@ public class LiteminerClient {
             }
             case TOGGLE -> {
                 if (KEY_MAPPING.consumeClick()) {
-                    var newState = !isVeinMining();
+                    var newState = !currentState;
 
                     LiteminerNetwork.sendToServer(new C2SVeinmineKeybindChange(newState, shapes.getCurrentIndex()));
                     currentState = newState;
@@ -164,8 +177,18 @@ public class LiteminerClient {
         }
     }
 
-    public static boolean isVeinMining() {
+    public static void resetInput() {
+        currentState = false;
+        selectedBlocks.clear();
+    }
+
+    /** Whether the player has enabled the local selection preview. */
+    public static boolean isPreviewActive() {
         return currentState;
+    }
+
+    public static boolean isVeinMining() {
+        return currentState && com.iamkaf.liteminer.networking.ClientHandshake.allowsMining();
     }
 
     public static long getLastChange() {
@@ -207,7 +230,7 @@ public class LiteminerClient {
 
     private static int setShapeCommand(int index) {
         shapes.setCurrentIndex(index);
-        LiteminerNetwork.sendToServer(new C2SVeinmineKeybindChange(isVeinMining(), shapes.getCurrentIndex()));
+        LiteminerNetwork.sendToServer(new C2SVeinmineKeybindChange(currentState, shapes.getCurrentIndex()));
         return 1;
     }
 
