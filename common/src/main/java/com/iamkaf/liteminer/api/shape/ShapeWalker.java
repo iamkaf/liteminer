@@ -18,6 +18,10 @@ public interface ShapeWalker {
      * when processing secondary blocks, but including it keeps highlighting and count behavior
      * consistent with built-in shapes.</p>
      *
+     * <p>Liteminer re-checks each secondary block against the shared mining rules and the
+     * configured block limit before breaking or interacting, so a walker cannot bypass
+     * exclusions, tool policy, unbreakable blocks, or the limit.</p>
+     *
      * @param level  the level where the shape is being evaluated
      * @param player the player using Liteminer
      * @param origin the block that started the operation

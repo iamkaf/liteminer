@@ -1,6 +1,7 @@
 package com.iamkaf.liteminer.shapes;
 
 import com.iamkaf.liteminer.Liteminer;
+import com.iamkaf.liteminer.api.shape.ShapeWalker;
 import com.iamkaf.liteminer.tags.TagHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -19,7 +20,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 
-public class ShapelessWalker implements Walker {
+public class ShapelessWalker implements ShapeWalker {
     public final int RANGE = 64;
 
     // Pre-allocated neighbor offsets for better performance (26 neighbors)
@@ -96,7 +97,7 @@ public class ShapelessWalker implements Walker {
         if (visited.size() >= Liteminer.CONFIG.blockBreakLimit.get()) return;
         if (visited.contains(myPos)) return;
         if (!BlockFamily.matches(originState, level.getBlockState(myPos))) return;
-        if (!shouldMine(player, level, myPos)) return;
+        if (!VeinmineChecks.shouldMine(player, level, myPos)) return;
 
         blocksToCollapse.add(myPos);
         visited.add(myPos);

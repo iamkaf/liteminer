@@ -77,19 +77,19 @@ public final class LiteminerConfig {
         builder.pop();
 
         builder.push("matching")
-                .categoryComment("Rules for deciding which neighboring blocks belong to the same vein.")
+                .categoryComment("Shapeless vein matching rules. Tunnel, staircase, and 3x3 shapes follow their geometry instead of these family checks.")
                 .categoryInfo(info -> info
                         .headerKey("liteminer.config.info.matching.header")
                         .inlineTextKey("liteminer.config.info.matching.text"))
                 .header("Block Matching");
         distinguishGrownCrops = builder.bool("distinguish_grown_crops", true)
-                .comment("Keeps fully-grown crops and growing crops in separate vein mining groups.")
+                .comment("Keeps fully-grown crops and growing crops in separate shapeless vein mining groups.")
                 .info(info -> info.inlineTextKey("liteminer.config.distinguish_grown_crops.info"))
                 .sync(true)
                 .build();
 
         matchDeepslateOreVariants = builder.bool("match_deepslate_ore_variants", true)
-                .comment("Treats regular and deepslate variants of the same ore as matching blocks.")
+                .comment("Treats regular and deepslate variants of the same ore as matching blocks during shapeless vein mining.")
                 .info(info -> info.inlineTextKey("liteminer.config.match_deepslate_ore_variants.info"))
                 .sync(true)
                 .build();

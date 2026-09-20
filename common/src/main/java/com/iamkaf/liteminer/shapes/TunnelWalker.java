@@ -1,6 +1,7 @@
 package com.iamkaf.liteminer.shapes;
 
 import com.iamkaf.liteminer.Liteminer;
+import com.iamkaf.liteminer.api.shape.ShapeWalker;
 import com.iamkaf.liteminer.tags.TagHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -17,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 
-public class TunnelWalker implements Walker {
+public class TunnelWalker implements ShapeWalker {
     public static @NotNull BlockHitResult raytrace(Level level, Player player) {
         Vec3 eyePosition = player.getEyePosition();
         Vec3 rotation = player.getViewVector(1);
@@ -66,7 +67,7 @@ public class TunnelWalker implements Walker {
         BlockPos cursor = myPos;
 
         while (blocksToCollapse.size() < Liteminer.CONFIG.blockBreakLimit.get()) {
-            boolean shouldMineCursor = shouldMine(player, level, cursor);
+            boolean shouldMineCursor = VeinmineChecks.shouldMine(player, level, cursor);
             if (!shouldMineCursor) {
                 break;
             }

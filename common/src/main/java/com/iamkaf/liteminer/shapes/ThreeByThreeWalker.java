@@ -1,5 +1,7 @@
 package com.iamkaf.liteminer.shapes;
 
+import com.iamkaf.liteminer.Liteminer;
+import com.iamkaf.liteminer.api.shape.ShapeWalker;
 import com.iamkaf.liteminer.tags.TagHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -16,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 
-public class ThreeByThreeWalker implements Walker {
+public class ThreeByThreeWalker implements ShapeWalker {
     private static @NotNull BlockHitResult raytrace(Level level, Player player) {
         Vec3 eyePosition = player.getEyePosition();
         Vec3 rotation = player.getViewVector(1);
@@ -49,7 +51,7 @@ public class ThreeByThreeWalker implements Walker {
 
     private void searchBlocks(Player player, Level level, BlockPos myPos, BlockPos absoluteOrigin,
             HashSet<BlockPos> blocksToCollapse, Block originBlock, Direction direction) {
-        if (!shouldMine(player, level, myPos)) return;
+        if (!VeinmineChecks.shouldMine(player, level, myPos)) return;
 
         // Pre-allocate fixed-size array to avoid ArrayList overhead
         BlockPos[] positions = new BlockPos[9];
@@ -76,8 +78,12 @@ public class ThreeByThreeWalker implements Walker {
             positions[8] = myPos.relative(direction.getClockWise()).below();
         }
 
+        int blockLimit = Liteminer.CONFIG.blockBreakLimit.get();
         for (BlockPos position : positions) {
-            if (shouldMine(player, level, position)) {
+            if (blocksToCollapse.size() >= blockLimit) {
+                break;
+            }
+            if (VeinmineChecks.shouldMine(player, level, position)) {
                 blocksToCollapse.add(position);
             }
         }

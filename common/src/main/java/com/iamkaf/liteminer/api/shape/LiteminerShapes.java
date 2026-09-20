@@ -6,6 +6,7 @@ import com.iamkaf.liteminer.shapes.StaircaseDownWalker;
 import com.iamkaf.liteminer.shapes.StaircaseUpWalker;
 import com.iamkaf.liteminer.shapes.ThreeByThreeWalker;
 import com.iamkaf.liteminer.shapes.TunnelWalker;
+import com.iamkaf.liteminer.shapes.VeinmineChecks;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 
@@ -51,10 +52,26 @@ public final class LiteminerShapes {
 
     static {
         register(SHAPELESS, Component.translatable("shape.liteminer.shapeless"), new ShapelessWalker()::walk);
-        register(SMALL_TUNNEL, Component.translatable("shape.liteminer.small_tunnel"), new TunnelWalker()::walk);
-        register(STAIRCASE_UP, Component.translatable("shape.liteminer.staircase_up"), new StaircaseUpWalker()::walk);
-        register(STAIRCASE_DOWN, Component.translatable("shape.liteminer.staircase_down"), new StaircaseDownWalker()::walk);
-        register(THREE_BY_THREE, Component.translatable("shape.liteminer.three_by_three"), new ThreeByThreeWalker()::walk);
+        register(
+                SMALL_TUNNEL,
+                Component.translatable("shape.liteminer.small_tunnel"),
+                VeinmineChecks.withoutInstantBreakExpansion(new TunnelWalker()::walk)
+        );
+        register(
+                STAIRCASE_UP,
+                Component.translatable("shape.liteminer.staircase_up"),
+                VeinmineChecks.withoutInstantBreakExpansion(new StaircaseUpWalker()::walk)
+        );
+        register(
+                STAIRCASE_DOWN,
+                Component.translatable("shape.liteminer.staircase_down"),
+                VeinmineChecks.withoutInstantBreakExpansion(new StaircaseDownWalker()::walk)
+        );
+        register(
+                THREE_BY_THREE,
+                Component.translatable("shape.liteminer.three_by_three"),
+                VeinmineChecks.withoutInstantBreakExpansion(new ThreeByThreeWalker()::walk)
+        );
     }
 
     private LiteminerShapes() {
