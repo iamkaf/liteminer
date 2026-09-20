@@ -109,8 +109,13 @@ public class LiteminerClient {
         selectedBlocks.clear();
     }
 
+    /** Whether the player has enabled the local selection preview. */
+    public static boolean isPreviewActive() {
+        return currentState;
+    }
+
     public static boolean isVeinMining() {
-        return currentState && com.iamkaf.liteminer.networking.ClientHandshake.allowsPreview();
+        return currentState && com.iamkaf.liteminer.networking.ClientHandshake.allowsMining();
     }
 
     public static long getLastChange() {

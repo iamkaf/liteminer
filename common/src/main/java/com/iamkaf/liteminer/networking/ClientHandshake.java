@@ -3,6 +3,7 @@ package com.iamkaf.liteminer.networking;
 import com.iamkaf.amber.api.functions.v1.PlayerFunctions;
 import com.iamkaf.liteminer.LiteminerClient;
 import com.iamkaf.liteminer.api.shape.LiteminerShapes;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.chat.Component;
@@ -17,7 +18,6 @@ public final class ClientHandshake {
     private static ClientMiningState state;
     private static boolean warned;
     private static boolean legacySent;
-    private static long lastIndicator;
     private ClientHandshake() {}
 
     private static long now() { return System.nanoTime() / 1_000_000L; }
@@ -33,7 +33,6 @@ public final class ClientHandshake {
                     LiteminerClient.shapes.getCurrentItem().id().toString());
             warned = false;
             legacySent = false;
-            lastIndicator = 0;
             LiteminerClient.resetInput();
         }
         if (state == null || client.player == null) return;
@@ -74,9 +73,25 @@ public final class ClientHandshake {
         feedback();
     }
 
-    public static boolean allowsPreview() {
+    public static boolean allowsMining() {
         return state != null && (state.status() == ClientMiningState.Status.HEALTHY
                 ? state.confirmedActive() : state.status() == ClientMiningState.Status.LEGACY && state.desiredActive());
+    }
+
+    /** A visible preview is not proof that the server supports mining. */
+    public static Optional<Component> hudMessage() {
+        if (!hasSupportWarning()) return Optional.empty();
+        return Optional.of(Component.translatable("liteminer.connection.short."
+                + state.status().name().toLowerCase(Locale.ROOT)).withStyle(ChatFormatting.RED));
+    }
+
+    /** Keep the configured opacity for both visible and through-wall outlines. */
+    public static int highlightColor(int configuredColor) {
+        return hasSupportWarning() ? (configuredColor & 0xFF000000) | 0xDC143C : configuredColor;
+    }
+
+    private static boolean hasSupportWarning() {
+        return state != null && state.hasSupportWarning();
     }
 
     public static Component explanation(ClientMiningState state) {
@@ -98,11 +113,6 @@ public final class ClientHandshake {
             PlayerFunctions.sendMessage(player, explanation(state).copy().append(" ")
                     .append(Component.translatable("liteminer.connection.doctor_hint")));
             warned = true;
-        }
-        if (now() - lastIndicator >= 500) {
-            PlayerFunctions.sendActionBar(player, Component.translatable("liteminer.connection.indicator",
-                    Component.translatable("liteminer.connection.short." + state.status().name().toLowerCase(Locale.ROOT))));
-            lastIndicator = now();
         }
     }
 }

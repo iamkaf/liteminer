@@ -126,6 +126,12 @@ public final class ClientMiningState {
     }
 
     public Status status() { return status; }
+    public boolean hasSupportWarning() {
+        return switch (status) {
+            case DISCONNECTED, CHECKING, HEALTHY -> false;
+            case LEGACY, UNAVAILABLE, INCOMPATIBLE, UNCONFIRMED, DEGRADED -> true;
+        };
+    }
     public boolean desiredActive() { return desiredActive; }
     public String desiredShape() { return desiredShape; }
     public boolean confirmedActive() { return confirmedActive; }

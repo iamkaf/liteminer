@@ -25,15 +25,38 @@ final class ClientMiningStateTest {
         state.discover(PENDING, ABSENT, 0);
         assertEquals(CHECKING, state.status());
         assertTrue(state.nextRequest(100_000).isEmpty());
+        assertFalse(state.hasSupportWarning());
+    }
+
+    @Test void routineConfirmationDoesNotFlashAWarning() {
+        var state = connected();
+        state.desire(true, SHAPE, 0);
+        var first = state.nextRequest(0).orElseThrow();
+        assertFalse(state.hasSupportWarning());
+        state.acknowledge(applied(first, 1));
+        assertFalse(state.hasSupportWarning());
+
+        state.desire(true, "addon:tunnel", 100);
+        var update = state.nextRequest(100).orElseThrow();
+        state.nextRequest(10_099);
+        assertEquals(CHECKING, state.status());
+        assertFalse(state.hasSupportWarning());
+        state.nextRequest(10_100);
+        assertEquals(DEGRADED, state.status());
+        assertTrue(state.hasSupportWarning());
+        state.acknowledge(applied(update, 2));
+        assertFalse(state.hasSupportWarning());
     }
 
     @Test void absenceAndLegacyHaveDifferentMeanings() {
         var state = new ClientMiningState("client", SHAPE);
         state.discover(ABSENT, ABSENT, 0);
         assertEquals(UNAVAILABLE, state.status());
+        assertTrue(state.hasSupportWarning());
         assertFalse(state.allowsInput());
         state.discover(ABSENT, SUPPORTED, 1);
         assertEquals(LEGACY, state.status());
+        assertTrue(state.hasSupportWarning());
         assertTrue(state.allowsInput());
         assertFalse(state.hasConfirmation());
     }
@@ -61,6 +84,7 @@ final class ClientMiningStateTest {
         assertTrue(state.nextRequest(9999).isEmpty());
         assertTrue(state.nextRequest(10000).isEmpty());
         assertEquals(UNCONFIRMED, state.status());
+        assertTrue(state.hasSupportWarning());
         assertTrue(state.nextRequest(60000).isEmpty());
         state.acknowledge(applied(initial, 1));
         assertEquals(HEALTHY, state.status());
@@ -116,6 +140,7 @@ final class ClientMiningStateTest {
         state.acknowledge(new MiningProtocol.Reply(request.nonce(), 2, "server", request.sequence(), 1,
                 false, SHAPE, MiningProtocol.Result.INCOMPATIBLE));
         assertEquals(ClientMiningState.Status.INCOMPATIBLE, state.status());
+        assertTrue(state.hasSupportWarning());
         assertFalse(state.hasConfirmation());
     }
 

@@ -26,7 +26,7 @@ final class LiteminerSelection {
             return clear();
         }
 
-        if (!LiteminerClient.isVeinMining()) {
+        if (!LiteminerClient.isPreviewActive()) {
             return clear();
         }
 

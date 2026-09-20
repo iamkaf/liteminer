@@ -2,6 +2,7 @@ package com.iamkaf.liteminer.rendering;
 
 import com.iamkaf.amber.api.functions.v1.WorldFunctions;
 import com.iamkaf.liteminer.LiteminerClient;
+import com.iamkaf.liteminer.networking.ClientHandshake;
 import com.iamkaf.liteminer.compat.IrisCompat;
 //? if <26.3 {
 import com.mojang.blaze3d.PrimitiveTopology;
@@ -167,10 +168,10 @@ public class BlockHighlightRenderer {
 
         float lineWidth = mc.getWindow().getAppropriateLineWidth();
 
-        int translucentColor = withAlpha(LiteminerClient.CONFIG.highlightSeeThroughLineColor.get(), 0x4B);
+        int translucentColor = ClientHandshake.highlightColor(withAlpha(LiteminerClient.CONFIG.highlightSeeThroughLineColor.get(), 0x4B));
         submitHighlight(submitNodeCollector, poseStack, LINES_TRANSLUCENT_NO_DEPTH_TEST, linesToRender, translucentColor, lineWidth);
 
-        int opaqueColor = withAlpha(LiteminerClient.CONFIG.highlightForegroundLineColor.get(), 0xFF);
+        int opaqueColor = ClientHandshake.highlightColor(withAlpha(LiteminerClient.CONFIG.highlightForegroundLineColor.get(), 0xFF));
         submitHighlight(submitNodeCollector, poseStack, LINES_NORMAL, linesToRender, opaqueColor, lineWidth);
 
         poseStack.popPose();

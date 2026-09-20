@@ -2,6 +2,7 @@ package com.iamkaf.liteminer.rendering;
 
 import com.iamkaf.amber.api.functions.v1.WorldFunctions;
 import com.iamkaf.liteminer.LiteminerClient;
+import com.iamkaf.liteminer.networking.ClientHandshake;
 import com.iamkaf.liteminer.compat.IrisCompat;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
@@ -136,11 +137,11 @@ public class BlockHighlightRenderer {
         float lineWidth = mc.getWindow().getAppropriateLineWidth();
 
         VertexConsumer translucentBuilder = buffers.getBuffer(LINES_TRANSLUCENT_NO_DEPTH_TEST);
-        int translucentColor = LiteminerClient.CONFIG.highlightSeeThroughLineColor.get().argb(0x4B);
+        int translucentColor = ClientHandshake.highlightColor(LiteminerClient.CONFIG.highlightSeeThroughLineColor.get().argb(0x4B));
         renderHighlight(poseStack, translucentBuilder, linesToRender, translucentColor, lineWidth);
 
         VertexConsumer opaqueBuilder = buffers.getBuffer(LINES_NORMAL);
-        int opaqueColor = LiteminerClient.CONFIG.highlightForegroundLineColor.get().argb(0xFF);
+        int opaqueColor = ClientHandshake.highlightColor(LiteminerClient.CONFIG.highlightForegroundLineColor.get().argb(0xFF));
         renderHighlight(poseStack, opaqueBuilder, linesToRender, opaqueColor, lineWidth);
 
         buffers.endBatch(LINES_TRANSLUCENT_NO_DEPTH_TEST);

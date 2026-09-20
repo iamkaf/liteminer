@@ -9,13 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Liteminer explains when the server does not provide vein mining and includes connection checks in `/amber doctor`.
+- Liteminer shows server-support warnings in red in its HUD and colors selection outlines crimson when server support is missing or confirmation fails. Connection checks are also available in `/amber doctor`.
 - Mining controls now wait for confirmation from compatible servers. Older servers retain their existing mining behavior.
 
 ### Changed
 
 - Requires Amber 11.4.0 or newer.
-- Requires Konfig 0.7.3 on Minecraft 26.2 and 0.8.1 on Minecraft 26.3 so clients can join servers without the mod.
+- Requires Konfig 0.8.1 on Minecraft 26.2 and newer so clients can join servers without the mod.
+
+### Fixed
+
+- Client settings now load after Konfig initializes on Forge and NeoForge.
 
 ## 4.2.1
 

@@ -6,6 +6,7 @@ import com.iamkaf.liteminer.api.event.LiteminerClientEvents;
 import com.iamkaf.liteminer.api.event.LiteminerHudContext;
 import com.iamkaf.liteminer.api.shape.LiteminerShape;
 import com.iamkaf.liteminer.networking.C2SVeinmineKeybindChange;
+import com.iamkaf.liteminer.networking.ClientHandshake;
 import com.iamkaf.liteminer.networking.LiteminerNetwork;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -35,7 +36,7 @@ public class HUD {
             return;
         }
 
-        if (!LiteminerClient.isVeinMining() || !LiteminerClient.isTargetingABlock()) {
+        if (!LiteminerClient.isPreviewActive() || !LiteminerClient.isTargetingABlock()) {
             return;
         }
 
@@ -57,6 +58,7 @@ public class HUD {
         List<Component> lines = new ArrayList<>();
         lines.add(selectedBlocksLabel);
         lines.add(selectedShape.displayName());
+        ClientHandshake.hudMessage().ifPresent(lines::add);
 
         LiteminerHudContext context = new LiteminerHudContext(selectedBlockCount, selectedShape, lines);
         LiteminerClientEvents.MODIFY_HUD.invoker().modifyHud(context);
@@ -87,7 +89,7 @@ public class HUD {
     }
 
     public static InteractionResult onMouseScroll(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (LiteminerClient.isVeinMining()) {
+        if (LiteminerClient.isPreviewActive()) {
             Minecraft minecraft = Minecraft.getInstance();
             if (scrollY != 0) {
                 if (scrollY > 0) {
@@ -96,7 +98,7 @@ public class HUD {
                     LiteminerClient.shapes.nextItem();
                 }
                 LiteminerNetwork.sendToServer(new C2SVeinmineKeybindChange(
-                        LiteminerClient.isVeinMining(),
+                        LiteminerClient.isPreviewActive(),
                         LiteminerClient.shapes.getCurrentIndex()
                 ));
             }
