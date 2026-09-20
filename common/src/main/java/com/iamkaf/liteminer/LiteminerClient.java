@@ -127,6 +127,7 @@ public class LiteminerClient {
     }
 
     public static void init() {
+        com.iamkaf.liteminer.networking.ClientLiteminerDoctor.initialize();
         KeybindHelper.register(KEY_MAPPING);
         ClientTickEvents.END_CLIENT_TICK.register(LiteminerClient::onPostTick);
         HudEvents.RENDER_HUD.register(HUD::onRenderHUD);
@@ -147,6 +148,8 @@ public class LiteminerClient {
 
     public static void onPostTick() {
         openPendingConfigScreen();
+        com.iamkaf.liteminer.networking.ClientHandshake.tick();
+        if (Minecraft.getInstance().player == null) return;
 
         if ((System.currentTimeMillis() - getLastChange()) < PACKET_DELAY) {
             return;
@@ -156,7 +159,7 @@ public class LiteminerClient {
             case HOLD -> {
                 var newState = KEY_MAPPING.isDown();
 
-                if (newState == isVeinMining()) {
+                if (newState == currentState) {
                     return;
                 }
 
@@ -165,7 +168,7 @@ public class LiteminerClient {
             }
             case TOGGLE -> {
                 if (KEY_MAPPING.consumeClick()) {
-                    var newState = !isVeinMining();
+                    var newState = !currentState;
 
                     LiteminerNetwork.sendToServer(new C2SVeinmineKeybindChange(newState, shapes.getCurrentIndex()));
                     currentState = newState;
@@ -174,8 +177,18 @@ public class LiteminerClient {
         }
     }
 
-    public static boolean isVeinMining() {
+    public static void resetInput() {
+        currentState = false;
+        selectedBlocks.clear();
+    }
+
+    /** Whether the player has enabled the local selection preview. */
+    public static boolean isPreviewActive() {
         return currentState;
+    }
+
+    public static boolean isVeinMining() {
+        return currentState && com.iamkaf.liteminer.networking.ClientHandshake.allowsMining();
     }
 
     public static long getLastChange() {
@@ -217,7 +230,7 @@ public class LiteminerClient {
 
     private static int setShapeCommand(int index) {
         shapes.setCurrentIndex(index);
-        LiteminerNetwork.sendToServer(new C2SVeinmineKeybindChange(isVeinMining(), shapes.getCurrentIndex()));
+        LiteminerNetwork.sendToServer(new C2SVeinmineKeybindChange(currentState, shapes.getCurrentIndex()));
         return 1;
     }
 

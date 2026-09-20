@@ -36,8 +36,8 @@ side = "BOTH"
 [[dependencies.${mod_id}]]
 modId = "konfig"
 type = "required"
-versionRange = "*"
-ordering = "BEFORE"
+versionRange = "[${konfig_version},)"
+ordering = "AFTER"
 side = "BOTH"
 
 [[mixins]]
