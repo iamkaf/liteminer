@@ -10,6 +10,7 @@ public final class LiteminerConfig {
     public final ForgeConfigSpec.ConfigValue<Double> harvestTimePerBlockModifier;
     public final ForgeConfigSpec.ConfigValue<Boolean> foodExhaustionEnabled;
     public final ForgeConfigSpec.ConfigValue<Double> foodExhaustion;
+    public final ForgeConfigSpec.ConfigValue<Boolean> allowVeinMiningAtZeroHunger;
 
 //    public final ForgeConfigSpec.ConfigValue<Boolean> requireFood;
 //    public final ForgeConfigSpec.ConfigValue<Boolean> useToolWhitelist;
@@ -43,5 +44,8 @@ public final class LiteminerConfig {
         foodExhaustion = builder.translation("liteminer.config.food_exhaustion")
                 .comment(":)")
                 .defineInRange("food_exhaustion", 0.2d, 0.0d, 1d);
+        allowVeinMiningAtZeroHunger = builder.translation("liteminer.config.allow_vein_mining_at_zero_hunger")
+                .comment("Allows vein mining when the player's food level is zero.")
+                .define("allow_vein_mining_at_zero_hunger", false);
     }
 }
