@@ -45,6 +45,10 @@ public class OnBlockBreak {
             return EventResult.pass();
         }
 
+        if (!FoodExhaustion.canUseLiteminerOrNotify(player)) {
+            return EventResult.pass();
+        }
+
         ItemStack tool = player.getMainHandItem();
 
         if (TagHelper.isExcludedTool(tool)) {
@@ -83,11 +87,7 @@ public class OnBlockBreak {
                     }
                 }
             }
-            boolean exhaustionEnabled = Liteminer.CONFIG.foodExhaustionEnabled.get();
-            float exhaustion = Liteminer.CONFIG.foodExhaustion.get().floatValue();
-            if (exhaustionEnabled && exhaustion > 0) {
-                player.causeFoodExhaustion(exhaustion);
-            }
+            FoodExhaustion.apply(player);
 
             boolean skipDrops = state.requiresCorrectToolForDrops() && !tool.isCorrectToolForDrops(state);
 
