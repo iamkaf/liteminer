@@ -24,7 +24,8 @@ public final class ServerHandshake {
             Liteminer.instance.playerStateMap.remove(player.getUUID());
         });
         WorldEvents.WORLD_UNLOAD.register((server, level) -> {
-            if (level == server.overworld()) {
+            // NeoForge also forwards client-world unloads, which have no server.
+            if (server != null && level == server.overworld()) {
                 SESSIONS.clear();
                 Liteminer.instance.playerStateMap.clear();
             }
