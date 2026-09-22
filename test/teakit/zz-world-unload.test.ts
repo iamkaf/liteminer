@@ -6,8 +6,11 @@ describe.configure({
   capabilities: [Capability.ClientScreens],
 });
 
-test("leaves a world without crashing", async ({ client }) => {
-  const result = await client.leaveWorld();
-  expect(result.hadLevel).toBe(true);
-  await new Promise(resolve => setTimeout(resolve, 3_000));
+// TeaKit runs top-level tests before suites, so keep world teardown in a final suite.
+describe("World exit", () => {
+  test("leaves a world without crashing", async ({ client }) => {
+    const result = await client.leaveWorld();
+    expect(result.hadLevel).toBe(true);
+    await new Promise(resolve => setTimeout(resolve, 3_000));
+  });
 });
