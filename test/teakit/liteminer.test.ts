@@ -33,7 +33,7 @@ describe("Liteminer vein mining", () => {
   test("mines a connected ore vein", async (ctx) => {
     const area = box({ x: 0, y: 69, z: 0 }, { x: 4, y: 73, z: 4 });
     try {
-      await prepareCreativeTest(ctx, { x: 0, y: 70, z: 0 }, area, 8);
+      await prepareCreativeTest(ctx, { x: 2.5, y: 70, z: 0.5 }, area, 8);
       await ctx.world.fill({ x: 0, y: 69, z: 0 }, { x: 4, y: 69, z: 4 }, "minecraft:stone");
       await setBlocks(ctx, [
         block(1, 70, 2),
@@ -177,7 +177,7 @@ describe("Liteminer vein mining", () => {
   test("applies each configured mining shape", async (ctx) => {
     const area = box({ x: -4, y: 66, z: 0 }, { x: 44, y: 75, z: 6 });
     try {
-      await prepareCreativeTest(ctx, { x: 0, y: 70, z: 0 }, area, 24);
+      await prepareCreativeTest(ctx, { x: 0.5, y: 70, z: 0.5 }, area, 24);
       await ctx.world.fill({ x: -4, y: 69, z: 0 }, { x: 44, y: 69, z: 6 }, "minecraft:stone");
       await ctx.client.command("/liteminer shape set 0");
       await ctx.runtime.wait(500);
@@ -198,7 +198,7 @@ describe("Liteminer vein mining", () => {
       await setBlocks(ctx, [
         block(10, 70, 2), block(10, 70, 3), block(10, 70, 4), block(11, 70, 3),
       ]);
-      await ctx.player.teleport({ x: 10, y: 70, z: 0 });
+      await ctx.player.teleport({ x: 10.5, y: 70, z: 0.5 });
       await mineWithClientAttack(ctx, { x: 10, y: 70, z: 2 }, { x: 10.5, y: 70.5, z: 2.5 });
       await waitForAir(ctx, [
         { x: 10, y: 70, z: 2 }, { x: 10, y: 70, z: 3 }, { x: 10, y: 70, z: 4 },
@@ -213,7 +213,7 @@ describe("Liteminer vein mining", () => {
         block(20, 71, 3), block(20, 72, 3), block(20, 73, 3),
         block(20, 72, 4), block(20, 73, 4), block(20, 74, 4), block(21, 72, 3),
       ]);
-      await ctx.player.teleport({ x: 20, y: 70, z: 0 });
+      await ctx.player.teleport({ x: 20.5, y: 70, z: 0.5 });
       await mineWithClientAttack(ctx, { x: 20, y: 71, z: 2 }, { x: 20.5, y: 71.5, z: 2.5 });
       await waitForAir(ctx, [
         { x: 20, y: 70, z: 2 }, { x: 20, y: 71, z: 2 }, { x: 20, y: 72, z: 2 },
@@ -230,7 +230,7 @@ describe("Liteminer vein mining", () => {
         block(30, 70, 3), block(30, 69, 3), block(30, 68, 3),
         block(30, 69, 4), block(30, 68, 4), block(30, 67, 4), block(31, 69, 3),
       ]);
-      await ctx.player.teleport({ x: 30, y: 70, z: 0 });
+      await ctx.player.teleport({ x: 30.5, y: 70, z: 0.5 });
       await mineWithClientAttack(ctx, { x: 30, y: 70, z: 2 }, { x: 30.5, y: 70.5, z: 2.5 });
       await waitForAir(ctx, [
         { x: 30, y: 70, z: 2 }, { x: 30, y: 69, z: 2 }, { x: 30, y: 68, z: 2 },
@@ -244,7 +244,7 @@ describe("Liteminer vein mining", () => {
       await ctx.runtime.wait(500);
       await ctx.world.fill({ x: 39, y: 69, z: 2 }, { x: 41, y: 71, z: 2 }, "minecraft:coal_ore");
       await ctx.world.setBlock({ x: 40, y: 70, z: 3 }, "minecraft:coal_ore");
-      await ctx.player.teleport({ x: 40, y: 70, z: 0 });
+      await ctx.player.teleport({ x: 40.5, y: 70, z: 0.5 });
       await mine(ctx, { x: 40, y: 70, z: 2 }, { x: 40.5, y: 70.5, z: 2.5 });
       await waitForAir(ctx, cuboidPositions({ x: 39, y: 69, z: 2 }, { x: 41, y: 71, z: 2 }));
       await assertBlock(ctx, { x: 40, y: 70, z: 3 }, "minecraft:coal_ore");
@@ -544,12 +544,13 @@ async function toggleImprovedTransparency(ctx: TeaKitTestContext) {
   }
 }
 
-async function prepareCreativeTest(ctx: TeaKitTestContext, playerPos: BlockPos, area: Area, radius: number) {
+async function prepareCreativeTest(ctx: TeaKitTestContext, playerPos: Vec3, area: Area, radius: number) {
   await ctx.client.closeMenus();
   await ctx.player.reset({ gameMode: "creative", inventory: "clear" });
-  await ctx.player.teleport(playerPos);
   await removeEntities(ctx, playerPos, radius, "minecraft:item");
   await ctx.world.clear(area.min, area.max);
+  await ctx.world.setBlock({ x: Math.floor(playerPos.x), y: playerPos.y - 1, z: Math.floor(playerPos.z) }, "minecraft:stone");
+  await ctx.player.teleport(playerPos);
   await ctx.player.give("minecraft:netherite_pickaxe");
   await ctx.player.inventory().selectHotbar(0);
 }
