@@ -12,4 +12,4 @@ permissions:
 jobs:
   comment:
     if: github.event.workflow_run.event == 'pull_request'
-    uses: iamkaf/multiloader-conventions/.github/workflows/comment-teakit.yml@f7acde0d5e9eefc982c6a5baf17f339e4494c8a7
+    uses: iamkaf/multiloader-conventions/.github/workflows/comment-teakit.yml@caa106bb70622445a272d16105246cd82ccd5003
