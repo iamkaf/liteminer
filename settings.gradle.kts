@@ -1,7 +1,10 @@
 pluginManagement {
     repositories {
-        mavenLocal()
-        maven("https://maven.kaf.sh") { name = "Kaf Maven" }
+        // Resolve workspace plugins only from Maven local and Kaf Maven.
+        exclusiveContent {
+            forRepositories(mavenLocal(), maven("https://maven.kaf.sh") { name = "Kaf Maven" })
+            filter { includeGroupByRegex("com\\.iamkaf(\\..*)?") }
+        }
         maven("https://maven.kikugie.dev/snapshots") { name = "KikuGie Snapshots" }
         gradlePluginPortal()
         mavenCentral()
