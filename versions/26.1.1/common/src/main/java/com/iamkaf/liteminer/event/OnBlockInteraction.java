@@ -56,6 +56,10 @@ public class OnBlockInteraction {
             return InteractionResult.PASS;
         }
 
+        if (!FoodExhaustion.canUseLiteminerOrNotify((ServerPlayer) player)) {
+            return InteractionResult.PASS;
+        }
+
         // 1 durability left on the tool
         if (tool.isDamageableItem() && (tool.getMaxDamage() - tool.getDamageValue()) == 1) {
             return InteractionResult.PASS;
@@ -145,11 +149,7 @@ public class OnBlockInteraction {
             processed.add(block);
             processedIncludingOrigin++;
 
-            boolean exhaustionEnabled = Liteminer.CONFIG.foodExhaustionEnabled.get();
-            float exhaustion = Liteminer.CONFIG.foodExhaustion.get().floatValue();
-            if (exhaustionEnabled && exhaustion > 0) {
-                player.causeFoodExhaustion(exhaustion);
-            }
+            FoodExhaustion.apply(player);
         }
 
         LiteminerEvents.AFTER_VEINMINE.invoker().afterVeinmine(new LiteminerEvents.ResultContext(
