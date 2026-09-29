@@ -1,11 +1,8 @@
 package com.iamkaf.liteminer.event;
 
 import com.iamkaf.liteminer.Liteminer;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 
 public final class FoodExhaustion {
@@ -15,14 +12,11 @@ public final class FoodExhaustion {
     private FoodExhaustion() {
     }
 
-    static boolean canUseLiteminerOrNotify(ServerPlayer player) {
-        if (canUseLiteminer(player)) {
-            return true;
-        }
-
-        player.sendSystemMessage(Component.translatable("message.liteminer.insufficient_hunger")
-                .withStyle(ChatFormatting.RED));
-        return false;
+    /** Shared by the server gate and the client HUD, which reads its local copy of the config. */
+    public static boolean isTooHungry(Player player) {
+        return !player.isCreative()
+                && isHungerRequired()
+                && player.getFoodData().getFoodLevel() <= 0;
     }
 
     static void apply(Player player) {
@@ -31,12 +25,6 @@ public final class FoodExhaustion {
         }
 
         player.causeFoodExhaustion(getExhaustion());
-    }
-
-    private static boolean canUseLiteminer(Player player) {
-        return player.isCreative()
-                || !isHungerRequired()
-                || player.getFoodData().getFoodLevel() > 0;
     }
 
     private static boolean isHungerRequired() {

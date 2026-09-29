@@ -5,9 +5,11 @@ import com.iamkaf.liteminer.LiteminerClient;
 import com.iamkaf.liteminer.api.event.LiteminerClientEvents;
 import com.iamkaf.liteminer.api.event.LiteminerHudContext;
 import com.iamkaf.liteminer.api.shape.LiteminerShape;
+import com.iamkaf.liteminer.event.FoodExhaustion;
 import com.iamkaf.liteminer.networking.C2SVeinmineKeybindChange;
 import com.iamkaf.liteminer.networking.ClientHandshake;
 import com.iamkaf.liteminer.networking.LiteminerNetwork;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -58,6 +60,10 @@ public class HUD {
         List<Component> lines = new ArrayList<>();
         lines.add(selectedBlocksLabel);
         lines.add(selectedShape.displayName());
+        var player = Minecraft.getInstance().player;
+        if (player != null && FoodExhaustion.isTooHungry(player)) {
+            lines.add(Component.translatable("hud.liteminer.too_hungry").withStyle(ChatFormatting.RED));
+        }
         ClientHandshake.hudMessage().ifPresent(lines::add);
 
         LiteminerHudContext context = new LiteminerHudContext(selectedBlockCount, selectedShape, lines);

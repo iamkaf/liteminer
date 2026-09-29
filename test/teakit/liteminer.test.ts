@@ -58,60 +58,49 @@ describe("Liteminer vein mining", () => {
     }
   });
 
-  test("gates vein mining when the hunger bar is empty", {
-    target: { minecraft: "26.2" },
+  test("keeps vein mining at zero hunger by default", { tags: ["hunger"] }, async (ctx) => {
+    const area = hungerArea();
+    try {
+      await prepareZeroHungerTest(ctx, area);
+      await holdVeinmineAndMine(ctx, HUNGER_ORIGIN, HUNGER_LOOK);
+      await waitForAir(ctx, [HUNGER_ORIGIN, HUNGER_SECONDARY]);
+    } finally {
+      await cleanup(ctx, area, HUNGER_ORIGIN, 12);
+    }
+  });
+
+  test("stops vein mining at zero hunger when configured", {
+    target: { minecraft: ">=26.2" },
+    tags: ["hunger"],
   }, async (ctx) => {
-    const area = box({ x: 118, y: 69, z: 0 }, { x: 126, y: 72, z: 5 });
-    const origin = { x: 122, y: 70, z: 2 };
-    const secondary = { x: 122, y: 70, z: 3 };
-    let allowZeroHungerEnabled = false;
+    const area = hungerArea();
+    let zeroHungerDisallowed = false;
     let foodExhaustionDisabled = false;
     try {
-      await ctx.client.closeMenus();
+      await toggleConfigEntry(ctx, "Allow Vein Mining at Zero Hunger");
+      zeroHungerDisallowed = true;
+      await prepareZeroHungerTest(ctx, area);
+      await ctx.client.lookAt(HUNGER_LOOK);
+      await ctx.client.keyState(96, true);
+      await ctx.runtime.wait(1_200);
+      await ctx.client.screenshot("liteminer-too-hungry-hud");
+      await ctx.player.mine(HUNGER_ORIGIN, { timeoutMs: 5_000 });
+      await ctx.runtime.wait(500);
       await ctx.client.keyState(96, false);
-      await ctx.client.command("/liteminer shape set 0");
-      await ctx.player.reset({
-        gameMode: "survival",
-        inventory: "clear",
-        effects: "clear",
-        food: 0,
-        saturation: 0,
-      });
-      await ctx.player.teleport({ x: 122, y: 70, z: 0 });
-      await ctx.world.clear(area.min, area.max);
-      await ctx.world.fill({ x: 118, y: 69, z: 0 }, { x: 126, y: 69, z: 5 }, "minecraft:stone");
-      await ctx.player.give("minecraft:netherite_pickaxe");
-      await ctx.player.inventory().selectHotbar(0);
+      await waitForAir(ctx, [HUNGER_ORIGIN]);
+      await assertBlock(ctx, HUNGER_SECONDARY, "minecraft:coal_ore");
 
-      await setBlocks(ctx, [
-        block(origin.x, origin.y, origin.z),
-        block(secondary.x, secondary.y, secondary.z),
-      ]);
-      await holdVeinmineAndMine(ctx, origin, { x: 122.5, y: 70.5, z: 2.5 });
-      await waitForAir(ctx, [origin]);
-      await assertBlock(ctx, secondary, "minecraft:coal_ore");
-
-      await toggleConfigEntry(ctx, "Allow Vein Mining at Zero Hunger");
-      allowZeroHungerEnabled = true;
-      await ctx.world.setBlock(origin, "minecraft:coal_ore");
-      await holdVeinmineAndMine(ctx, origin, { x: 122.5, y: 70.5, z: 2.5 });
-      await waitForAir(ctx, [origin, secondary]);
-
-      await toggleConfigEntry(ctx, "Allow Vein Mining at Zero Hunger");
-      allowZeroHungerEnabled = false;
+      // Without food exhaustion, hunger never limits vein mining.
       await toggleConfigEntry(ctx, "Food Exhaustion");
       foodExhaustionDisabled = true;
-      await setBlocks(ctx, [
-        block(origin.x, origin.y, origin.z),
-        block(secondary.x, secondary.y, secondary.z),
-      ]);
-      await holdVeinmineAndMine(ctx, origin, { x: 122.5, y: 70.5, z: 2.5 });
-      await waitForAir(ctx, [origin, secondary]);
+      await ctx.world.setBlock(HUNGER_ORIGIN, "minecraft:coal_ore");
+      await holdVeinmineAndMine(ctx, HUNGER_ORIGIN, HUNGER_LOOK);
+      await waitForAir(ctx, [HUNGER_ORIGIN, HUNGER_SECONDARY]);
     } finally {
       await ctx.client.keyState(96, false);
       if (foodExhaustionDisabled) await toggleConfigEntry(ctx, "Food Exhaustion");
-      if (allowZeroHungerEnabled) await toggleConfigEntry(ctx, "Allow Vein Mining at Zero Hunger");
-      await cleanup(ctx, area, { x: 122, y: 70, z: 0 }, 12);
+      if (zeroHungerDisallowed) await toggleConfigEntry(ctx, "Allow Vein Mining at Zero Hunger");
+      await cleanup(ctx, area, HUNGER_ORIGIN, 12);
     }
   });
 
@@ -612,6 +601,36 @@ async function prepareCreativeTest(ctx: TeaKitTestContext, playerPos: Vec3, area
   await ctx.player.inventory().selectHotbar(0);
 }
 
+const HUNGER_ORIGIN = { x: 122, y: 70, z: 2 };
+const HUNGER_SECONDARY = { x: 122, y: 70, z: 3 };
+const HUNGER_LOOK = { x: 122.5, y: 70.5, z: 2.5 };
+
+function hungerArea() {
+  return box({ x: 118, y: 69, z: 0 }, { x: 126, y: 72, z: 5 });
+}
+
+async function prepareZeroHungerTest(ctx: TeaKitTestContext, area: Area) {
+  await ctx.client.closeMenus();
+  await ctx.client.keyState(96, false);
+  await ctx.client.command("/liteminer shape set 0");
+  await ctx.player.reset({
+    gameMode: "survival",
+    inventory: "clear",
+    effects: "clear",
+    food: 0,
+    saturation: 0,
+  });
+  await ctx.world.clear(area.min, area.max);
+  await ctx.world.fill({ x: 118, y: 69, z: 0 }, { x: 126, y: 69, z: 5 }, "minecraft:stone");
+  await ctx.player.teleport({ x: 122.5, y: 70, z: 0.5 });
+  await ctx.player.give("minecraft:netherite_pickaxe");
+  await ctx.player.inventory().selectHotbar(0);
+  await setBlocks(ctx, [
+    block(HUNGER_ORIGIN.x, HUNGER_ORIGIN.y, HUNGER_ORIGIN.z),
+    block(HUNGER_SECONDARY.x, HUNGER_SECONDARY.y, HUNGER_SECONDARY.z),
+  ]);
+}
+
 async function prepareSurvivalXpTest(ctx: TeaKitTestContext, area: Area) {
   await ctx.client.closeMenus();
   await ctx.client.keyState(96, false);
@@ -652,7 +671,10 @@ async function toggleConfigEntry(ctx: TeaKitTestContext, label: string) {
   await ctx.client.command("/liteminer config");
   let screen = await ctx.client.waitForScreen("Liteminer Configuration", { timeoutMs: 10_000 });
   screen = await scrollToConfigEntry(ctx, label);
-  await screen.lists("selection_list").entry({ label }).activate();
+  const row = screen.lists("selection_list").entries().find((entry) => entry.label === label);
+  if (!row) throw new Error(`Liteminer config entry disappeared: ${label}`);
+  // Activating a Konfig row only selects it; the value button sits at the row's right edge.
+  await ctx.client.click({ x: row.x + row.width - 30, y: row.y + row.height / 2 });
   await ctx.runtime.wait(300);
   await ctx.client.closeMenus();
   await ctx.runtime.wait(500);

@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 4.4.0 / 3.3.0
+
+### Added
+
+- Added an "Allow Vein Mining at Zero Hunger" setting. Turn it off to stop vein mining while your hunger bar is empty, and Liteminer's HUD shows "Too hungry to mine!" in red. It stays on by default, so vein mining works the same unless you change it.
+  Thanks to [@AoSankaku](https://github.com/AoSankaku)!
+
+### Fixed
+
+- Vein mining no longer drains hunger while Farmer's Delight's Nourishment effect is active.
+  Thanks to [@AoSankaku](https://github.com/AoSankaku)!
+
 ## 4.3.2 / 3.2.2
 
 ### Fixed

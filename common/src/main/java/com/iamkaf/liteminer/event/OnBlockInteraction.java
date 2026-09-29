@@ -57,7 +57,7 @@ public class OnBlockInteraction {
             return InteractionResult.PASS;
         }
 
-        if (!FoodExhaustion.canUseLiteminerOrNotify((ServerPlayer) player)) {
+        if (FoodExhaustion.isTooHungry(player)) {
             return InteractionResult.PASS;
         }
 

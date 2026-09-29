@@ -75,7 +75,7 @@ public final class LiteminerConfig {
                 .info(info -> info.inlineTextKey("liteminer.config.food_exhaustion.info"))
                 .sync(true)
                 .build();
-        allowVeinMiningAtZeroHunger = builder.bool("allow_vein_mining_at_zero_hunger", false)
+        allowVeinMiningAtZeroHunger = builder.bool("allow_vein_mining_at_zero_hunger", true)
                 .comment("Allows vein mining when the player's food level is zero.")
                 .info(info -> info.inlineTextKey("liteminer.config.allow_vein_mining_at_zero_hunger.info"))
                 .sync(true)

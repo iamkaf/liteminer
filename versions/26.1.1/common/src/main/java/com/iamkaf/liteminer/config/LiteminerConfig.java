@@ -42,7 +42,7 @@ public final class LiteminerConfig {
                 .defineInRange("food_exhaustion", 0.2d, 0.0d, 1d);
         allowVeinMiningAtZeroHunger = builder.translation("liteminer.config.allow_vein_mining_at_zero_hunger")
                 .comment("Allows vein mining when the player's food level is zero.")
-                .define("allow_vein_mining_at_zero_hunger", false);
+                .define("allow_vein_mining_at_zero_hunger", true);
 
         distinguishGrownCrops = builder.translation("liteminer.config.distinguish_grown_crops")
                 .comment(":)")
