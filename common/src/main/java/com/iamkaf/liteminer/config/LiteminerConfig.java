@@ -14,6 +14,7 @@ public final class LiteminerConfig {
     public final ConfigValue<Boolean> allowVeinMiningAtZeroHunger;
     public final ConfigValue<Boolean> distinguishGrownCrops;
     public final ConfigValue<Boolean> matchDeepslateOreVariants;
+    public final ConfigValue<String> dropMode;
 
     public LiteminerConfig(ConfigBuilder builder) {
         builder.push("safety")
@@ -43,6 +44,21 @@ public final class LiteminerConfig {
         blockBreakLimit = builder.intRange("block_break_limit", 64, 1, 2048)
                 .comment("Maximum number of blocks that can be broken by one vein mining action.")
                 .info(info -> info.inlineTextKey("liteminer.config.block_break_limit.info"))
+                .sync(true)
+                .build();
+        builder.pop();
+
+        builder.push("drops")
+                .categoryComment("Where vein mining places items and experience.")
+                .categoryInfo(info -> info
+                        .headerKey("liteminer.config.info.drops.header")
+                        .inlineTextKey("liteminer.config.info.drops.text"))
+                .header("Drops");
+        dropMode = builder.dropdown("drop_mode", DropMode.TOGETHER.name(), options -> options
+                        .option(DropMode.TOGETHER.name(), option -> option.labelKey(DropMode.TOGETHER.translationKey()))
+                        .option(DropMode.EACH_BLOCK.name(), option -> option.labelKey(DropMode.EACH_BLOCK.translationKey())))
+                .comment("Where the items and experience of every block after the first one land.")
+                .info(info -> info.inlineTextKey("liteminer.config.drop_mode.info"))
                 .sync(true)
                 .build();
         builder.pop();
@@ -100,5 +116,9 @@ public final class LiteminerConfig {
                 .sync(true)
                 .build();
         builder.pop();
+    }
+
+    public DropMode dropMode() {
+        return DropMode.valueOf(dropMode.get());
     }
 }

@@ -7,6 +7,7 @@ import com.iamkaf.liteminer.LiteminerPlayerState;
 import com.iamkaf.liteminer.api.event.LiteminerEvents;
 import com.iamkaf.liteminer.api.shape.LiteminerShape;
 import com.iamkaf.liteminer.api.shape.LiteminerShapes;
+import com.iamkaf.liteminer.config.DropMode;
 import com.iamkaf.liteminer.platform.Services;
 import com.iamkaf.liteminer.shapes.VeinmineChecks;
 import com.iamkaf.liteminer.tags.TagHelper;
@@ -20,11 +21,12 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ExperienceOrb;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.gamerules.GameRules;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.IceBlock;
 import net.minecraft.world.attribute.EnvironmentAttributes;
@@ -175,37 +177,26 @@ public class OnBlockBreak {
                     );
                 }
 
-                // Platform-specific XP handling
-                if (Platform.isNeoForge()) {
-                    // NeoForge: Call spawnAfterBreak without XP, then spawn XP manually
-                    state.spawnAfterBreak((ServerLevel) level, block, tool, false);
+                ServerLevel serverLevel = (ServerLevel) level;
+                BlockPos dropPos = Liteminer.CONFIG.dropMode() == DropMode.TOGETHER ? absoluteOrigin : block;
 
-                    // Get XP amount via platform helper (calls NeoForge's getExpDrop)
+                // Fabric and Forge drop block XP from spawnAfterBreak at the position it is given.
+                // NeoForge moved block XP out of spawnAfterBreak, so it is awarded here instead.
+                if (Platform.isNeoForge()) {
+                    state.spawnAfterBreak(serverLevel, dropPos, tool, false);
                     int xp = Services.PLATFORM.getBlockExperience(
-                        (ServerLevel) level, block, state,
+                        serverLevel, block, state,
                         level.getBlockEntity(block), player, tool
                     );
-                    if (xp > 0) {
-                        ExperienceOrb.award((ServerLevel) level, Vec3.atCenterOf(block), xp);
+                    if (xp > 0 && serverLevel.getGameRules().get(GameRules.BLOCK_DROPS)) {
+                        ExperienceOrb.award(serverLevel, Vec3.atCenterOf(dropPos), xp);
                     }
                 } else {
-                    // Fabric: Vanilla behavior works correctly
-                    state.spawnAfterBreak((ServerLevel) level, block, tool, true);
+                    state.spawnAfterBreak(serverLevel, dropPos, tool, true);
                 }
 
-                // This is here so secondary drops drop in the same place, that's by design.
                 for (var stack : state.getDrops(builder)) {
-                    var itemEntity = new ItemEntity(
-                            level,
-                            absoluteOrigin.getX(),
-                            absoluteOrigin.getY(),
-                            absoluteOrigin.getZ(),
-                            stack,
-                            level.getRandom().nextFloat() / 10,
-                            0.25f,
-                            level.getRandom().nextFloat() / 10
-                    );
-                    level.addFreshEntity(itemEntity);
+                    Block.popResource(level, dropPos, stack);
                 }
             }
 

@@ -13,6 +13,7 @@ public final class LiteminerConfig {
     public final ModConfigSpec.ConfigValue<Boolean> allowVeinMiningAtZeroHunger;
     public final ModConfigSpec.ConfigValue<Boolean> distinguishGrownCrops;
     public final ModConfigSpec.ConfigValue<Boolean> matchDeepslateOreVariants;
+    public final ModConfigSpec.EnumValue<DropMode> dropMode;
 
     public LiteminerConfig(ModConfigSpec.Builder builder) {
         preventToolBreaking = builder.translation("liteminer.config.prevent_tool_breaking")
@@ -51,5 +52,13 @@ public final class LiteminerConfig {
         matchDeepslateOreVariants = builder.translation("liteminer.config.match_deepslate_ore_variants")
                 .comment(":)")
                 .define("match_deepslate_ore_variants", true);
+
+        dropMode = builder.translation("liteminer.config.drop_mode")
+                .comment("Where the items and experience of every block after the first one land.")
+                .defineEnum("drop_mode", DropMode.TOGETHER);
+    }
+
+    public DropMode dropMode() {
+        return dropMode.get();
     }
 }
