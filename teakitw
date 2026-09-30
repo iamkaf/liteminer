@@ -17,7 +17,7 @@
 set -eu
 
 SELF_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-TEAKIT_RUNNER_PINNED_VERSION="0.17.0"
+TEAKIT_RUNNER_PINNED_VERSION="0.18.0"
 TEAKIT_MAVEN_RELEASES="${TEAKIT_MAVEN_RELEASES:-https://maven.kaf.sh}"
 TEAKIT_MAVEN_SNAPSHOTS="${TEAKIT_MAVEN_SNAPSHOTS:-https://maven.kaf.sh}"
 TEAKIT_MAVEN_LOCAL="${TEAKIT_MAVEN_LOCAL:-${HOME:-}/.m2/repository}"
@@ -160,8 +160,12 @@ latest_runner_version() {
 
 # `upgrade` does not run TeaKit. It resolves/downloads the newest runner and
 # exits, which lets repositories refresh the cached runner before normal use.
+TEAKIT_WRAPPER_UPGRADE=0
 if [ "${TEAKIT_RUNNER_VERSION:-}" ]; then
   TEAKIT_RUNNER_RESOLVED_VERSION="$TEAKIT_RUNNER_VERSION"
+  if [ "${1:-}" = "upgrade" ]; then
+    TEAKIT_WRAPPER_UPGRADE=1
+  fi
 elif [ "${1:-}" = "upgrade" ]; then
   TEAKIT_WRAPPER_UPGRADE=1
   TEAKIT_RUNNER_RESOLVED_VERSION=$(latest_runner_version)
@@ -171,10 +175,8 @@ elif [ "${1:-}" = "upgrade" ]; then
     exit 1
   fi
 else
-  TEAKIT_WRAPPER_UPGRADE=0
   TEAKIT_RUNNER_RESOLVED_VERSION="$TEAKIT_RUNNER_PINNED_VERSION"
 fi
-TEAKIT_WRAPPER_UPGRADE="${TEAKIT_WRAPPER_UPGRADE:-0}"
 TEAKIT_RUNNER_CLASSIFIER="${TEAKIT_RUNNER_CLASSIFIER:-$(detect_runner_classifier)}"
 
 dist_dir="$TEAKIT_CACHE_ROOT/wrapper/dists/$TEAKIT_ARTIFACT/$TEAKIT_RUNNER_RESOLVED_VERSION/$TEAKIT_RUNNER_CLASSIFIER"
