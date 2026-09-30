@@ -117,63 +117,24 @@ describe("Liteminer vein mining", () => {
   });
 
   test("collects secondary drops at the player-broken block", { tags: ["drops"] }, async (ctx) => {
-    const area = box({ x: 98, y: 69, z: -2 }, { x: 102, y: 72, z: 11 });
-    const origin = { x: 100, y: 70, z: 3 };
-    let ticksFrozen = false;
-    try {
-      await ctx.client.closeMenus();
-      await ctx.client.keyState(96, false);
-      await ctx.client.command("/liteminer shape set 0");
-      await ctx.player.reset({ gameMode: "survival", inventory: "clear" });
-      await ctx.player.teleport({ x: 100, y: 70, z: -1 });
-      await removeEntities(ctx, origin, 16, "minecraft:item");
-      await ctx.world.clear(area.min, area.max);
-      await ctx.world.fill({ x: 98, y: 69, z: -2 }, { x: 102, y: 69, z: 11 }, "minecraft:stone");
-      await ctx.player.give("minecraft:netherite_pickaxe");
-      await ctx.player.inventory().selectHotbar(0);
-      await ctx.commands.assert("/enchant @s minecraft:silk_touch 1");
-      await ctx.commands.batch([
-        ...Array.from({ length: 8 }, (_, slot) => `/item replace entity @s hotbar.${slot + 1} with minecraft:stone 64`),
-        ...Array.from({ length: 27 }, (_, slot) => `/item replace entity @s inventory.${slot} with minecraft:stone 64`),
-      ], { requireSuccess: true });
-      await ctx.world.setBlock(origin, "minecraft:coal_ore");
-      for (let z = 4; z < 9; z += 1) {
-        await ctx.world.setBlock({ x: 100, y: 70, z }, "minecraft:coal_ore");
-      }
-      await ctx.world.setBlock({ x: 100, y: 70, z: 9 }, "minecraft:deepslate_coal_ore");
+    const dropPosition = await mineOreLineAndFindFarDrop(ctx);
+    expect(dropPosition).toBeNear(ORE_LINE_ORIGIN, { distance: 3 });
+  });
 
-      await ctx.client.lookAt({ x: 100.5, y: 70.5, z: 3.5 });
-      await ctx.client.keyState(96, true);
-      await ctx.runtime.wait(1_200);
-      await ctx.player.mine(origin, { timeoutMs: 5_000 });
-      await ctx.client.keyState(96, false);
-      await ctx.runtime.wait(50);
-      await ctx.commands.assert("/tick freeze");
-      ticksFrozen = true;
-      const drops = await ctx.entities
-        .query({ origin, radius: 16, type: "minecraft:item", item: "minecraft:deepslate_coal_ore" })
-        .waitForCountAtLeast(1, { timeout: 3_000 });
-      const dropPosition = (await drops[0]?.inspect())?.position;
-      if (!dropPosition) throw new Error("The collected secondary drop had no reported position");
-      expect(dropPosition).toBeNear(origin, { distance: 3 });
-      await ctx.commands.assert("/tick unfreeze");
-      ticksFrozen = false;
-      await waitForAir(ctx, [
-        origin,
-        { x: 100, y: 70, z: 4 },
-        { x: 100, y: 70, z: 5 },
-        { x: 100, y: 70, z: 6 },
-        { x: 100, y: 70, z: 7 },
-        { x: 100, y: 70, z: 8 },
-        { x: 100, y: 70, z: 9 },
-      ]);
+  test("drops items and experience at each block when configured", {
+    target: { minecraft: ">=26.2" },
+    tags: ["drops", "xp"],
+  }, async (ctx) => {
+    let eachBlock = false;
+    try {
+      await cycleConfigDropdown(ctx, "How should blocks drop");
+      eachBlock = true;
+      const dropPosition = await mineOreLineAndFindFarDrop(ctx);
+      expect(dropPosition).toBeNear(ORE_LINE_FAR_END, { distance: 1.5 });
+      const orbXs = await mineSculkAndCollectExperience(ctx);
+      expect(orbXs.some((x) => x > 5.5)).toBe(true);
     } finally {
-      if (ticksFrozen) await ctx.commands.assert("/tick unfreeze");
-      await ctx.client.keyState(96, false);
-      await ctx.player.reset({ gameMode: "creative", inventory: "clear" });
-      await removeEntities(ctx, origin, 16, "minecraft:item");
-      await removeEntities(ctx, origin, 16, "minecraft:experience_orb");
-      await ctx.world.clear(area.min, area.max);
+      if (eachBlock) await cycleConfigDropdown(ctx, "How should blocks drop");
     }
   });
 
@@ -543,6 +504,40 @@ describe("Liteminer vein mining", () => {
       await ctx.world.clear(area.min, area.max);
     }
   });
+
+  test("drops every block's experience together at the player-broken block", { tags: ["xp"] }, async (ctx) => {
+    const orbXs = await mineSculkAndCollectExperience(ctx);
+    expect(orbXs.length).toBeGreaterThan(0);
+    expect(orbXs.every((x) => x < 4.5)).toBe(true);
+  });
+
+  test("drops nothing from secondary blocks when block drops are off", { tags: ["drops", "xp"] }, async (ctx) => {
+    const area = box({ x: 0, y: 69, z: 0 }, { x: 8, y: 73, z: 4 });
+    const ores = [1, 2, 3].map((x) => block(x, 70, 2, "minecraft:diamond_ore"));
+    let dropsOff = false;
+    try {
+      await prepareSurvivalXpTest(ctx, area);
+      await ctx.player.give("minecraft:netherite_pickaxe");
+      await ctx.player.inventory().selectHotbar(0);
+      await ctx.commands.assert("/gamerule block_drops false");
+      dropsOff = true;
+      await setBlocks(ctx, ores);
+      await holdVeinmineAndMine(ctx, { x: 2, y: 70, z: 2 }, { x: 2.5, y: 70.5, z: 2.5 });
+      await waitForAir(ctx, ores.map((ore) => ore.pos), 5_000);
+      await ctx.runtime.wait(500);
+      await ctx.entities.query({ origin: { x: 2, y: 70, z: 2 }, radius: 12, type: "minecraft:item" }).waitForCount(0, { timeoutMs: 1_000 });
+      await ctx.entities.query({ origin: { x: 2, y: 70, z: 2 }, radius: 12, type: "minecraft:experience_orb" }).waitForCount(0, { timeoutMs: 1_000 });
+      await ctx.commands.assert("/execute unless entity @s[level=1..]");
+    } finally {
+      if (dropsOff) await ctx.commands.assert("/gamerule block_drops true");
+      await ctx.client.keyState(96, false);
+      await ctx.player.reset({ gameMode: "creative", inventory: "clear" });
+      await setExperience(ctx, 0);
+      await removeEntities(ctx, { x: 2, y: 70, z: 2 }, 12, "minecraft:item");
+      await removeEntities(ctx, { x: 2, y: 70, z: 2 }, 12, "minecraft:experience_orb");
+      await ctx.world.clear(area.min, area.max);
+    }
+  });
 });
 
 async function checkHighlightRendering(ctx: TeaKitTestContext, switchTransparency = false) {
@@ -646,6 +641,108 @@ async function prepareSurvivalXpTest(ctx: TeaKitTestContext, area: Area) {
   await ctx.world.fill({ x: 0, y: 69, z: 0 }, { x: 8, y: 69, z: 4 }, "minecraft:stone");
 }
 
+const ORE_LINE_ORIGIN = { x: 100, y: 70, z: 3 };
+const ORE_LINE_FAR_END = { x: 100.5, y: 70, z: 9.5 };
+
+/** Vein mines a coal ore line that ends in deepslate coal ore, and returns where the deepslate drop landed. */
+async function mineOreLineAndFindFarDrop(ctx: TeaKitTestContext): Promise<Vec3> {
+  const area = box({ x: 98, y: 69, z: -2 }, { x: 102, y: 72, z: 11 });
+  const origin = ORE_LINE_ORIGIN;
+  let ticksFrozen = false;
+  try {
+    await ctx.client.closeMenus();
+    await ctx.client.keyState(96, false);
+    await ctx.client.command("/liteminer shape set 0");
+    await ctx.player.reset({ gameMode: "survival", inventory: "clear" });
+    await ctx.player.teleport({ x: 100, y: 70, z: -1 });
+    await removeEntities(ctx, origin, 16, "minecraft:item");
+    await ctx.world.clear(area.min, area.max);
+    await ctx.world.fill({ x: 98, y: 69, z: -2 }, { x: 102, y: 69, z: 11 }, "minecraft:stone");
+    await ctx.player.give("minecraft:netherite_pickaxe");
+    await ctx.player.inventory().selectHotbar(0);
+    await ctx.commands.assert("/enchant @s minecraft:silk_touch 1");
+    // A full inventory keeps the drops on the ground where they landed.
+    await ctx.commands.batch([
+      ...Array.from({ length: 8 }, (_, slot) => `/item replace entity @s hotbar.${slot + 1} with minecraft:stone 64`),
+      ...Array.from({ length: 27 }, (_, slot) => `/item replace entity @s inventory.${slot} with minecraft:stone 64`),
+    ], { requireSuccess: true });
+    await ctx.world.setBlock(origin, "minecraft:coal_ore");
+    for (let z = 4; z < 9; z += 1) {
+      await ctx.world.setBlock({ x: 100, y: 70, z }, "minecraft:coal_ore");
+    }
+    await ctx.world.setBlock({ x: 100, y: 70, z: 9 }, "minecraft:deepslate_coal_ore");
+
+    await ctx.client.lookAt({ x: 100.5, y: 70.5, z: 3.5 });
+    await ctx.client.keyState(96, true);
+    await ctx.runtime.wait(1_200);
+    await ctx.player.mine(origin, { timeoutMs: 5_000 });
+    await ctx.client.keyState(96, false);
+    await ctx.runtime.wait(50);
+    await ctx.commands.assert("/tick freeze");
+    ticksFrozen = true;
+    const drops = await ctx.entities
+      .query({ origin, radius: 16, type: "minecraft:item", item: "minecraft:deepslate_coal_ore" })
+      .waitForCountAtLeast(1, { timeout: 3_000 });
+    const dropPosition = (await drops[0]?.inspect())?.position;
+    if (!dropPosition) throw new Error("The deepslate drop had no reported position");
+    await ctx.commands.assert("/tick unfreeze");
+    ticksFrozen = false;
+    await waitForAir(ctx, [origin, ...Array.from({ length: 6 }, (_, i) => ({ x: 100, y: 70, z: 4 + i }))]);
+    return dropPosition;
+  } finally {
+    if (ticksFrozen) await ctx.commands.assert("/tick unfreeze");
+    await ctx.client.keyState(96, false);
+    await ctx.player.reset({ gameMode: "creative", inventory: "clear" });
+    await removeEntities(ctx, origin, 16, "minecraft:item");
+    await removeEntities(ctx, origin, 16, "minecraft:experience_orb");
+    await ctx.world.clear(area.min, area.max);
+  }
+}
+
+/**
+ * Vein mines 14 sculk blocks from x=1 to x=7, returns the x of each experience orb right after mining,
+ * then collects the orbs and checks that every block's experience arrived.
+ */
+async function mineSculkAndCollectExperience(ctx: TeaKitTestContext): Promise<number[]> {
+  const area = box({ x: 0, y: 69, z: 0 }, { x: 8, y: 73, z: 4 });
+  const origin = { x: 2, y: 70, z: 2 };
+  const sculk = [2, 3].flatMap((z) => Array.from({ length: 7 }, (_, x) => ({ x: x + 1, y: 70, z })));
+  let ticksFrozen = false;
+  try {
+    await prepareSurvivalXpTest(ctx, area);
+    await ctx.player.give("minecraft:netherite_pickaxe");
+    await ctx.player.inventory().selectHotbar(0);
+    await setBlocks(ctx, sculk.map((pos) => block(pos.x, pos.y, pos.z, "minecraft:sculk")));
+    await ctx.client.lookAt({ x: 2.5, y: 70.5, z: 2.5 });
+    await ctx.client.keyState(96, true);
+    await ctx.runtime.wait(1_200);
+    await ctx.player.mine(origin, { timeoutMs: 5_000 });
+    await ctx.commands.assert("/tick freeze");
+    ticksFrozen = true;
+    await ctx.client.keyState(96, false);
+    await waitForAir(ctx, sculk, 5_000);
+    const orbs = await ctx.entities.query({ origin, radius: 12, type: "minecraft:experience_orb" }).list();
+    // Frozen ticks still let the player absorb an orb between listing and inspecting it.
+    const orbXs = (await Promise.all(orbs.map((orb) => orb.inspect().then((snapshot) => snapshot.position?.x, () => undefined))))
+      .filter((x): x is number => x !== undefined);
+    await ctx.commands.assert("/tick unfreeze");
+    ticksFrozen = false;
+
+    // Sculk always drops 1 XP, so 14 blocks reach level 1 while the origin alone cannot.
+    await ctx.player.teleport({ x: 4, y: 70, z: 2 });
+    await ctx.runtime.wait(2_000);
+    await ctx.commands.assert("/execute if entity @s[level=1..]");
+    return orbXs;
+  } finally {
+    if (ticksFrozen) await ctx.commands.assert("/tick unfreeze");
+    await ctx.client.keyState(96, false);
+    await ctx.player.reset({ gameMode: "creative", inventory: "clear" });
+    await setExperience(ctx, 0);
+    await removeEntities(ctx, origin, 12, "minecraft:experience_orb");
+    await ctx.world.clear(area.min, area.max);
+  }
+}
+
 async function cleanup(ctx: TeaKitTestContext, area: Area, origin: BlockPos, radius: number) {
   await ctx.client.keyState(96, false);
   await ctx.player.reset({ gameMode: "creative", inventory: "clear" });
@@ -679,6 +776,26 @@ async function toggleConfigEntry(ctx: TeaKitTestContext, label: string) {
   await ctx.client.closeMenus();
   await ctx.runtime.wait(500);
 }
+
+/** Opens a two-option Konfig dropdown and moves to the other option. Konfig wraps the selection. */
+async function cycleConfigDropdown(ctx: TeaKitTestContext, label: string) {
+  await ctx.client.closeMenus();
+  await ctx.client.command("/liteminer config");
+  let screen = await ctx.client.waitForScreen("Liteminer Configuration", { timeoutMs: 10_000 });
+  screen = await scrollToConfigEntry(ctx, label);
+  const row = screen.lists("selection_list").entries().find((entry) => entry.label === label);
+  if (!row) throw new Error(`Liteminer config entry disappeared: ${label}`);
+  await ctx.client.click({ x: row.x + row.width - 30, y: row.y + row.height / 2 });
+  await ctx.runtime.wait(300);
+  await ctx.client.key(KEY_DOWN);
+  await ctx.client.key(KEY_ENTER);
+  await ctx.runtime.wait(300);
+  await ctx.client.closeMenus();
+  await ctx.runtime.wait(500);
+}
+
+const KEY_DOWN = 264;
+const KEY_ENTER = 257;
 
 async function scrollToConfigEntry(ctx: TeaKitTestContext, label: string) {
   for (let attempt = 0; attempt < 20; attempt += 1) {
