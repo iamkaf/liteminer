@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 4.5.0 / 3.4.0
+
+### Added
+
+- Added a "How should blocks drop" setting. "Together" drops a vein's items and experience where you broke the first block, and "At each block" drops them where each block was. It stays on "Together" by default.
+
+### Changed
+
+- Experience from vein mining now drops together with the items.
+- Requires Konfig 0.9.0 or newer on Minecraft 26.2 and 26.3.
+
+### Fixed
+
+- Vein mining now respects the `block_drops` game rule.
+
 ## 4.4.0 / 3.3.0
 
 ### Added
