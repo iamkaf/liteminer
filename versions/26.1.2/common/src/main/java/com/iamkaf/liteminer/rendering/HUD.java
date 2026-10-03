@@ -9,7 +9,6 @@ import com.iamkaf.liteminer.event.FoodExhaustion;
 import com.iamkaf.liteminer.networking.C2SVeinmineKeybindChange;
 import com.iamkaf.liteminer.networking.ClientHandshake;
 import com.iamkaf.liteminer.networking.LiteminerNetwork;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -34,11 +33,8 @@ public class HUD {
         LiteminerSelection.Snapshot selection = LiteminerSelection.refresh();
         int selectedBlockCount = selection.blocks().size();
 
-        if (selectedBlockCount == 0) {
-            return;
-        }
-
-        if (!LiteminerClient.isPreviewActive() || !LiteminerClient.isTargetingABlock()) {
+        var player = Minecraft.getInstance().player;
+        if (!LiteminerClient.isPreviewActive() || player == null || Minecraft.getInstance().level == null) {
             return;
         }
 
@@ -52,18 +48,20 @@ public class HUD {
         int centerWidth = (int) (width / 2f / scale);
         int centerHeight = (int) (height / 2f / scale);
 
-        Component selectedBlocksLabel = Component.translatable(
-                selectedBlockCount > 1 ? "hud.liteminer.selected_blocks" : "hud.liteminer" + ".selected_blocks_singular",
-                selectedBlockCount
-        );
         LiteminerShape selectedShape = LiteminerClient.shapes.getCurrentItem();
         List<Component> lines = new ArrayList<>();
-        lines.add(selectedBlocksLabel);
-        lines.add(selectedShape.displayName());
-        var player = Minecraft.getInstance().player;
-        if (player != null && FoodExhaustion.isTooHungry(player)) {
-            lines.add(Component.translatable("hud.liteminer.too_hungry").withStyle(ChatFormatting.RED));
+        if (selectedBlockCount > 0 && LiteminerClient.isTargetingABlock()) {
+            if (FoodExhaustion.isTooHungry(player)) {
+                lines.add(Component.translatable("hud.liteminer.too_hungry")
+                        .withStyle(style -> style.withColor(0xFFA500)));
+            } else {
+                lines.add(Component.translatable(
+                        selectedBlockCount > 1 ? "hud.liteminer.selected_blocks" : "hud.liteminer.selected_blocks_singular",
+                        selectedBlockCount
+                ));
+            }
         }
+        lines.add(selectedShape.displayName());
         ClientHandshake.hudMessage().ifPresent(lines::add);
 
         LiteminerHudContext context = new LiteminerHudContext(selectedBlockCount, selectedShape, lines);
