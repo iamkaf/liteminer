@@ -6,8 +6,7 @@ A veinmining mod for Minecraft.
 
 ## ⛏️ About
 
-Liteminer adds configurable vein mining with multiple mining shapes, a HUD, and cross-loader support.
-Built using a multi-loader architecture supporting Fabric, Forge (scaffolded), and NeoForge.
+Liteminer adds configurable vein mining with multiple mining shapes, a HUD, and support for Fabric, Forge, and NeoForge.
 
 ## 📦 Features
 
@@ -16,79 +15,63 @@ Built using a multi-loader architecture supporting Fabric, Forge (scaffolded), a
 - HUD + keybind workflow
 - Tag-based block/tool allow/deny lists (compatible with FTB Ultimine tags)
 
-## 🗂️ Monorepo Structure
+## 🗂️ Structure
 
-This repository contains all Minecraft versions of Liteminer:
+One source tree builds every Minecraft version with [Stonecutter](https://stonecutter.kikugie.dev/):
 
 ```
 liteminer/
-├── 1.20.1/           # Minecraft 1.20.1
-├── 1.21.1/           # Minecraft 1.21.1
-├── 1.21.11/          # Minecraft 1.21.11
-├── 26.1/             # Minecraft 26.1
-├── 26.1.2/             # Minecraft 26.1.2
-│   ├── common/       # Shared code across loaders
-│   ├── fabric/       # Fabric-specific implementation
-│   ├── forge/        # Forge scaffold (not enabled in settings yet)
-│   └── neoforge/     # NeoForge-specific implementation
-└── README.md         # This file
+├── common/           # Shared code across loaders
+├── fabric/           # Fabric-specific implementation
+├── forge/            # Forge-specific implementation
+├── neoforge/         # NeoForge-specific implementation
+└── versions/         # Per-version properties (1.21.11, 26.1, 26.1.1, 26.1.2, 26.2, 26.3)
 ```
 
 ## 🚀 Supported Versions
 
-- 26.1.2 - ✅ Active (`26.1.2/`)
-- 26.1 - ✅ Active (`26.1/`)
-- 1.21.11 — ✅ Active (`1.21.11/`)
-- 1.21.1 — 🤔 Maintenance, pending refactor (`1.21.1/`)
-- 1.20.1 — 🤔 Maintenance, pending refactor (`1.20.1/`)
+Every version in `versions/` builds for Fabric, Forge, and NeoForge: 1.21.11, 26.1, 26.1.1, 26.1.2, 26.2, and 26.3.
 
 ## 🛠️ Building
 
-Use `just` from the repo root as the command runner.
+Use `just` from the repo root as the command runner. Nodes are named `<version>-<loader>`.
 
 ```bash
-# Build all loaders for a specific version
-just build 1.21.11
+# List every buildable node
+just list-nodes
 
-# Build a specific task in a specific version
-just run 1.21.11 :fabric:build
-just run 1.21.11 :neoforge:build
+# Build one node
+just build 26.3-fabric
+
+# Build everything
+just build-all
 
 # Run the game for development
-just run 1.21.11 fabric:runClient
-just run 1.21.11 neoforge:runClient
-
-# Run tests
-just test 1.21.11
+just run-client 26.3-neoforge
 ```
 
-Built jars will be in `<version>/<loader>/build/libs/`
+Built jars will be in `<loader>/versions/<version>/build/libs/`.
 
 ## 💻 Development
 
 ### Prerequisites
 
-- Java 21 or higher
+- Java 25 (Java 21 for 1.21.11)
 - Git
 - just (install: `https://github.com/casey/just`)
 
 ### Setup
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/iamkaf/liteminer.git
-   cd liteminer
-   ```
+```bash
+git clone https://github.com/iamkaf/liteminer.git
+cd liteminer
+```
 
-2. Open the specific version directory in your IDE:
-   ```bash
-   # Open 1.21.11 in IntelliJ IDEA, for example
-   idea 1.21.11
-   ```
+Open the repository root in your IDE. The active Stonecutter version is set in `stonecutter.gradle.kts`.
 
 ## 🧩 Addon API
 
-Liteminer exposes a public addon API under `com.iamkaf.liteminer.api` on the active `26.1.2` line.
+Liteminer exposes a public addon API under `com.iamkaf.liteminer.api`.
 The API is intended for mods that need to inspect player state, register custom mining shapes, react to
 veinmine operations, or adjust the client HUD.
 
