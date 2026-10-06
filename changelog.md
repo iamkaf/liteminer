@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Vein mining no longer breaks blocks inside spawn protection or outside the world border.
+- The block that breaks your tool while vein mining now drops its items.
 - Liteminer no longer loads before Amber on Forge and NeoForge.
 
 ## 4.5.0 / 3.4.0

@@ -5,7 +5,7 @@ import {
   expect,
   test,
 } from "@teakit/test";
-import type { BlockId, BlockPos, TeaKitTestContext, Vec3 } from "@teakit/test";
+import type { BlockId, BlockPos, ItemId, TeaKitTestContext, Vec3 } from "@teakit/test";
 
 describe.configure({
   timeout: "3m",
@@ -538,6 +538,72 @@ describe("Liteminer vein mining", () => {
       await ctx.world.clear(area.min, area.max);
     }
   });
+
+  test("drops the block that breaks the tool", {
+    target: { minecraft: ">=26.2" },
+    tags: ["drops"],
+  }, async (ctx) => {
+    const area = box({ x: 188, y: 69, z: 0 }, { x: 192, y: 73, z: 6 });
+    const origin = { x: 190, y: 71, z: 2 };
+    const ores = [189, 191].map((x) => block(x, 71, 2));
+    let toolBreakingAllowed = false;
+    try {
+      await toggleConfigEntry(ctx, "Prevent Tool Breaking");
+      toolBreakingAllowed = true;
+      await ctx.client.keyState(96, false);
+      await ctx.client.command("/liteminer shape set 4");
+      await ctx.player.reset({ gameMode: "survival", inventory: "clear" });
+      await removeEntities(ctx, origin, 12, "minecraft:item");
+      await ctx.world.clear(area.min, area.max);
+      await ctx.world.fill({ x: 188, y: 69, z: 0 }, { x: 192, y: 69, z: 6 }, "minecraft:stone");
+      await ctx.player.teleport({ x: 190.5, y: 70, z: 0.5 });
+      // Two durability left: the first ore takes one, and the second breaks the pickaxe.
+      await ctx.commands.assert("/item replace entity @s hotbar.0 with minecraft:diamond_pickaxe[damage=1559]");
+      await ctx.player.inventory().selectHotbar(0);
+      // A stone origin keeps the count to the two ores. Whether the origin drops depends on the loader.
+      await setBlocks(ctx, [block(origin.x, origin.y, origin.z, "minecraft:stone"), ...ores]);
+      await holdVeinmineAndMine(ctx, origin, { x: 190.5, y: 71.5, z: 2.5 });
+      await waitForAir(ctx, [origin, ...ores.map((ore) => ore.pos)], 5_000);
+      await ctx.player.inventory().waitForItemAbsent("minecraft:diamond_pickaxe", { timeout: "1s" });
+
+      await ctx.player.teleport({ x: 190.5, y: 70, z: 2.5 });
+      await expect(() => countInInventory(ctx, "minecraft:coal")).toEventuallyEqual(2, { timeout: 5_000, interval: 100 });
+    } finally {
+      if (toolBreakingAllowed) await toggleConfigEntry(ctx, "Prevent Tool Breaking");
+      await ctx.client.command("/liteminer shape set 0");
+      await cleanup(ctx, area, origin, 12);
+    }
+  });
+
+  test("leaves blocks outside the world border", { tags: ["protection"] }, async (ctx) => {
+    const area = box({ x: 198, y: 69, z: 0 }, { x: 202, y: 72, z: 6 });
+    const inside = [2, 3].map((z) => block(200, 70, z));
+    const outside = [4, 5].map((z) => block(200, 70, z));
+    let borderMoved = false;
+    try {
+      await ctx.client.closeMenus();
+      await ctx.client.keyState(96, false);
+      await ctx.client.command("/liteminer shape set 0");
+      await ctx.player.reset({ gameMode: "survival", inventory: "clear" });
+      await ctx.world.clear(area.min, area.max);
+      await ctx.world.fill({ x: 198, y: 69, z: 0 }, { x: 202, y: 69, z: 6 }, "minecraft:stone");
+      await ctx.player.teleport({ x: 200.5, y: 70, z: 0.5 });
+      await ctx.player.give("minecraft:netherite_pickaxe");
+      await ctx.player.inventory().selectHotbar(0);
+      await setBlocks(ctx, [...inside, ...outside]);
+      // The border spans z -2 to 4, so the vein crosses it between z 3 and z 4.
+      await ctx.commands.batch(["/worldborder center 200.5 1.0", "/worldborder set 6"], { requireSuccess: true });
+      borderMoved = true;
+
+      await holdVeinmineAndMine(ctx, inside[0].pos, { x: 200.5, y: 70.5, z: 2.5 });
+      await waitForAir(ctx, inside.map((ore) => ore.pos));
+      await ctx.runtime.wait(500);
+      await assertBlocks(ctx, outside);
+    } finally {
+      if (borderMoved) await ctx.commands.batch(["/worldborder set 59999968", "/worldborder center 0 0"], { requireSuccess: true });
+      await cleanup(ctx, area, inside[0].pos, 12);
+    }
+  });
 });
 
 async function checkHighlightRendering(ctx: TeaKitTestContext, switchTransparency = false) {
@@ -752,6 +818,15 @@ async function cleanup(ctx: TeaKitTestContext, area: Area, origin: BlockPos, rad
 
 async function removeEntities(ctx: TeaKitTestContext, origin: BlockPos, radius: number, type: "minecraft:item" | "minecraft:experience_orb") {
   await ctx.entities.query({ origin, radius, type }).removeAll();
+}
+
+/** Counts an item across inventory slots. waitForItem also counts the selected slot a second time. */
+async function countInInventory(ctx: TeaKitTestContext, item: ItemId): Promise<number> {
+  const { items } = await ctx.player.inventory();
+  // The runtime reports the item as itemId, not the declared id.
+  return items
+    .filter((stack) => (stack["itemId"] ?? stack.id) === item)
+    .reduce((total, stack) => total + (stack.count ?? 0), 0);
 }
 
 async function setExperience(ctx: TeaKitTestContext, points: number) {

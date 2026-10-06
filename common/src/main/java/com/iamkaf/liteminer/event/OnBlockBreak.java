@@ -145,6 +145,9 @@ public class OnBlockBreak {
                 continue;
             }
             player.awardStat(Stats.BLOCK_MINED.get(state.getBlock()));
+            // Like vanilla, drops use the tool as it was before this block damaged it, so the block that
+            // breaks the tool still drops.
+            ItemStack toolBeforeBreak = tool.copy();
             if (!tool.isEmpty() && tool.isDamageableItem()) {
                 boolean itemIsAboutToBreak = tool.getMaxDamage() - tool.getDamageValue() <= 2;
                 boolean preventFromBreaking = Liteminer.CONFIG.preventToolBreaking.get();
@@ -158,7 +161,7 @@ public class OnBlockBreak {
             }
             FoodExhaustion.apply(player);
 
-            boolean skipDrops = state.requiresCorrectToolForDrops() && !tool.isCorrectToolForDrops(state);
+            boolean skipDrops = state.requiresCorrectToolForDrops() && !toolBeforeBreak.isCorrectToolForDrops(state);
 
             if (!skipDrops) {
                 LootParams.Builder builder =
@@ -166,7 +169,7 @@ public class OnBlockBreak {
                                         LootContextParams.ORIGIN,
                                         Vec3.atCenterOf(block)
                                 )
-                                .withParameter(LootContextParams.TOOL, tool)
+                                .withParameter(LootContextParams.TOOL, toolBeforeBreak)
                                 .withParameter(LootContextParams.BLOCK_STATE, state)
                                 .withParameter(LootContextParams.THIS_ENTITY, player);
 
@@ -183,16 +186,16 @@ public class OnBlockBreak {
                 // Fabric and Forge drop block XP from spawnAfterBreak at the position it is given.
                 // NeoForge moved block XP out of spawnAfterBreak, so it is awarded here instead.
                 if (Platform.isNeoForge()) {
-                    state.spawnAfterBreak(serverLevel, dropPos, tool, false);
+                    state.spawnAfterBreak(serverLevel, dropPos, toolBeforeBreak, false);
                     int xp = Services.PLATFORM.getBlockExperience(
                         serverLevel, block, state,
-                        level.getBlockEntity(block), player, tool
+                        level.getBlockEntity(block), player, toolBeforeBreak
                     );
                     if (xp > 0 && serverLevel.getGameRules().get(GameRules.BLOCK_DROPS)) {
                         ExperienceOrb.award(serverLevel, Vec3.atCenterOf(dropPos), xp);
                     }
                 } else {
-                    state.spawnAfterBreak(serverLevel, dropPos, tool, true);
+                    state.spawnAfterBreak(serverLevel, dropPos, toolBeforeBreak, true);
                 }
 
                 for (var stack : state.getDrops(builder)) {
@@ -207,7 +210,7 @@ public class OnBlockBreak {
             // pray that mojang doesn't add more ice, or I'll have to come back here
             // The comment above doesn't help me at all. What the heck, Kaf??? What does this do??? - Kaf, 2025-12-18
             if (state.getBlock() instanceof IceBlock ice) {
-                if (!EnchantmentHelper.hasTag(tool, EnchantmentTags.PREVENTS_ICE_MELTING)) {
+                if (!EnchantmentHelper.hasTag(toolBeforeBreak, EnchantmentTags.PREVENTS_ICE_MELTING)) {
                     var waterEvaporatesEntry = level.dimensionType().attributes().get(EnvironmentAttributes.WATER_EVAPORATES);
                     boolean waterEvaporates = waterEvaporatesEntry != null && (Boolean) waterEvaporatesEntry.argument();
                     if (waterEvaporates) {

@@ -29,6 +29,11 @@ public final class VeinmineChecks {
             return false;
         }
 
+        // Spawn protection and the world border. Only the server level enforces them.
+        if (!level.mayInteract(player, pos)) {
+            return false;
+        }
+
         // An empty whitelist is ignored. A populated one is an allow-list for every shape.
         if (TagHelper.isBlockWhitelistEnabled() && !TagHelper.isWhitelistedBlock(state)) {
             return false;
