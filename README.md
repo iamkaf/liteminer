@@ -1,5 +1,7 @@
 # Liteminer
 
+![Liteminer](.github/banner.gif)
+
 A veinmining mod for Minecraft.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
