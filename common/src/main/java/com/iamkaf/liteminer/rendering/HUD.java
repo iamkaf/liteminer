@@ -16,6 +16,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
 import org.joml.Matrix3x2fStack;
 
 import java.util.ArrayList;
@@ -34,11 +35,8 @@ public class HUD {
         LiteminerSelection.Snapshot selection = LiteminerSelection.refresh();
         int selectedBlockCount = selection.blocks().size();
 
-        if (selectedBlockCount == 0) {
-            return;
-        }
-
-        if (!LiteminerClient.isPreviewActive() || !LiteminerClient.isTargetingABlock()) {
+        var player = Minecraft.getInstance().player;
+        if (!LiteminerClient.isPreviewActive() || player == null) {
             return;
         }
 
@@ -52,18 +50,10 @@ public class HUD {
         int centerWidth = (int) (width / 2f / scale);
         int centerHeight = (int) (height / 2f / scale);
 
-        Component selectedBlocksLabel = Component.translatable(
-                selectedBlockCount > 1 ? "hud.liteminer.selected_blocks" : "hud.liteminer" + ".selected_blocks_singular",
-                selectedBlockCount
-        );
         LiteminerShape selectedShape = LiteminerClient.shapes.getCurrentItem();
         List<Component> lines = new ArrayList<>();
-        lines.add(selectedBlocksLabel);
+        lines.add(statusLine(player, selectedBlockCount));
         lines.add(selectedShape.displayName());
-        var player = Minecraft.getInstance().player;
-        if (player != null && FoodExhaustion.isTooHungry(player)) {
-            lines.add(Component.translatable("hud.liteminer.too_hungry").withStyle(ChatFormatting.RED));
-        }
         ClientHandshake.hudMessage().ifPresent(lines::add);
 
         LiteminerHudContext context = new LiteminerHudContext(selectedBlockCount, selectedShape, lines);
@@ -92,6 +82,20 @@ public class HUD {
         }
 
         pose.popMatrix();
+    }
+
+    /** Stays as a blank line without a selection, so the shape line keeps its place. */
+    private static Component statusLine(Player player, int selectedBlockCount) {
+        if (selectedBlockCount == 0) {
+            return Component.empty();
+        }
+        if (FoodExhaustion.isTooHungry(player)) {
+            return Component.translatable("hud.liteminer.too_hungry").withStyle(ChatFormatting.GOLD);
+        }
+        return Component.translatable(
+                selectedBlockCount > 1 ? "hud.liteminer.selected_blocks" : "hud.liteminer.selected_blocks_singular",
+                selectedBlockCount
+        );
     }
 
     public static InteractionResult onMouseScroll(double mouseX, double mouseY, double scrollX, double scrollY) {
