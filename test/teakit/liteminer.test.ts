@@ -606,6 +606,69 @@ describe("Liteminer vein mining", () => {
   });
 });
 
+describe("Liteminer vein interactions", () => {
+  test("strips a log vein", { tags: ["interact"] }, async (ctx) => {
+    const area = box({ x: 218, y: 69, z: 0 }, { x: 222, y: 74, z: 4 });
+    const logs = [70, 71, 72].map((y) => block(220, y, 2, "minecraft:oak_log"));
+    try {
+      await prepareStripTest(ctx, area, { x: 220.5, y: 70, z: 0.5 }, 0);
+      await setBlocks(ctx, logs);
+      await holdVeinmineAndUse(ctx, logs[0].pos, { x: 220.5, y: 70.5, z: 2.5 });
+      await assertBlocks(ctx, logs.map((log) => ({ ...log, id: "minecraft:stripped_oak_log" })));
+      expect(await heldDamage(ctx)).toBe(3);
+    } finally {
+      await ctx.client.command("/liteminer shape set 0");
+      await cleanup(ctx, area, logs[0].pos, 8);
+    }
+  });
+
+  test("leaves the shape alone when the clicked block doesn't change", { tags: ["interact"] }, async (ctx) => {
+    const area = box({ x: 228, y: 69, z: 0 }, { x: 232, y: 74, z: 4 });
+    const origin = block(230, 71, 2, "minecraft:stone");
+    const logs = [229, 231].map((x) => block(x, 71, 2, "minecraft:oak_log"));
+    try {
+      // The 3x3 around stone holds two logs. An axe does nothing to stone, so vanilla never uses it there.
+      await prepareStripTest(ctx, area, { x: 230.5, y: 70, z: 0.5 }, 4);
+      await setBlocks(ctx, [origin, ...logs]);
+      await holdVeinmineAndUse(ctx, origin.pos, { x: 230.5, y: 71.5, z: 2.5 });
+      await assertBlocks(ctx, [origin, ...logs]);
+      expect(await heldDamage(ctx)).toBe(0);
+    } finally {
+      await ctx.client.command("/liteminer shape set 0");
+      await cleanup(ctx, area, origin.pos, 8);
+    }
+  });
+});
+
+async function prepareStripTest(ctx: TeaKitTestContext, area: Area, playerPos: Vec3, shape: number) {
+  await ctx.client.closeMenus();
+  await ctx.client.keyState(96, false);
+  await ctx.client.command(`/liteminer shape set ${shape}`);
+  await ctx.player.reset({ gameMode: "survival", inventory: "clear" });
+  await ctx.world.clear(area.min, area.max);
+  await ctx.world.fill(area.min, { ...area.max, y: area.min.y }, "minecraft:stone");
+  await ctx.player.teleport(playerPos);
+  await ctx.commands.assert("/item replace entity @s hotbar.0 with minecraft:netherite_axe");
+  await ctx.player.inventory().selectHotbar(0);
+}
+
+async function holdVeinmineAndUse(ctx: TeaKitTestContext, target: BlockPos, lookTarget: Vec3) {
+  await ctx.client.lookAt(lookTarget);
+  await ctx.client.keyState(96, true);
+  await ctx.runtime.wait(1_200);
+  await ctx.player.useBlock(target, { face: "north" });
+  await ctx.runtime.wait(500);
+  await ctx.client.keyState(96, false);
+}
+
+async function heldDamage(ctx: TeaKitTestContext): Promise<number> {
+  const { items } = await ctx.player.inventory();
+  // The runtime reports the item as itemId, not the declared id.
+  const axe = items.find((stack) => (stack["itemId"] ?? stack.id) === "minecraft:netherite_axe");
+  expect(axe).toBeDefined();
+  return Number(axe?.["damage"] ?? 0);
+}
+
 async function checkHighlightRendering(ctx: TeaKitTestContext, switchTransparency = false) {
   const area = box({ x: 8, y: 69, z: 0 }, { x: 16, y: 72, z: 6 });
   let transparencyToggled = false;

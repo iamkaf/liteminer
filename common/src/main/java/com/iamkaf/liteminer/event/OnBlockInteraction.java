@@ -1,6 +1,5 @@
 package com.iamkaf.liteminer.event;
 
-import com.iamkaf.amber.api.event.v1.events.common.BlockEvents;
 import com.iamkaf.liteminer.Liteminer;
 import com.iamkaf.liteminer.LiteminerPlayerState;
 import com.iamkaf.liteminer.api.event.LiteminerEvents;
@@ -18,58 +17,82 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 public class OnBlockInteraction {
-    public static void init() {
-        BlockEvents.BLOCK_INTERACT.register(OnBlockInteraction::onBlockInteracted);
-    }
+    private static boolean interacting;
 
-    private static InteractionResult onBlockInteracted(Player player, Level level, InteractionHand hand, BlockHitResult blockHitResult) {
-        Direction direction = blockHitResult.getDirection();
-        BlockPos blockPos = blockHitResult.getBlockPos();
-
-        if (level.isClientSide()) {
-            return InteractionResult.PASS;
+    /**
+     * Runs a vein interaction around an item use on a block. The clicked block is used first, and the
+     * vein only follows when that use consumed the action.
+     *
+     * @return the clicked block's result, or {@code null} to let the use run normally
+     */
+    public static @Nullable InteractionResult useOn(ItemStack tool, UseOnContext context) {
+        Player player = context.getPlayer();
+        Level level = context.getLevel();
+        // Interactions inside the vein, including the clicked block's own use, run normally.
+        if (interacting || level.isClientSide() || !(player instanceof ServerPlayer serverPlayer)) {
+            return null;
         }
 
-        // Prevents off-hand from interacting when the main hand is already handling this event
-        if (hand.equals(InteractionHand.OFF_HAND) && isTieredItem(player.getMainHandItem().getItem())) {
-            return InteractionResult.PASS;
+        if (!isTieredItem(tool.getItem())) {
+            return null;
         }
 
-        ItemStack tool = player.getItemInHand(hand);
-        Item item = tool.getItem();
-
-        if (!isTieredItem(item)) {
-            return InteractionResult.PASS;
-        }
-
-        LiteminerPlayerState playerState = Liteminer.instance.getPlayerState((ServerPlayer) player);
+        LiteminerPlayerState playerState = Liteminer.instance.getPlayerState(serverPlayer);
 
         if (!playerState.getKeymappingState()) {
-            return InteractionResult.PASS;
+            return null;
         }
 
         if (FoodExhaustion.isTooHungry(player)) {
-            return InteractionResult.PASS;
+            return null;
         }
 
         // 1 durability left on the tool
         if (tool.isDamageableItem() && (tool.getMaxDamage() - tool.getDamageValue()) == 1) {
-            return InteractionResult.PASS;
+            return null;
         }
 
+        interacting = true;
+        try {
+            return interact(player, level, playerState, tool, context);
+        } finally {
+            interacting = false;
+        }
+    }
+
+    private static InteractionResult interact(Player player, Level level, LiteminerPlayerState playerState,
+            ItemStack tool, UseOnContext context) {
+        InteractionHand hand = context.getHand();
+        BlockPos blockPos = context.getClickedPos();
+        Direction direction = context.getClickedFace();
+        Item item = tool.getItem();
         int shapeIndex = playerState.getShape();
         LiteminerShape shape = LiteminerShapes.byIndex(shapeIndex).orElseThrow();
         int blockLimit = Liteminer.CONFIG.blockBreakLimit.get();
         BlockState originState = level.getBlockState(blockPos);
+        BlockEntity originBlockEntity = level.getBlockEntity(blockPos);
+        // Walk before the use changes the clicked block, since shapeless matches its current state.
+        var blocks = shape.walk(level, player, blockPos)
+                .stream()
+                .sorted(Comparator.comparingInt(p -> p.distManhattan(blockPos)))
+                .toList();
+
+        InteractionResult originResult = tool.useOn(context);
+        if (!originResult.consumesAction()) {
+            return originResult;
+        }
+
         InteractionResult startResult = LiteminerEvents.BEFORE_VEINMINE.invoker().beforeVeinmine(
                 new LiteminerEvents.StartContext(
                         LiteminerEvents.Operation.INTERACT,
@@ -78,7 +101,7 @@ public class OnBlockInteraction {
                         hand,
                         blockPos,
                         originState,
-                        level.getBlockEntity(blockPos),
+                        originBlockEntity,
                         tool,
                         shape,
                         shapeIndex,
@@ -86,13 +109,9 @@ public class OnBlockInteraction {
                 )
         );
         if (startResult != InteractionResult.PASS) {
-            return startResult;
+            return originResult;
         }
 
-        var blocks = shape.walk(level, player, blockPos)
-                .stream()
-                .sorted(Comparator.comparingInt(p -> p.distManhattan(blockPos)))
-                .toList();
         List<BlockPos> processed = new ArrayList<>();
         List<BlockPos> skipped = new ArrayList<>();
         int processedIncludingOrigin = 1;
@@ -109,7 +128,11 @@ public class OnBlockInteraction {
                 continue;
             }
 
-            if (!tool.isEmpty() && tool.isDamageableItem()) {
+            // A broken tool stops the vein. Before 26.3, axes still strip once their stack is empty.
+            if (tool.isEmpty()) {
+                break;
+            }
+            if (tool.isDamageableItem()) {
                 boolean itemIsAboutToBreak = tool.getMaxDamage() - tool.getDamageValue() <= 2;
                 boolean preventFromBreaking = Liteminer.CONFIG.preventToolBreaking.get();
                 if (itemIsAboutToBreak && preventFromBreaking) {
@@ -126,7 +149,7 @@ public class OnBlockInteraction {
                             hand,
                             blockPos,
                             originState,
-                            level.getBlockEntity(blockPos),
+                            originBlockEntity,
                             block,
                             state,
                             level.getBlockEntity(block),
@@ -160,7 +183,7 @@ public class OnBlockInteraction {
                 hand,
                 blockPos,
                 originState,
-                level.getBlockEntity(blockPos),
+                originBlockEntity,
                 tool,
                 shape,
                 shapeIndex,
@@ -170,7 +193,7 @@ public class OnBlockInteraction {
                 skipped
         ));
 
-        return InteractionResult.PASS;
+        return originResult;
     }
 
     private static boolean isTieredItem(Item item) {
