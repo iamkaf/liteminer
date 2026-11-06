@@ -1,19 +1,19 @@
 package com.iamkaf.liteminer.tags;
 
 import com.iamkaf.liteminer.Liteminer;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
+import com.iamkaf.liteminer.compat.Ids;
+import com.iamkaf.liteminer.compat.RegistryCompat;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 
 public class LiteminerTags {
     private static TagKey<Item> createItemTag(String namespace, String path) {
-        return TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(namespace, path));
+        return RegistryCompat.itemTag(Ids.of(namespace, path));
     }
 
     private static TagKey<Block> createBlockTag(String namespace, String path) {
-        return TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(namespace, path));
+        return RegistryCompat.blockTag(Ids.of(namespace, path));
     }
 
     public static class Items {

@@ -1,5 +1,6 @@
 package com.iamkaf.liteminer;
 
+import com.iamkaf.liteminer.compat.Ids;
 import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,6 @@ public final class Constants {
     }
 
     public static Identifier resource(String path) {
-        return Identifier.fromNamespaceAndPath(MOD_ID, path);
+        return Ids.of(MOD_ID, path);
     }
 }

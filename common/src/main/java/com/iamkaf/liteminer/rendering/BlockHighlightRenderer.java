@@ -2,47 +2,14 @@ package com.iamkaf.liteminer.rendering;
 
 import com.iamkaf.amber.api.functions.v1.WorldFunctions;
 import com.iamkaf.liteminer.LiteminerClient;
+import com.iamkaf.liteminer.compat.BlockOutlines.Line;
+import com.iamkaf.liteminer.compat.BlockOutlines.LineSink;
 import com.iamkaf.liteminer.networking.ClientHandshake;
-import com.iamkaf.liteminer.compat.IrisCompat;
-//? if <26.3 {
-import com.mojang.blaze3d.PrimitiveTopology;
-import com.mojang.blaze3d.pipeline.BlendFunction;
-import com.mojang.blaze3d.pipeline.ColorTargetState;
-import com.mojang.blaze3d.pipeline.DepthStencilState;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.platform.CompareOp;
-//?} else {
-/*import com.mojang.renderpearl.api.pipeline.BlendFunction;
-import com.mojang.renderpearl.api.pipeline.ColorTargetState;
-import com.mojang.renderpearl.api.pipeline.CompareOp;
-import com.mojang.renderpearl.api.pipeline.DepthStencilState;
-import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
-import com.mojang.renderpearl.api.pipeline.RenderPipeline;*/
-//?}
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.Camera;
-import net.minecraft.client.Minecraft;
-//? if >=26.3
-import net.minecraft.client.renderer.BindGroupLayouts;
-import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.SubmitNodeCollector;
-//? if >=26.3
-/*import net.minecraft.client.renderer.oit.OitPipelineSet;*/
-import net.minecraft.client.renderer.rendertype.LayeringTransform;
-//? if <26.3
-import net.minecraft.client.renderer.rendertype.OutputTarget;
-import net.minecraft.client.renderer.rendertype.RenderSetup;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -54,8 +21,6 @@ import java.util.Map;
 import java.util.Objects;
 
 public class BlockHighlightRenderer {
-    private static final RenderType LINES_NORMAL = RenderTypes.lines();
-    private static final RenderType LINES_TRANSLUCENT_NO_DEPTH_TEST = createLinesTranslucentNoDepthTestRenderType();
     private static final int GRID_EXTERIOR_THRESHOLD = 768;
     private static final double SAMPLE_EPSILON = 0.0001d;
 
@@ -92,50 +57,7 @@ public class BlockHighlightRenderer {
 
     private static final HighlightCache cache = new HighlightCache();
 
-    private static RenderType createLinesTranslucentNoDepthTestRenderType() {
-        RenderPipeline.Builder builder = RenderPipeline.builder(
-                //? if <26.3
-                RenderPipelines.MATRICES_FOG_SNIPPET
-        );
-        //? if >=26.3 {
-        /*builder.withBindGroupLayout(BindGroupLayouts.GLOBALS)
-                .withBindGroupLayout(BindGroupLayouts.PROJECTION)
-                .withBindGroupLayout(BindGroupLayouts.DYNAMIC_TRANSFORMS)
-                .withBindGroupLayout(BindGroupLayouts.FOG);*/
-        //?}
-        // OIT passes supply their own color targets and depth state.
-        RenderPipeline.Snippet snippet = builder
-                .withVertexShader("core/rendertype_lines")
-                .withFragmentShader("core/rendertype_lines")
-                .withCull(false)
-                .withVertexBinding(0, DefaultVertexFormat.POSITION_COLOR_NORMAL_LINE_WIDTH)
-                .withPrimitiveTopology(PrimitiveTopology.LINES)
-                .buildSnippet();
-
-        RenderPipeline pipeline = RenderPipeline.builder(snippet)
-                .withLocation("pipeline/lines_translucent_no_depth")
-                .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
-                .withDepthStencilState(new DepthStencilState(CompareOp.ALWAYS_PASS, false))
-                .build();
-
-        IrisCompat.assignLinesPipeline(pipeline);
-
-        RenderSetup setup = RenderSetup.builder(pipeline)
-                .setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
-                //? if >=26.3 {
-                /*.setOitPipelines(OitPipelineSet.builder("lines_translucent_no_depth", RenderPipeline.builder(snippet))
-                        .withoutDepthTest()
-                        .build())*/
-                //?}
-                //? if <26.3
-                .setOutputTarget(OutputTarget.ITEM_ENTITY_TARGET)
-                .createRenderSetup();
-
-        return RenderType.create("lines_translucent_no_depth_test", setup);
-    }
-
-    public static InteractionResult renderLiteminerHighlight(Camera camera, SubmitNodeCollector submitNodeCollector, PoseStack poseStack, BlockHitResult blockHitResult, BlockPos blockPos, BlockState blockState) {
-        Minecraft mc = Minecraft.getInstance();
+    public static InteractionResult renderLiteminerHighlight(Vec3 cameraPosition, PoseStack poseStack, LineSink sink) {
         LiteminerSelection.Snapshot selection = LiteminerSelection.refresh();
         if (!selection.hasBlocks()) {
             cache.invalidate();
@@ -156,23 +78,18 @@ public class BlockHighlightRenderer {
             cache.update(selection.origin(), selection.shapeIndex(), selection.blockLimit(), selection.blocks(), linesToRender);
         }
 
-        Camera renderInfo = mc.gameRenderer.mainCamera();
-        Vec3 projectedView = renderInfo.position();
-        assert poseStack != null;
         poseStack.pushPose();
         poseStack.translate(
-                selection.origin().getX() - projectedView.x,
-                selection.origin().getY() - projectedView.y,
-                selection.origin().getZ() - projectedView.z
+                selection.origin().getX() - cameraPosition.x,
+                selection.origin().getY() - cameraPosition.y,
+                selection.origin().getZ() - cameraPosition.z
         );
 
-        float lineWidth = mc.getWindow().getAppropriateLineWidth();
-
-        int translucentColor = ClientHandshake.highlightColor(withAlpha(LiteminerClient.CONFIG.highlightSeeThroughLineColor.get(), 0x4B));
-        submitHighlight(submitNodeCollector, poseStack, LINES_TRANSLUCENT_NO_DEPTH_TEST, linesToRender, translucentColor, lineWidth);
-
-        int opaqueColor = ClientHandshake.highlightColor(withAlpha(LiteminerClient.CONFIG.highlightForegroundLineColor.get(), 0xFF));
-        submitHighlight(submitNodeCollector, poseStack, LINES_NORMAL, linesToRender, opaqueColor, lineWidth);
+        int seeThroughColor = ClientHandshake.highlightColor(
+                withAlpha(LiteminerClient.CONFIG.highlightSeeThroughLineColor.get(), 0x4B));
+        int solidColor = ClientHandshake.highlightColor(
+                withAlpha(LiteminerClient.CONFIG.highlightForegroundLineColor.get(), 0xFF));
+        sink.draw(linesToRender, seeThroughColor, solidColor);
 
         poseStack.popPose();
         return InteractionResult.SUCCESS;
@@ -180,15 +97,6 @@ public class BlockHighlightRenderer {
 
     private static int withAlpha(int rgb, int alpha) {
         return ((alpha & 0xFF) << 24) | (rgb & 0xFFFFFF);
-    }
-
-    private static void submitHighlight(SubmitNodeCollector submitNodeCollector, PoseStack poseStack, RenderType renderType,
-            List<Line> lines, int color, float width) {
-        submitNodeCollector.submitCustomGeometry(poseStack, renderType, (pose, builder) -> {
-            for (Line line : lines) {
-                addLine(pose, builder, line.x1, line.y1, line.z1, line.x2, line.y2, line.z2, color, width);
-            }
-        });
     }
 
     private static List<Line> createHighlightLines(HashSet<BlockPos> blocks, BlockPos origin) {
@@ -376,13 +284,6 @@ public class BlockHighlightRenderer {
         return merged;
     }
 
-    private static void addLine(PoseStack.Pose pose, VertexConsumer builder, double x1, double y1, double z1,
-            double x2, double y2, double z2, int color, float width) {
-        Vector3f normal = new Vector3f((float) (x2 - x1), (float) (y2 - y1), (float) (z2 - z1)).normalize();
-        builder.addVertex(pose, (float) x1, (float) y1, (float) z1).setColor(color).setNormal(pose, normal).setLineWidth(width);
-        builder.addVertex(pose, (float) x2, (float) y2, (float) z2).setColor(color).setNormal(pose, normal).setLineWidth(width);
-    }
-
     private static long cacheTimeoutMillis(int blockLimit) {
         return blockLimit >= 512 ? 500L :
                 blockLimit >= 256 ? 300L :
@@ -390,17 +291,15 @@ public class BlockHighlightRenderer {
                 100L;
     }
 
-    private record Line(double x1, double y1, double z1, double x2, double y2, double z2) {}
-
     private record LineKey(Axis axis, double fixedA, double fixedB) {
         private static LineKey of(Line line) {
-            if (line.y1 == line.y2 && line.z1 == line.z2) {
-                return new LineKey(Axis.X, line.y1, line.z1);
+            if (line.y1() == line.y2() && line.z1() == line.z2()) {
+                return new LineKey(Axis.X, line.y1(), line.z1());
             }
-            if (line.x1 == line.x2 && line.z1 == line.z2) {
-                return new LineKey(Axis.Y, line.x1, line.z1);
+            if (line.x1() == line.x2() && line.z1() == line.z2()) {
+                return new LineKey(Axis.Y, line.x1(), line.z1());
             }
-            return new LineKey(Axis.Z, line.x1, line.y1);
+            return new LineKey(Axis.Z, line.x1(), line.y1());
         }
     }
 
@@ -418,12 +317,12 @@ public class BlockHighlightRenderer {
 
             @Override
             double start(Line line) {
-                return line.x1;
+                return line.x1();
             }
 
             @Override
             double end(Line line) {
-                return line.x2;
+                return line.x2();
             }
 
             @Override
@@ -469,12 +368,12 @@ public class BlockHighlightRenderer {
 
             @Override
             double start(Line line) {
-                return line.y1;
+                return line.y1();
             }
 
             @Override
             double end(Line line) {
-                return line.y2;
+                return line.y2();
             }
 
             @Override
@@ -520,12 +419,12 @@ public class BlockHighlightRenderer {
 
             @Override
             double start(Line line) {
-                return line.z1;
+                return line.z1();
             }
 
             @Override
             double end(Line line) {
-                return line.z2;
+                return line.z2();
             }
 
             @Override

@@ -2,7 +2,7 @@ package com.iamkaf.liteminer.networking;
 
 import com.iamkaf.amber.api.doctor.v1.ClientDoctor;
 import com.iamkaf.amber.api.doctor.v1.DoctorStatus;
-import net.minecraft.network.chat.Component;
+import com.iamkaf.liteminer.compat.Texts;
 import static com.iamkaf.liteminer.networking.LiteminerDoctor.text;
 
 public final class ClientLiteminerDoctor {
@@ -14,7 +14,7 @@ public final class ClientLiteminerDoctor {
             var snapshot = ClientHandshake.snapshot();
             if (snapshot.isEmpty()) {
                 section.check("connection", text("connection"), DoctorStatus.UNKNOWN,
-                        Component.translatable("liteminer.connection.disconnected"));
+                        Texts.translatable("liteminer.connection.disconnected"));
                 return;
             }
             var state = snapshot.get();
@@ -30,8 +30,8 @@ public final class ClientLiteminerDoctor {
                 section.information("confirmed", text("confirmed"), text("state", state.confirmedActive(), state.confirmedShape()));
             }
             if (!state.peerVersion().isEmpty()) {
-                section.information("peer", text("peer"), Component.literal(state.peerVersion()));
-                section.information("protocol", text("protocol"), Component.literal(Integer.toString(state.peerProtocol())));
+                section.information("peer", text("peer"), Texts.literal(state.peerVersion()));
+                section.information("protocol", text("protocol"), Texts.literal(Integer.toString(state.peerProtocol())));
             }
         });
     }

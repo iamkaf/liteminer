@@ -2,18 +2,21 @@ package com.iamkaf.liteminer;
 
 import com.iamkaf.amber.api.event.v1.events.common.client.ClientCommandEvents;
 import com.iamkaf.amber.api.event.v1.events.common.client.ClientTickEvents;
-import com.iamkaf.amber.api.event.v1.events.common.client.HudEvents;
 import com.iamkaf.amber.api.event.v1.events.common.client.InputEvents;
-import com.iamkaf.amber.api.event.v1.events.common.client.RenderEvents;
 import com.iamkaf.amber.api.registry.v1.KeybindHelper;
 import com.iamkaf.konfig.api.v1.ConfigBuilder;
 import com.iamkaf.konfig.api.v1.ConfigHandle;
 import com.iamkaf.konfig.api.v1.ConfigMigrationContext;
 import com.iamkaf.konfig.api.v1.ConfigScope;
 import com.iamkaf.konfig.api.v1.Konfig;
+import com.iamkaf.konfig.api.v1.KonfigClientScreens;
 import com.iamkaf.konfig.api.v1.SyncMode;
 import com.iamkaf.liteminer.api.shape.LiteminerShape;
 import com.iamkaf.liteminer.api.shape.LiteminerShapes;
+import com.iamkaf.liteminer.compat.BlockOutlines;
+import com.iamkaf.liteminer.compat.HudCompat;
+import com.iamkaf.liteminer.compat.KeyMappings;
+import com.iamkaf.liteminer.compat.Screens;
 import com.iamkaf.liteminer.config.LiteminerClientConfig;
 import com.iamkaf.liteminer.networking.C2SVeinmineKeybindChange;
 import com.iamkaf.liteminer.networking.LiteminerNetwork;
@@ -21,40 +24,24 @@ import com.iamkaf.liteminer.rendering.BlockHighlightRenderer;
 import com.iamkaf.liteminer.rendering.HUD;
 import com.iamkaf.liteminer.shapes.Cycler;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
-import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.HitResult;
-//? if <26.3
-import org.lwjgl.glfw.GLFW;
 
 import java.util.HashSet;
 
 public class LiteminerClient {
     public static final int PACKET_DELAY = 125;
-    public static final KeyMapping.Category KEY_CATEGORY =
-            KeyMapping.Category.register(Constants.resource(Constants.MOD_ID));
     public static final KeyMapping KEY_MAPPING =
-            new KeyMapping("key.liteminer.veinmine",
-                    //? if >=26.3
-                    InputConstants.Type.KEYBOARD,
-                    //? if <26.3
-                    /*InputConstants.Type.KEYSYM,*/
-                    //? if >=26.3
-                    InputConstants.KEY_GRAVE,
-                    //? if <26.3
-                    /*GLFW.GLFW_KEY_GRAVE_ACCENT,*/
-                    KEY_CATEGORY);
+            KeyMappings.graveAccent("key.liteminer.veinmine", Constants.resource(Constants.MOD_ID));
     public static final LiteminerClientConfig CONFIG;
     public static final ConfigHandle CONFIG_HANDLE;
-    public static HashSet<BlockPos> selectedBlocks = HashSet.newHashSet(0);
+    public static HashSet<BlockPos> selectedBlocks = new HashSet<>();
     public static Cycler<LiteminerShape> shapes = new Cycler<>(LiteminerShapes.all());
     private static boolean currentState = false;
     private static long lastChange = System.currentTimeMillis();
-    private static Runnable openConfigScreenCallback;
     private static boolean pendingConfigScreenOpen;
 
     static {
@@ -130,9 +117,9 @@ public class LiteminerClient {
         com.iamkaf.liteminer.networking.ClientLiteminerDoctor.initialize();
         KeybindHelper.register(KEY_MAPPING);
         ClientTickEvents.END_CLIENT_TICK.register(LiteminerClient::onPostTick);
-        HudEvents.RENDER_HUD.register(HUD::onRenderHUD);
+        HudCompat.register(HUD::onRenderHUD);
         InputEvents.MOUSE_SCROLL_PRE.register(HUD::onMouseScroll);
-        RenderEvents.BLOCK_OUTLINE_RENDER.register(BlockHighlightRenderer::renderLiteminerHighlight);
+        BlockOutlines.register(BlockHighlightRenderer::renderLiteminerHighlight);
         ClientCommandEvents.EVENT.register((dispatcher, registryAccess) ->
                 dispatcher.register(Commands.literal("liteminer")
                         .executes(context -> openConfigCommand())
@@ -204,10 +191,6 @@ public class LiteminerClient {
         return result != null && result.getType() == HitResult.Type.BLOCK;
     }
 
-    public static Runnable getOpenConfigScreenCallback() {
-        return openConfigScreenCallback;
-    }
-
     public static void openConfigScreen() {
         pendingConfigScreenOpen = true;
     }
@@ -218,9 +201,7 @@ public class LiteminerClient {
         }
 
         pendingConfigScreenOpen = false;
-        if (openConfigScreenCallback != null) {
-            openConfigScreenCallback.run();
-        }
+        Screens.openOverCurrent(parent -> KonfigClientScreens.create(Constants.MOD_ID, parent));
     }
 
     private static int openConfigCommand() {
@@ -232,9 +213,5 @@ public class LiteminerClient {
         shapes.setCurrentIndex(index);
         LiteminerNetwork.sendToServer(new C2SVeinmineKeybindChange(currentState, shapes.getCurrentIndex()));
         return 1;
-    }
-
-    public static void setOpenConfigScreenCallback(Runnable callback) {
-        openConfigScreenCallback = callback;
     }
 }

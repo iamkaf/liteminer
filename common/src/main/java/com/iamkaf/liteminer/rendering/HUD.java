@@ -5,30 +5,29 @@ import com.iamkaf.liteminer.LiteminerClient;
 import com.iamkaf.liteminer.api.event.LiteminerClientEvents;
 import com.iamkaf.liteminer.api.event.LiteminerHudContext;
 import com.iamkaf.liteminer.api.shape.LiteminerShape;
+import com.iamkaf.liteminer.compat.HudCompat;
+import com.iamkaf.liteminer.compat.Texts;
 import com.iamkaf.liteminer.event.FoodExhaustion;
 import com.iamkaf.liteminer.networking.C2SVeinmineKeybindChange;
 import com.iamkaf.liteminer.networking.ClientHandshake;
 import com.iamkaf.liteminer.networking.LiteminerNetwork;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
-import org.joml.Matrix3x2fStack;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class HUD {
-    public static void onRenderHUD(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker) {
+    public static void onRenderHUD(HudCompat.Canvas canvas) {
         if (!LiteminerClient.CONFIG.showHUD.get()) {
             return;
         }
 
-        if (Minecraft.getInstance().gameRenderer.gameRenderState().guiRenderState.isHudHidden) {
+        if (HudCompat.isHidden()) {
             return;
         }
 
@@ -44,8 +43,8 @@ public class HUD {
 
         float scale = LiteminerClient.CONFIG.hud_scale.get().floatValue();
 
-        int width = guiGraphics.guiWidth();
-        int height = guiGraphics.guiHeight();
+        int width = Minecraft.getInstance().getWindow().getGuiScaledWidth();
+        int height = Minecraft.getInstance().getWindow().getGuiScaledHeight();
 
         int centerWidth = (int) (width / 2f / scale);
         int centerHeight = (int) (height / 2f / scale);
@@ -66,33 +65,28 @@ public class HUD {
         int yOffset = (int) (context.yOffset() / scale);
         int lineHeight = context.lineHeight();
 
-        Matrix3x2fStack pose = guiGraphics.pose();
-//        pose.pushPose();
-        pose.pushMatrix();
-        pose.scale(scale, scale);
-
-        for (int i = 0; i < context.lines().size(); i++) {
-            guiGraphics.text(
-                    font,
-                    context.lines().get(i),
-                    centerWidth + xOffset,
-                    centerHeight + yOffset + i * lineHeight,
-                    context.textColor()
-            );
-        }
-
-        pose.popMatrix();
+        canvas.scaled(scale, () -> {
+            for (int i = 0; i < context.lines().size(); i++) {
+                canvas.text(
+                        font,
+                        context.lines().get(i),
+                        centerWidth + xOffset,
+                        centerHeight + yOffset + i * lineHeight,
+                        context.textColor()
+                );
+            }
+        });
     }
 
     /** Stays as a blank line without a selection, so the shape line keeps its place. */
     private static Component statusLine(Player player, int selectedBlockCount) {
         if (selectedBlockCount == 0) {
-            return Component.empty();
+            return Texts.empty();
         }
         if (FoodExhaustion.isTooHungry(player)) {
-            return Component.translatable("hud.liteminer.too_hungry").withStyle(ChatFormatting.GOLD);
+            return Texts.translatable("hud.liteminer.too_hungry").withStyle(ChatFormatting.GOLD);
         }
-        return Component.translatable(
+        return Texts.translatable(
                 selectedBlockCount > 1 ? "hud.liteminer.selected_blocks" : "hud.liteminer.selected_blocks_singular",
                 selectedBlockCount
         );
@@ -116,7 +110,7 @@ public class HUD {
                 assert minecraft.player != null;
                 PlayerFunctions.sendActionBar(
                         minecraft.player,
-                        Component.translatable(
+                        Texts.translatable(
                                 "hud.liteminer.changed_shape",
                                 LiteminerClient.shapes.getCurrentItem().displayName()
                         )

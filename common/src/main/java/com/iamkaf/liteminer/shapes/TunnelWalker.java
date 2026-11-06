@@ -1,36 +1,24 @@
 package com.iamkaf.liteminer.shapes;
 
+import com.iamkaf.amber.api.functions.v1.WorldFunctions;
 import com.iamkaf.liteminer.Liteminer;
 import com.iamkaf.liteminer.api.shape.ShapeWalker;
 import com.iamkaf.liteminer.tags.TagHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 
 public class TunnelWalker implements ShapeWalker {
     public static @NotNull BlockHitResult raytrace(Level level, Player player) {
-        Vec3 eyePosition = player.getEyePosition();
-        Vec3 rotation = player.getViewVector(1);
-        double reach = player.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE);
-        Vec3 combined = eyePosition.add(rotation.x * reach, rotation.y * reach, rotation.z * reach);
-
-        return level.clip(new ClipContext(eyePosition,
-                combined,
-                ClipContext.Block.OUTLINE,
-                ClipContext.Fluid.NONE,
-                player
-        ));
+        return WorldFunctions.raytrace(level, player);
     }
 
     public HashSet<BlockPos> walk(Level level, Player player, BlockPos origin) {
