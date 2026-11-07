@@ -1,0 +1,44 @@
+name: Release
+
+# Builds the jars of one commit and hands them to the build host.
+# Dispatched with the identifiers the host expects; the run name carries the build id.
+run-name: Release build ${{ inputs.build-id }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      kind:
+        description: graph or release
+        required: true
+        type: choice
+        options: [graph, release]
+      commit:
+        description: Full commit SHA to build.
+        required: true
+        type: string
+      versions:
+        description: Comma-separated Minecraft versions. Leave blank for all.
+        required: false
+        type: string
+      loaders:
+        description: Comma-separated loaders. Leave blank for all.
+        required: false
+        type: string
+      build-id:
+        description: Build identifier.
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  release:
+    uses: iamkaf/multiloader-conventions/.github/workflows/release-build.yml@f2a31bbb913223f598f4aa7e896cfe0ee6c72639
+    with:
+      kind: ${{ inputs.kind }}
+      commit: ${{ inputs.commit }}
+      versions: ${{ inputs.versions }}
+      loaders: ${{ inputs.loaders }}
+      build-id: ${{ inputs.build-id }}
