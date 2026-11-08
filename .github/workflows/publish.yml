@@ -37,7 +37,7 @@ permissions:
 
 jobs:
   publish:
-    uses: iamkaf/multiloader-conventions/.github/workflows/publish-maven.yml@1c5db31d905f1d10a8a13e835483f9da04d172dc
+    uses: iamkaf/multiloader-conventions/.github/workflows/publish-maven.yml@089087a180f48fa4ea49049e853c276dcdf5e7c6
     with:
       commit: ${{ inputs.commit }}
       versions: ${{ inputs.versions }}
