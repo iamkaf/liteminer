@@ -32,10 +32,11 @@ on:
 permissions:
   contents: read
   id-token: write
+  attestations: write
 
 jobs:
   release:
-    uses: iamkaf/multiloader-conventions/.github/workflows/release-build.yml@089087a180f48fa4ea49049e853c276dcdf5e7c6
+    uses: iamkaf/multiloader-conventions/.github/workflows/release-build.yml@a6edd85df21d457bee89886402095b7ab9aae5ef
     with:
       kind: ${{ inputs.kind }}
       commit: ${{ inputs.commit }}
