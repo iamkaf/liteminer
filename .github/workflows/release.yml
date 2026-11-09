@@ -36,7 +36,7 @@ permissions:
 
 jobs:
   release:
-    uses: iamkaf/multiloader-conventions/.github/workflows/release-build.yml@a6edd85df21d457bee89886402095b7ab9aae5ef
+    uses: iamkaf/multiloader-conventions/.github/workflows/release-build.yml@7c61e191722db74d8192b84bc68034a980bf74ca
     with:
       kind: ${{ inputs.kind }}
       commit: ${{ inputs.commit }}

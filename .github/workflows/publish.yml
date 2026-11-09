@@ -34,15 +34,14 @@ concurrency:
 
 permissions:
   contents: read
+  # Publishing trades GitHub's OIDC token for a Kaf Maven publish token.
+  id-token: write
 
 jobs:
   publish:
-    uses: iamkaf/multiloader-conventions/.github/workflows/publish-maven.yml@a6edd85df21d457bee89886402095b7ab9aae5ef
+    uses: iamkaf/multiloader-conventions/.github/workflows/publish-maven.yml@7c61e191722db74d8192b84bc68034a980bf74ca
     with:
       commit: ${{ inputs.commit }}
       versions: ${{ inputs.versions }}
       loaders: ${{ inputs.loaders }}
       common: ${{ inputs.common }}
-    secrets:
-      MAVEN_PUBLISH_USERNAME: ${{ secrets.MAVEN_PUBLISH_USERNAME }}
-      MAVEN_PUBLISH_PASSWORD: ${{ secrets.MAVEN_PUBLISH_PASSWORD }}
