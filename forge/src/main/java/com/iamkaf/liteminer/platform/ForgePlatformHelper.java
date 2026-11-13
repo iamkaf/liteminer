@@ -1,30 +1,12 @@
 package com.iamkaf.liteminer.platform;
 
 import com.iamkaf.liteminer.platform.services.IPlatformHelper;
-import net.minecraftforge.fml.loading.FMLLoader;
-import net.minecraftforge.fml.loading.FMLPaths;
-import net.minecraftforge.fml.loading.LoadingModList;
 
 public class ForgePlatformHelper implements IPlatformHelper {
 
     @Override
     public String getPlatformName() {
         return "Forge";
-    }
-
-    @Override
-    public boolean isModLoaded(String modId) {
-        return LoadingModList.getModFileById(modId) != null;
-    }
-
-    @Override
-    public boolean isDevelopmentEnvironment() {
-        return !FMLLoader.isProduction();
-    }
-
-    @Override
-    public java.nio.file.Path getConfigDirectory() {
-        return FMLPaths.CONFIGDIR.get();
     }
 
     @Override
@@ -36,6 +18,7 @@ public class ForgePlatformHelper implements IPlatformHelper {
         net.minecraft.world.entity.Entity breaker,
         net.minecraft.world.item.ItemStack tool
     ) {
+        //? if >=1.21 {
         var enchantments = level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT);
         int fortuneLevel = net.minecraft.world.item.enchantment.EnchantmentHelper.getItemEnchantmentLevel(
             enchantments.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.FORTUNE),
@@ -45,6 +28,20 @@ public class ForgePlatformHelper implements IPlatformHelper {
             enchantments.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH),
             tool
         );
+        //?} else {
+        /*int fortuneLevel = net.minecraft.world.item.enchantment.EnchantmentHelper.getItemEnchantmentLevel(
+            net.minecraft.world.item.enchantment.Enchantments.BLOCK_FORTUNE,
+            tool
+        );
+        int silkTouchLevel = net.minecraft.world.item.enchantment.EnchantmentHelper.getItemEnchantmentLevel(
+            net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH,
+            tool
+        );
+        *///?}
+        //? if >=1.19 {
         return state.getExpDrop(level, level.getRandom(), pos, fortuneLevel, silkTouchLevel);
+        //?} else {
+        /*return state.getExpDrop(level, pos, fortuneLevel, silkTouchLevel);
+        *///?}
     }
 }

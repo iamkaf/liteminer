@@ -102,12 +102,12 @@ public final class Liteminer {
         playerState.setShape(shape);
     }
 
-    public float onBreakSpeed(ServerPlayer player) {
+    public float onBreakSpeed(ServerPlayer player, Level level) {
         LiteminerPlayerState playerState = getPlayerState(player);
         var isVeinMining = playerState.getKeymappingState();
 
         if (isVeinMining) {
-            return getScaledBreakSpeedModifier(getSelectedBlockCount(player.level(), player, playerState.getShape()));
+            return getScaledBreakSpeedModifier(getSelectedBlockCount(level, player, playerState.getShape()));
         }
         return 1f;
     }

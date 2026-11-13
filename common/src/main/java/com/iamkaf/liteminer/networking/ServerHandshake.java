@@ -5,9 +5,11 @@ import com.iamkaf.amber.api.event.v1.events.common.WorldEvents;
 import com.iamkaf.amber.api.networking.v1.PeerAvailability;
 import com.iamkaf.liteminer.Liteminer;
 import com.iamkaf.liteminer.api.shape.LiteminerShapes;
+import com.iamkaf.liteminer.compat.Ids;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -71,7 +73,7 @@ public final class ServerHandshake {
             return;
         }
         MiningProtocol.Result result;
-        Identifier shape = Identifier.tryParse(request.shape());
+        Identifier shape = Ids.tryParse(request.shape());
         int index = shape == null ? -1 : LiteminerShapes.indexOf(shape);
         if (request.protocol() != MiningProtocol.REVISION) {
             result = MiningProtocol.Result.INCOMPATIBLE;

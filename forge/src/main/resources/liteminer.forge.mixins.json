@@ -1,7 +1,7 @@
 {
   "required": true,
   "package": "com.iamkaf.liteminer.forge.mixin",
-  "compatibilityLevel": "JAVA_21",
+  "compatibilityLevel": "${mixin_compat_forge}",
   "minVersion": "0.8",
   "client": [
   ],
