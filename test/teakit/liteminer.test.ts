@@ -943,8 +943,11 @@ async function mineSculkAndCollectExperience(ctx: TeaKitTestContext): Promise<nu
 
     // Sculk always drops 1 XP, so 14 blocks reach level 1 while the origin alone cannot.
     await ctx.player.teleport({ x: 4, y: 70, z: 2 });
-    await ctx.runtime.wait(2_000);
-    await ctx.commands.assert("/execute if entity @s[level=1..]");
+    // Pickup speed varies by line, so wait for the level instead of a fixed time.
+    await expect(async () => (await ctx.commands.run("/execute if entity @s[level=1..]")).result).toEventuallyEqual(1, {
+      timeout: 10_000,
+      interval: 200,
+    });
     return orbXs;
   } finally {
     if (ticksFrozen) await unfreezeWorld(ctx);
