@@ -7,6 +7,10 @@ plugins {
 val multiloader = MultiloaderProjectContext.of(project)
 
 dependencies {
+    // Open Parties and Claims API, for keeping vein mining out of claims.
+    compileOnly(multiloader.catalogFor().findLibrary("opac-common").get()) {
+        isTransitive = false
+    }
     multiloader.optionalProperty("dependencies.iris")?.let { irisVersion ->
         compileOnly("maven.modrinth:iris:$irisVersion") {
             isTransitive = false
