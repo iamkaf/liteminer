@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 4.6.0
+
+### Changed
+
+- Ported to Minecraft 1.18.2, 1.19.4, 1.20.1, 1.20.4, 1.21, 1.21.1, and 1.21.4 through 1.21.10.
+- BREAKING: Minecraft 1.21.11, 26.1, 26.1.1, and 26.1.2 now run Liteminer 4 and require Konfig instead of Forge Config API Port. Settings reset to their defaults.
+  - Get it from [Modrinth](https://modrinth.com/mod/konfig) or [CurseForge](https://www.curseforge.com/minecraft/mc-mods/konfig)
+
+### Fixed
+
+- Forge: The harvest time setting now works.
+- Minecraft 1.21.11 through 26.1.2: Block highlights now hide the vanilla block outline.
+
 ## 4.5.2 / 3.4.2
 
 ### Fixed
