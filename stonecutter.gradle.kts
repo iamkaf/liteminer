@@ -6,3 +6,9 @@ plugins {
 }
 
 stonecutter active "26.3".let { multiloaderStonecutter.active(it) }
+
+stonecutter parameters {
+    replacements.string(eval(current.version, ">=1.21.11")) {
+        replace("ResourceLocation", "Identifier")
+    }
+}

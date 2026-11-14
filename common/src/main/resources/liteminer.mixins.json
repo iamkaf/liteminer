@@ -1,12 +1,14 @@
 {
   "required": true,
   "package": "com.iamkaf.liteminer.mixin",
-  "compatibilityLevel": "JAVA_21",
+  "compatibilityLevel": "${mixin_compat_common}",
   "minVersion": "0.8",
+  "refmap": "${mod_id}.refmap.json",
   "client": [
   ],
   "mixins": [
-    "ItemStackMixin"
+    "ItemStackMixin",
+    "PlayerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

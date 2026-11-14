@@ -3,12 +3,15 @@ package com.iamkaf.liteminer.networking;
 import com.iamkaf.amber.api.functions.v1.PlayerFunctions;
 import com.iamkaf.liteminer.LiteminerClient;
 import com.iamkaf.liteminer.api.shape.LiteminerShapes;
+import com.iamkaf.liteminer.compat.Ids;
+import com.iamkaf.liteminer.compat.Texts;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
+
 import java.util.Locale;
 import java.util.Optional;
 
@@ -51,7 +54,7 @@ public final class ClientHandshake {
     private static void flush() {
         state.nextRequest(now()).ifPresent(request -> LiteminerNetwork.HANDSHAKE.sendToServer(new HandshakeRequest(request)));
         if (state.status() == ClientMiningState.Status.LEGACY && !legacySent) {
-            int shape = LiteminerShapes.indexOf(Identifier.parse(state.desiredShape()));
+            int shape = LiteminerShapes.indexOf(Ids.parse(state.desiredShape()));
             LiteminerNetwork.NET.sendToServer(new C2SVeinmineKeybindChange(state.desiredActive(), shape));
             legacySent = true;
         }
@@ -61,13 +64,13 @@ public final class ClientHandshake {
     public static void receive(Player recipient, MiningProtocol.Reply reply) {
         var client = Minecraft.getInstance();
         if (state == null || client.getConnection() != connection || client.player != recipient) return;
-        Identifier shape = Identifier.tryParse(reply.shape());
+        Identifier shape = Ids.tryParse(reply.shape());
         if (shape == null || LiteminerShapes.indexOf(shape) < 0) {
             reply = new MiningProtocol.Reply(reply.nonce(), reply.protocol(), reply.version(), reply.sequence(),
                     reply.revision(), reply.active(), reply.shape(), MiningProtocol.Result.UNKNOWN_SHAPE);
         }
         if (state.acknowledge(reply) && state.status() == ClientMiningState.Status.HEALTHY) {
-            LiteminerClient.shapes.setCurrentIndex(LiteminerShapes.indexOf(Identifier.parse(state.confirmedShape())));
+            LiteminerClient.shapes.setCurrentIndex(LiteminerShapes.indexOf(Ids.parse(state.confirmedShape())));
             warned = false;
         }
         feedback();
@@ -81,7 +84,7 @@ public final class ClientHandshake {
     /** A visible preview is not proof that the server supports mining. */
     public static Optional<Component> hudMessage() {
         if (!hasSupportWarning()) return Optional.empty();
-        return Optional.of(Component.translatable("liteminer.connection.short."
+        return Optional.of(Texts.translatable("liteminer.connection.short."
                 + state.status().name().toLowerCase(Locale.ROOT)).withStyle(ChatFormatting.RED));
     }
 
@@ -96,9 +99,9 @@ public final class ClientHandshake {
 
     public static Component explanation(ClientMiningState state) {
         if (state.status() == ClientMiningState.Status.DEGRADED && state.result() != MiningProtocol.Result.APPLIED) {
-            return Component.translatable("liteminer.connection.result." + state.result().name().toLowerCase(Locale.ROOT));
+            return Texts.translatable("liteminer.connection.result." + state.result().name().toLowerCase(Locale.ROOT));
         }
-        return Component.translatable("liteminer.connection." + state.status().name().toLowerCase(Locale.ROOT));
+        return Texts.translatable("liteminer.connection." + state.status().name().toLowerCase(Locale.ROOT));
     }
 
     private static void feedback() {
@@ -111,7 +114,7 @@ public final class ClientHandshake {
         if (!state.desiredActive()) return;
         if (state.status() != ClientMiningState.Status.CHECKING && !warned) {
             PlayerFunctions.sendMessage(player, explanation(state).copy().append(" ")
-                    .append(Component.translatable("liteminer.connection.doctor_hint")));
+                    .append(Texts.translatable("liteminer.connection.doctor_hint")));
             warned = true;
         }
     }

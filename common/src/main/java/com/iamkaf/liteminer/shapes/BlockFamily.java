@@ -1,7 +1,7 @@
 package com.iamkaf.liteminer.shapes;
 
 import com.iamkaf.liteminer.Liteminer;
-import net.minecraft.core.registries.BuiltInRegistries;
+import com.iamkaf.liteminer.compat.RegistryCompat;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
@@ -101,8 +101,8 @@ public class BlockFamily {
     }
 
     private static boolean matchesDeepslateOreVariant(Block from, Block to) {
-        Identifier fromId = BuiltInRegistries.BLOCK.getKey(from);
-        Identifier toId = BuiltInRegistries.BLOCK.getKey(to);
+        Identifier fromId = RegistryCompat.blockId(from);
+        Identifier toId = RegistryCompat.blockId(to);
 
         // If either ID is missing, don't try to be clever.
         if (fromId == null || toId == null) {

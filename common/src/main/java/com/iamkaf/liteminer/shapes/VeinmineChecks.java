@@ -2,6 +2,7 @@ package com.iamkaf.liteminer.shapes;
 
 import com.iamkaf.liteminer.Liteminer;
 import com.iamkaf.liteminer.api.shape.ShapeWalker;
+import com.iamkaf.liteminer.compat.BlockBreakCompat;
 import com.iamkaf.liteminer.tags.TagHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
@@ -25,7 +26,7 @@ public final class VeinmineChecks {
         BlockState state = level.getBlockState(pos);
 
         // Stop a tunnel at water instead of deleting the liquid.
-        if (state.is(Blocks.AIR) || state.liquid()) {
+        if (state.is(Blocks.AIR) || BlockBreakCompat.isLiquid(state)) {
             return false;
         }
 

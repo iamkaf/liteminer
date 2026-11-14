@@ -27,12 +27,15 @@ liteminer/
 ├── fabric/           # Fabric-specific implementation
 ├── forge/            # Forge-specific implementation
 ├── neoforge/         # NeoForge-specific implementation
-└── versions/         # Per-version properties (1.21.11, 26.1, 26.1.1, 26.1.2, 26.2, 26.3)
+└── versions/         # Per-version properties and the few files that differ per version
 ```
 
 ## 🚀 Supported Versions
 
-Every version in `versions/` builds for Fabric, Forge, and NeoForge: 1.21.11, 26.1, 26.1.1, 26.1.2, 26.2, and 26.3.
+| Minecraft | Loaders |
+| --- | --- |
+| 1.18.2, 1.19.4, 1.20.1, 1.20.4, 1.21 | Fabric, Forge |
+| 1.21.1, 1.21.4 - 1.21.11, 26.1, 26.1.1, 26.1.2, 26.2, 26.3 | Fabric, Forge, NeoForge |
 
 ## 🛠️ Building
 
@@ -58,7 +61,7 @@ Built jars will be in `<loader>/versions/<version>/build/libs/`.
 
 ### Prerequisites
 
-- Java 25 (Java 21 for 1.21.11)
+- Java 25 (Java 21 for 1.21.11 and older)
 - Git
 - just (install: `https://github.com/casey/just`)
 

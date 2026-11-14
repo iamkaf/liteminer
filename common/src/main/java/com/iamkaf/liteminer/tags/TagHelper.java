@@ -1,6 +1,6 @@
 package com.iamkaf.liteminer.tags;
 
-import net.minecraft.core.registries.BuiltInRegistries;
+import com.iamkaf.liteminer.compat.RegistryCompat;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -18,7 +18,7 @@ public class TagHelper {
     }
 
     public static boolean isBlockWhitelistEnabled() {
-        return (isBlockTagPopulated(LiteminerTags.Blocks.BLOCK_WHITELIST) || isBlockTagPopulated(LiteminerTags.Compat.BLOCK_WHITELIST));
+        return (RegistryCompat.hasBlocks(LiteminerTags.Blocks.BLOCK_WHITELIST) || RegistryCompat.hasBlocks(LiteminerTags.Compat.BLOCK_WHITELIST));
     }
 
     public static boolean isExcludedTool(ItemStack stack) {
@@ -27,11 +27,6 @@ public class TagHelper {
 
     public static boolean isIncludedTool(ItemStack stack) {
         return isOr(stack, LiteminerTags.Items.INCLUDED_TOOLS, LiteminerTags.Compat.INCLUDED_TOOLS);
-    }
-
-    private static boolean isBlockTagPopulated(TagKey<Block> tag) {
-        var optional = BuiltInRegistries.BLOCK.get(tag);
-        return optional.isPresent() && optional.get().size() > 0;
     }
 
     @SafeVarargs

@@ -70,7 +70,7 @@ describe("Liteminer vein mining", () => {
   });
 
   test("stops vein mining at zero hunger when configured", {
-    target: { minecraft: ">=26.2" },
+    target: { minecraft: ">=1.19" },
     tags: ["hunger"],
   }, async (ctx) => {
     const area = hungerArea();
@@ -122,7 +122,7 @@ describe("Liteminer vein mining", () => {
   });
 
   test("drops items and experience at each block when configured", {
-    target: { minecraft: ">=26.2" },
+    target: { minecraft: ">=1.19" },
     tags: ["drops", "xp"],
   }, async (ctx) => {
     let eachBlock = false;
@@ -139,14 +139,14 @@ describe("Liteminer vein mining", () => {
   });
 
   test("allows no-tool blocks when the correct-tool check is enabled", {
-    target: { minecraft: "26.2" },
+    target: { minecraft: ">=1.19 <26.3" },
   }, async (ctx) => {
     const area = box({ x: 108, y: 69, z: 0 }, { x: 114, y: 72, z: 6 });
     let correctToolToggled = false;
     try {
       await toggleRequireCorrectTool(ctx);
       correctToolToggled = true;
-      await ctx.client.command("/liteminer shape set 0");
+      await setShape(ctx, 0);
       await ctx.player.reset({ gameMode: "survival", inventory: "clear" });
       await ctx.player.teleport({ x: 111, y: 70, z: 0 });
       await ctx.world.clear(area.min, area.max);
@@ -165,7 +165,7 @@ describe("Liteminer vein mining", () => {
       await ctx.player.reset({ gameMode: "survival", inventory: "clear" });
       await ctx.world.clear({ x: 108, y: 70, z: 0 }, area.max);
       for (let z = 2; z <= 4; z += 1) {
-        await ctx.world.setBlock({ x: 111, y: 70, z }, "minecraft:short_grass");
+        await ctx.world.setBlock({ x: 111, y: 70, z }, await shortGrassId(ctx));
       }
       await holdVeinmineAndMine(ctx, { x: 111, y: 70, z: 2 }, { x: 111.5, y: 70.25, z: 2.5 });
       await waitForAir(ctx, [
@@ -186,7 +186,7 @@ describe("Liteminer vein mining", () => {
     try {
       await prepareCreativeTest(ctx, { x: 0.5, y: 70, z: 0.5 }, area, 24);
       await ctx.world.fill({ x: -4, y: 69, z: 0 }, { x: 44, y: 69, z: 6 }, "minecraft:stone");
-      await ctx.client.command("/liteminer shape set 0");
+      await setShape(ctx, 0);
       await ctx.runtime.wait(500);
       await setBlocks(ctx, [
         block(0, 70, 2), block(-1, 70, 2), block(1, 70, 2),
@@ -200,7 +200,7 @@ describe("Liteminer vein mining", () => {
       await assertBlock(ctx, { x: 3, y: 70, z: 2 }, "minecraft:coal_ore");
       await ctx.client.screenshot("liteminer-shape-shapeless");
 
-      await ctx.client.command("/liteminer shape set 1");
+      await setShape(ctx, 1);
       await ctx.runtime.wait(500);
       await setBlocks(ctx, [
         block(10, 70, 2), block(10, 70, 3), block(10, 70, 4), block(11, 70, 3),
@@ -213,7 +213,7 @@ describe("Liteminer vein mining", () => {
       await assertBlock(ctx, { x: 11, y: 70, z: 3 }, "minecraft:coal_ore");
       await ctx.client.screenshot("liteminer-shape-small-tunnel");
 
-      await ctx.client.command("/liteminer shape set 2");
+      await setShape(ctx, 2);
       await ctx.runtime.wait(500);
       await setBlocks(ctx, [
         block(20, 70, 2), block(20, 71, 2), block(20, 72, 2),
@@ -230,7 +230,7 @@ describe("Liteminer vein mining", () => {
       await assertBlock(ctx, { x: 21, y: 72, z: 3 }, "minecraft:coal_ore");
       await ctx.client.screenshot("liteminer-shape-staircase-up");
 
-      await ctx.client.command("/liteminer shape set 3");
+      await setShape(ctx, 3);
       await ctx.runtime.wait(500);
       await setBlocks(ctx, [
         block(30, 71, 2), block(30, 70, 2), block(30, 69, 2),
@@ -247,7 +247,7 @@ describe("Liteminer vein mining", () => {
       await assertBlock(ctx, { x: 31, y: 69, z: 3 }, "minecraft:coal_ore");
       await ctx.client.screenshot("liteminer-shape-staircase-down");
 
-      await ctx.client.command("/liteminer shape set 4");
+      await setShape(ctx, 4);
       await ctx.runtime.wait(500);
       await ctx.world.fill({ x: 39, y: 69, z: 2 }, { x: 41, y: 71, z: 2 }, "minecraft:coal_ore");
       await ctx.world.setBlock({ x: 40, y: 70, z: 3 }, "minecraft:coal_ore");
@@ -256,7 +256,7 @@ describe("Liteminer vein mining", () => {
       await waitForAir(ctx, cuboidPositions({ x: 39, y: 69, z: 2 }, { x: 41, y: 71, z: 2 }));
       await assertBlock(ctx, { x: 40, y: 70, z: 3 }, "minecraft:coal_ore");
       await ctx.client.screenshot("liteminer-shape-3x3");
-      await ctx.client.command("/liteminer shape set 0");
+      await setShape(ctx, 0);
     } finally {
       await cleanup(ctx, area, { x: 20, y: 70, z: 2 }, 24);
     }
@@ -269,7 +269,7 @@ describe("Liteminer vein mining", () => {
       await ctx.world.fill({ x: 46, y: 69, z: 0 }, { x: 86, y: 69, z: 6 }, "minecraft:stone");
       await ctx.client.keyState(96, true);
 
-      await ctx.client.command("/liteminer shape set 2");
+      await setShape(ctx, 2);
       await ctx.runtime.wait(500);
       await setBlocks(ctx, [
         block(60, 70, 2), block(60, 71, 2), block(60, 72, 2),
@@ -284,7 +284,7 @@ describe("Liteminer vein mining", () => {
       await assertBlock(ctx, { x: 61, y: 72, z: 2 }, "minecraft:coal_ore");
       await ctx.client.screenshot("liteminer-staircase-up-hit-face-over-yaw");
 
-      await ctx.client.command("/liteminer shape set 3");
+      await setShape(ctx, 3);
       await ctx.runtime.wait(500);
       await setBlocks(ctx, [
         block(80, 70, 2), block(80, 69, 2), block(80, 71, 2),
@@ -308,7 +308,7 @@ describe("Liteminer vein mining", () => {
     try {
       await prepareCreativeTest(ctx, { x: 70, y: 70, z: 0 }, area, 24);
       await ctx.world.fill({ x: 66, y: 69, z: 0 }, { x: 74, y: 69, z: 4 }, "minecraft:stone");
-      await ctx.client.command("/liteminer shape set 2");
+      await setShape(ctx, 2);
       await ctx.runtime.wait(500);
       await ctx.client.keyState(96, true);
       await ctx.runtime.wait(1_200);
@@ -335,7 +335,7 @@ describe("Liteminer vein mining", () => {
     try {
       await prepareCreativeTest(ctx, { x: 120, y: 70, z: 0 }, area, 16);
       await ctx.world.fill({ x: 118, y: 69, z: 0 }, { x: 122, y: 69, z: 6 }, "minecraft:stone");
-      await ctx.client.command("/liteminer shape set 1");
+      await setShape(ctx, 1);
       await ctx.runtime.wait(500);
       await ctx.world.setBlock({ x: 120, y: 70, z: 2 }, "minecraft:torch");
       await ctx.world.setBlock({ x: 120, y: 70, z: 3 }, "minecraft:obsidian");
@@ -345,7 +345,7 @@ describe("Liteminer vein mining", () => {
       await assertBlock(ctx, { x: 120, y: 70, z: 3 }, "minecraft:obsidian");
       await assertBlock(ctx, { x: 120, y: 70, z: 4 }, "minecraft:obsidian");
       await ctx.client.screenshot("liteminer-torch-tunnel-leaves-obsidian");
-      await ctx.client.command("/liteminer shape set 0");
+      await setShape(ctx, 0);
     } finally {
       await cleanup(ctx, area, { x: 120, y: 70, z: 0 }, 16);
     }
@@ -356,7 +356,7 @@ describe("Liteminer vein mining", () => {
     try {
       await prepareCreativeTest(ctx, { x: 140, y: 70, z: 0 }, area, 16);
       await ctx.world.fill({ x: 138, y: 69, z: 0 }, { x: 142, y: 69, z: 6 }, "minecraft:stone");
-      await ctx.client.command("/liteminer shape set 2");
+      await setShape(ctx, 2);
       await ctx.runtime.wait(500);
       await ctx.world.setBlock({ x: 140, y: 70, z: 2 }, "minecraft:torch");
       await setBlocks(ctx, [
@@ -375,7 +375,7 @@ describe("Liteminer vein mining", () => {
       await assertBlock(ctx, { x: 140, y: 71, z: 3 }, "minecraft:obsidian");
       await assertBlock(ctx, { x: 140, y: 72, z: 3 }, "minecraft:obsidian");
       await ctx.client.screenshot("liteminer-torch-staircase-leaves-structure");
-      await ctx.client.command("/liteminer shape set 0");
+      await setShape(ctx, 0);
     } finally {
       await cleanup(ctx, area, { x: 140, y: 70, z: 0 }, 16);
     }
@@ -386,7 +386,7 @@ describe("Liteminer vein mining", () => {
     try {
       await prepareCreativeTest(ctx, { x: 160, y: 70, z: 0 }, area, 16);
       await ctx.world.fill({ x: 158, y: 69, z: 0 }, { x: 162, y: 69, z: 4 }, "minecraft:stone");
-      await ctx.client.command("/liteminer shape set 4");
+      await setShape(ctx, 4);
       await ctx.runtime.wait(500);
       await ctx.world.setBlock({ x: 159, y: 70, z: 2 }, "minecraft:obsidian");
       await ctx.world.setBlock({ x: 161, y: 70, z: 2 }, "minecraft:obsidian");
@@ -396,7 +396,7 @@ describe("Liteminer vein mining", () => {
       await assertBlock(ctx, { x: 159, y: 70, z: 2 }, "minecraft:obsidian");
       await assertBlock(ctx, { x: 161, y: 70, z: 2 }, "minecraft:obsidian");
       await ctx.client.screenshot("liteminer-torch-3x3-leaves-obsidian");
-      await ctx.client.command("/liteminer shape set 0");
+      await setShape(ctx, 0);
     } finally {
       await cleanup(ctx, area, { x: 160, y: 70, z: 0 }, 16);
     }
@@ -407,7 +407,7 @@ describe("Liteminer vein mining", () => {
     try {
       await prepareCreativeTest(ctx, { x: 170, y: 70, z: 0 }, area, 16);
       await ctx.world.fill({ x: 168, y: 69, z: 0 }, { x: 172, y: 69, z: 6 }, "minecraft:stone");
-      await ctx.client.command("/liteminer shape set 1");
+      await setShape(ctx, 1);
       await ctx.runtime.wait(500);
       await ctx.world.setBlock({ x: 170, y: 70, z: 2 }, "minecraft:stone");
       await ctx.world.setBlock({ x: 170, y: 70, z: 3 }, "minecraft:dirt");
@@ -418,7 +418,7 @@ describe("Liteminer vein mining", () => {
         { x: 170, y: 70, z: 3 },
         { x: 170, y: 70, z: 4 },
       ]);
-      await ctx.client.command("/liteminer shape set 0");
+      await setShape(ctx, 0);
     } finally {
       await cleanup(ctx, area, { x: 170, y: 70, z: 0 }, 16);
     }
@@ -429,7 +429,7 @@ describe("Liteminer vein mining", () => {
     try {
       await prepareCreativeTest(ctx, { x: 180, y: 70, z: 0 }, area, 16);
       await ctx.world.fill({ x: 178, y: 69, z: 0 }, { x: 182, y: 69, z: 6 }, "minecraft:stone");
-      await ctx.client.command("/liteminer shape set 0");
+      await setShape(ctx, 0);
       await ctx.runtime.wait(500);
       await ctx.world.setBlock({ x: 180, y: 70, z: 2 }, "minecraft:torch");
       await ctx.world.setBlock({ x: 180, y: 70, z: 3 }, "minecraft:torch");
@@ -450,7 +450,7 @@ describe("Liteminer vein mining", () => {
     try {
       await prepareCreativeTest(ctx, { x: 90, y: 70, z: 0 }, area, 24);
       await ctx.world.fill({ x: 86, y: 69, z: 0 }, { x: 96, y: 69, z: 6 }, "minecraft:stone");
-      await ctx.client.command("/liteminer shape set 2");
+      await setShape(ctx, 2);
       await ctx.runtime.wait(500);
       await ctx.client.keyState(96, true);
       await ctx.runtime.wait(1_200);
@@ -519,7 +519,7 @@ describe("Liteminer vein mining", () => {
       await prepareSurvivalXpTest(ctx, area);
       await ctx.player.give("minecraft:netherite_pickaxe");
       await ctx.player.inventory().selectHotbar(0);
-      await ctx.commands.assert("/gamerule block_drops false");
+      await ctx.commands.assert(`/gamerule ${await blockDropsRule(ctx)} false`);
       dropsOff = true;
       await setBlocks(ctx, ores);
       await holdVeinmineAndMine(ctx, { x: 2, y: 70, z: 2 }, { x: 2.5, y: 70.5, z: 2.5 });
@@ -529,7 +529,7 @@ describe("Liteminer vein mining", () => {
       await ctx.entities.query({ origin: { x: 2, y: 70, z: 2 }, radius: 12, type: "minecraft:experience_orb" }).waitForCount(0, { timeoutMs: 1_000 });
       await ctx.commands.assert("/execute unless entity @s[level=1..]");
     } finally {
-      if (dropsOff) await ctx.commands.assert("/gamerule block_drops true");
+      if (dropsOff) await ctx.commands.assert(`/gamerule ${await blockDropsRule(ctx)} true`);
       await ctx.client.keyState(96, false);
       await ctx.player.reset({ gameMode: "creative", inventory: "clear" });
       await setExperience(ctx, 0);
@@ -540,7 +540,7 @@ describe("Liteminer vein mining", () => {
   });
 
   test("drops the block that breaks the tool", {
-    target: { minecraft: ">=26.2" },
+    target: { minecraft: ">=1.19" },
     tags: ["drops"],
   }, async (ctx) => {
     const area = box({ x: 188, y: 69, z: 0 }, { x: 192, y: 73, z: 6 });
@@ -551,14 +551,14 @@ describe("Liteminer vein mining", () => {
       await toggleConfigEntry(ctx, "Prevent Tool Breaking");
       toolBreakingAllowed = true;
       await ctx.client.keyState(96, false);
-      await ctx.client.command("/liteminer shape set 4");
+      await setShape(ctx, 4);
       await ctx.player.reset({ gameMode: "survival", inventory: "clear" });
       await removeEntities(ctx, origin, 12, "minecraft:item");
       await ctx.world.clear(area.min, area.max);
       await ctx.world.fill({ x: 188, y: 69, z: 0 }, { x: 192, y: 69, z: 6 }, "minecraft:stone");
       await ctx.player.teleport({ x: 190.5, y: 70, z: 0.5 });
       // Two durability left: the first ore takes one, and the second breaks the pickaxe.
-      await ctx.commands.assert("/item replace entity @s hotbar.0 with minecraft:diamond_pickaxe[damage=1559]");
+      await ctx.commands.assert(`/item replace entity @s hotbar.0 with ${await nearlyBrokenPickaxe(ctx)}`);
       await ctx.player.inventory().selectHotbar(0);
       // A stone origin keeps the count to the two ores. Whether the origin drops depends on the loader.
       await setBlocks(ctx, [block(origin.x, origin.y, origin.z, "minecraft:stone"), ...ores]);
@@ -570,7 +570,7 @@ describe("Liteminer vein mining", () => {
       await expect(() => countInInventory(ctx, "minecraft:coal")).toEventuallyEqual(2, { timeout: 5_000, interval: 100 });
     } finally {
       if (toolBreakingAllowed) await toggleConfigEntry(ctx, "Prevent Tool Breaking");
-      await ctx.client.command("/liteminer shape set 0");
+      await setShape(ctx, 0);
       await cleanup(ctx, area, origin, 12);
     }
   });
@@ -583,7 +583,7 @@ describe("Liteminer vein mining", () => {
     try {
       await ctx.client.closeMenus();
       await ctx.client.keyState(96, false);
-      await ctx.client.command("/liteminer shape set 0");
+      await setShape(ctx, 0);
       await ctx.player.reset({ gameMode: "survival", inventory: "clear" });
       await ctx.world.clear(area.min, area.max);
       await ctx.world.fill({ x: 198, y: 69, z: 0 }, { x: 202, y: 69, z: 6 }, "minecraft:stone");
@@ -617,7 +617,7 @@ describe("Liteminer vein interactions", () => {
       await assertBlocks(ctx, logs.map((log) => ({ ...log, id: "minecraft:stripped_oak_log" })));
       expect(await heldDamage(ctx)).toBe(3);
     } finally {
-      await ctx.client.command("/liteminer shape set 0");
+      await setShape(ctx, 0);
       await cleanup(ctx, area, logs[0].pos, 8);
     }
   });
@@ -634,7 +634,7 @@ describe("Liteminer vein interactions", () => {
       await assertBlocks(ctx, [origin, ...logs]);
       expect(await heldDamage(ctx)).toBe(0);
     } finally {
-      await ctx.client.command("/liteminer shape set 0");
+      await setShape(ctx, 0);
       await cleanup(ctx, area, origin.pos, 8);
     }
   });
@@ -643,7 +643,7 @@ describe("Liteminer vein interactions", () => {
 async function prepareStripTest(ctx: TeaKitTestContext, area: Area, playerPos: Vec3, shape: number) {
   await ctx.client.closeMenus();
   await ctx.client.keyState(96, false);
-  await ctx.client.command(`/liteminer shape set ${shape}`);
+  await setShape(ctx, shape);
   await ctx.player.reset({ gameMode: "survival", inventory: "clear" });
   await ctx.world.clear(area.min, area.max);
   await ctx.world.fill(area.min, { ...area.max, y: area.min.y }, "minecraft:stone");
@@ -681,7 +681,7 @@ async function checkHighlightRendering(ctx: TeaKitTestContext, switchTransparenc
       block(12, 70, 5),
       block(12, 71, 5),
     ]);
-    await ctx.client.command("/liteminer shape set 0");
+    await setShape(ctx, 0);
     await ctx.runtime.wait(500);
     await ctx.client.lookAt({ x: 12.5, y: 70.5, z: 3.5 });
     await ctx.client.keyState(96, true);
@@ -725,6 +725,87 @@ async function prepareCreativeTest(ctx: TeaKitTestContext, playerPos: Vec3, area
   await ctx.player.inventory().selectHotbar(0);
 }
 
+/** The running Minecraft version as numbers, for the few commands and blocks that differ between versions. */
+async function minecraftVersion(ctx: TeaKitTestContext): Promise<number[]> {
+  const version = (await ctx.runtime.summary()).minecraftVersion ?? "";
+  return version.split(".").map((part) => Number.parseInt(part, 10) || 0);
+}
+
+function atLeast(version: number[], ...minimum: number[]): boolean {
+  for (let i = 0; i < Math.max(version.length, minimum.length); i += 1) {
+    const difference = (version[i] ?? 0) - (minimum[i] ?? 0);
+    if (difference !== 0) return difference > 0;
+  }
+  return true;
+}
+
+/** The block drops game rule was renamed in 1.21.11. */
+async function blockDropsRule(ctx: TeaKitTestContext): Promise<string> {
+  return atLeast(await minecraftVersion(ctx), 1, 21, 11) ? "block_drops" : "doTileDrops";
+}
+
+/**
+ * Stops experience orbs and items from moving so a test can read where they landed. `/tick freeze` arrived in
+ * 1.20.3. Before that, spectators attract no orbs, which is the part that matters here.
+ */
+async function freezeWorld(ctx: TeaKitTestContext) {
+  if (atLeast(await minecraftVersion(ctx), 1, 20, 3)) await ctx.commands.assert("/tick freeze");
+  else await ctx.commands.assert("/gamemode spectator @s");
+}
+
+async function unfreezeWorld(ctx: TeaKitTestContext) {
+  if (atLeast(await minecraftVersion(ctx), 1, 20, 3)) await ctx.commands.assert("/tick unfreeze");
+  else await ctx.commands.assert("/gamemode survival @s");
+}
+
+/** A diamond pickaxe with two durability left. Item data moved from NBT to components in 1.20.5. */
+async function nearlyBrokenPickaxe(ctx: TeaKitTestContext): Promise<string> {
+  return atLeast(await minecraftVersion(ctx), 1, 20, 5)
+    ? "minecraft:diamond_pickaxe[damage=1559]"
+    : "minecraft:diamond_pickaxe{Damage:1559}";
+}
+
+/** Short grass was called grass before 1.20.3. */
+async function shortGrassId(ctx: TeaKitTestContext): Promise<BlockId> {
+  return atLeast(await minecraftVersion(ctx), 1, 20, 3) ? "minecraft:short_grass" : "minecraft:grass";
+}
+
+/** Sculk always drops 1 XP but only exists since 1.19. Before that, diamond ore stands in. */
+async function experienceBlockId(ctx: TeaKitTestContext): Promise<BlockId> {
+  return atLeast(await minecraftVersion(ctx), 1, 19) ? "minecraft:sculk" : "minecraft:diamond_ore";
+}
+
+const SHAPE_COUNT = 5;
+let selectedShape = 0;
+
+/** Client commands reach the loader's handling only since 1.19; TeaKit sends older ones to the server as plain chat. */
+async function supportsClientCommands(ctx: TeaKitTestContext): Promise<boolean> {
+  return atLeast(await minecraftVersion(ctx), 1, 19);
+}
+
+/** Selects a shape. Where client commands are out of reach, cycles to it with the scroll wheel instead. */
+async function setShape(ctx: TeaKitTestContext, index: number) {
+  if (await supportsClientCommands(ctx)) {
+    await ctx.client.command(`/liteminer shape set ${index}`);
+    selectedShape = index;
+    return;
+  }
+  const steps = (index - selectedShape + SHAPE_COUNT) % SHAPE_COUNT;
+  if (steps === 0) return;
+  await ctx.client.keyState(96, true);
+  try {
+    await ctx.runtime.wait(500);
+    for (let step = 0; step < steps; step += 1) {
+      await ctx.client.scroll({ x: 213.5, y: 120, verticalAmount: -1 });
+      await ctx.runtime.wait(200);
+    }
+  } finally {
+    await ctx.client.keyState(96, false);
+  }
+  selectedShape = index;
+  await ctx.runtime.wait(300);
+}
+
 const HUNGER_ORIGIN = { x: 122, y: 70, z: 2 };
 const HUNGER_SECONDARY = { x: 122, y: 70, z: 3 };
 const HUNGER_LOOK = { x: 122.5, y: 70.5, z: 2.5 };
@@ -736,7 +817,7 @@ function hungerArea() {
 async function prepareZeroHungerTest(ctx: TeaKitTestContext, area: Area) {
   await ctx.client.closeMenus();
   await ctx.client.keyState(96, false);
-  await ctx.client.command("/liteminer shape set 0");
+  await setShape(ctx, 0);
   await ctx.player.reset({
     gameMode: "survival",
     inventory: "clear",
@@ -759,15 +840,17 @@ async function prepareSurvivalXpTest(ctx: TeaKitTestContext, area: Area) {
   await ctx.client.closeMenus();
   await ctx.client.keyState(96, false);
   await ctx.runtime.wait(250);
-  await ctx.client.command("/liteminer shape set 0");
+  await setShape(ctx, 0);
   await ctx.runtime.wait(500);
+  // Rebuild the floor before a survival player stands on it, or the player can fall out of the world.
+  await ctx.player.reset({ gameMode: "creative", inventory: "clear" });
+  await ctx.world.clear(area.min, area.max);
+  await ctx.world.fill({ x: 0, y: 69, z: 0 }, { x: 8, y: 69, z: 4 }, "minecraft:stone");
   await ctx.player.reset({ gameMode: "survival", inventory: "clear" });
   await ctx.player.teleport({ x: 0, y: 70, z: 0 });
   await setExperience(ctx, 0);
   await removeEntities(ctx, { x: 2, y: 70, z: 2 }, 12, "minecraft:item");
   await removeEntities(ctx, { x: 2, y: 70, z: 2 }, 12, "minecraft:experience_orb");
-  await ctx.world.clear(area.min, area.max);
-  await ctx.world.fill({ x: 0, y: 69, z: 0 }, { x: 8, y: 69, z: 4 }, "minecraft:stone");
 }
 
 const ORE_LINE_ORIGIN = { x: 100, y: 70, z: 3 };
@@ -781,7 +864,7 @@ async function mineOreLineAndFindFarDrop(ctx: TeaKitTestContext): Promise<Vec3> 
   try {
     await ctx.client.closeMenus();
     await ctx.client.keyState(96, false);
-    await ctx.client.command("/liteminer shape set 0");
+    await setShape(ctx, 0);
     await ctx.player.reset({ gameMode: "survival", inventory: "clear" });
     await ctx.player.teleport({ x: 100, y: 70, z: -1 });
     await removeEntities(ctx, origin, 16, "minecraft:item");
@@ -807,19 +890,19 @@ async function mineOreLineAndFindFarDrop(ctx: TeaKitTestContext): Promise<Vec3> 
     await ctx.player.mine(origin, { timeoutMs: 5_000 });
     await ctx.client.keyState(96, false);
     await ctx.runtime.wait(50);
-    await ctx.commands.assert("/tick freeze");
+    await freezeWorld(ctx);
     ticksFrozen = true;
     const drops = await ctx.entities
       .query({ origin, radius: 16, type: "minecraft:item", item: "minecraft:deepslate_coal_ore" })
       .waitForCountAtLeast(1, { timeout: 3_000 });
     const dropPosition = (await drops[0]?.inspect())?.position;
     if (!dropPosition) throw new Error("The deepslate drop had no reported position");
-    await ctx.commands.assert("/tick unfreeze");
+    await unfreezeWorld(ctx);
     ticksFrozen = false;
     await waitForAir(ctx, [origin, ...Array.from({ length: 6 }, (_, i) => ({ x: 100, y: 70, z: 4 + i }))]);
     return dropPosition;
   } finally {
-    if (ticksFrozen) await ctx.commands.assert("/tick unfreeze");
+    if (ticksFrozen) await unfreezeWorld(ctx);
     await ctx.client.keyState(96, false);
     await ctx.player.reset({ gameMode: "creative", inventory: "clear" });
     await removeEntities(ctx, origin, 16, "minecraft:item");
@@ -841,12 +924,13 @@ async function mineSculkAndCollectExperience(ctx: TeaKitTestContext): Promise<nu
     await prepareSurvivalXpTest(ctx, area);
     await ctx.player.give("minecraft:netherite_pickaxe");
     await ctx.player.inventory().selectHotbar(0);
-    await setBlocks(ctx, sculk.map((pos) => block(pos.x, pos.y, pos.z, "minecraft:sculk")));
+    const experienceBlock = await experienceBlockId(ctx);
+    await setBlocks(ctx, sculk.map((pos) => block(pos.x, pos.y, pos.z, experienceBlock)));
     await ctx.client.lookAt({ x: 2.5, y: 70.5, z: 2.5 });
     await ctx.client.keyState(96, true);
     await ctx.runtime.wait(1_200);
     await ctx.player.mine(origin, { timeoutMs: 5_000 });
-    await ctx.commands.assert("/tick freeze");
+    await freezeWorld(ctx);
     ticksFrozen = true;
     await ctx.client.keyState(96, false);
     await waitForAir(ctx, sculk, 5_000);
@@ -854,16 +938,19 @@ async function mineSculkAndCollectExperience(ctx: TeaKitTestContext): Promise<nu
     // Frozen ticks still let the player absorb an orb between listing and inspecting it.
     const orbXs = (await Promise.all(orbs.map((orb) => orb.inspect().then((snapshot) => snapshot.position?.x, () => undefined))))
       .filter((x): x is number => x !== undefined);
-    await ctx.commands.assert("/tick unfreeze");
+    await unfreezeWorld(ctx);
     ticksFrozen = false;
 
     // Sculk always drops 1 XP, so 14 blocks reach level 1 while the origin alone cannot.
     await ctx.player.teleport({ x: 4, y: 70, z: 2 });
-    await ctx.runtime.wait(2_000);
-    await ctx.commands.assert("/execute if entity @s[level=1..]");
+    // Pickup speed varies by line, so wait for the level instead of a fixed time.
+    await expect(async () => (await ctx.commands.run("/execute if entity @s[level=1..]")).result).toEventuallyEqual(1, {
+      timeout: 10_000,
+      interval: 200,
+    });
     return orbXs;
   } finally {
-    if (ticksFrozen) await ctx.commands.assert("/tick unfreeze");
+    if (ticksFrozen) await unfreezeWorld(ctx);
     await ctx.client.keyState(96, false);
     await ctx.player.reset({ gameMode: "creative", inventory: "clear" });
     await setExperience(ctx, 0);

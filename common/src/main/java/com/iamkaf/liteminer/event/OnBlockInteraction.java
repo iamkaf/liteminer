@@ -1,5 +1,6 @@
 package com.iamkaf.liteminer.event;
 
+import com.iamkaf.amber.api.functions.v1.ItemFunctions;
 import com.iamkaf.liteminer.Liteminer;
 import com.iamkaf.liteminer.LiteminerPlayerState;
 import com.iamkaf.liteminer.api.event.LiteminerEvents;
@@ -8,7 +9,6 @@ import com.iamkaf.liteminer.api.shape.LiteminerShapes;
 import com.iamkaf.liteminer.shapes.VeinmineChecks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -44,7 +44,7 @@ public class OnBlockInteraction {
             return null;
         }
 
-        if (!isTieredItem(tool.getItem())) {
+        if (!ItemFunctions.isTool(tool.getItem())) {
             return null;
         }
 
@@ -194,11 +194,5 @@ public class OnBlockInteraction {
         ));
 
         return originResult;
-    }
-
-    private static boolean isTieredItem(Item item) {
-        // the toolness of the tools now comes from a tool data component
-        var tool = item.getDefaultInstance().get(DataComponents.TOOL);
-        return tool != null;
     }
 }

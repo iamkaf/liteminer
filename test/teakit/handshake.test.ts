@@ -8,6 +8,9 @@ describe.configure({
 });
 
 test("confirms mining state and renders local Doctor", async ({ client, commands, spy, runtime }) => {
+  // TeaKit sends commands before 1.19 to the server as plain chat, which skips client command handling.
+  const [major = 0, minor = 0] = ((await runtime.summary()).minecraftVersion ?? "").split(".").map(Number);
+  const clientCommands = major > 1 || minor >= 19;
   const acknowledgments = await spy.method("mining.confirmations", "com.iamkaf.liteminer.networking.ClientMiningState#acknowledge");
   const reports = await spy.method("doctor.reports", "com.iamkaf.amber.doctor.DoctorReports#render");
   const colors = await spy.method("mining.colors", "com.iamkaf.liteminer.networking.ClientHandshake#highlightColor");
@@ -31,7 +34,7 @@ test("confirms mining state and renders local Doctor", async ({ client, commands
       "/tp @s 100.5 200 100.5 0 29",
       "/item replace entity @s weapon.mainhand with minecraft:netherite_pickaxe",
     ], { requireSuccess: true });
-    await client.command("/liteminer shape set 0");
+    if (clientCommands) await client.command("/liteminer shape set 0");
     await runtime.wait(1_600);
     await client.keyState(96, true);
     await runtime.wait(500);
@@ -45,18 +48,20 @@ test("confirms mining state and renders local Doctor", async ({ client, commands
     const renderedColors = await colors.$calls();
     expect(renderedColors.length).toBeGreaterThan(0);
     expect(renderedColors.every(call => call.returned === call.args?.[0])).toBe(true);
-    await client.command("/amber doctor");
-    await runtime.wait(300);
-    const rendered = await reports.$calls();
-    expect(rendered.length).toBe(1);
-    const output = JSON.stringify(rendered[0]?.args?.[0]);
-    expect(output).toContain("id=liteminer");
-    expect(output).toContain("liteminer.connection.healthy");
-    await client.keyState(96, false);
-    await client.key(84);
-    await client.waitForFrames(4);
-    await client.screenshot("liteminer-doctor-healthy", { hideOverlay: true });
-    await client.key(256);
+    if (clientCommands) {
+      await client.command("/amber doctor");
+      await runtime.wait(300);
+      const rendered = await reports.$calls();
+      expect(rendered.length).toBe(1);
+      const output = JSON.stringify(rendered[0]?.args?.[0]);
+      expect(output).toContain("id=liteminer");
+      expect(output).toContain("liteminer.connection.healthy");
+      await client.keyState(96, false);
+      await client.key(84);
+      await client.waitForFrames(4);
+      await client.screenshot("liteminer-doctor-healthy", { hideOverlay: true });
+      await client.key(256);
+    }
   } finally {
     await client.keyState(96, false);
     await acknowledgments.$detach();

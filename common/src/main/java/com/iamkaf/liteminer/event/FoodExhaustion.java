@@ -1,13 +1,14 @@
 package com.iamkaf.liteminer.event;
 
 import com.iamkaf.liteminer.Liteminer;
-import net.minecraft.core.registries.BuiltInRegistries;
+import com.iamkaf.liteminer.compat.Ids;
+import com.iamkaf.liteminer.compat.RegistryCompat;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 
 public final class FoodExhaustion {
     private static final Identifier FARMERS_DELIGHT_NOURISHMENT =
-            Identifier.fromNamespaceAndPath("farmersdelight", "nourishment");
+            Ids.of("farmersdelight", "nourishment");
 
     private FoodExhaustion() {
     }
@@ -40,8 +41,6 @@ public final class FoodExhaustion {
     }
 
     private static boolean hasFarmersDelightNourishment(Player player) {
-        return BuiltInRegistries.MOB_EFFECT.get(FARMERS_DELIGHT_NOURISHMENT)
-                .map(player::hasEffect)
-                .orElse(false);
+        return RegistryCompat.hasEffect(player, FARMERS_DELIGHT_NOURISHMENT);
     }
 }

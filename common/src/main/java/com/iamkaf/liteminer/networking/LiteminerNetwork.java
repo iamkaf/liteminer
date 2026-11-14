@@ -3,17 +3,17 @@ package com.iamkaf.liteminer.networking;
 import com.iamkaf.amber.api.networking.v1.NetworkChannel;
 import com.iamkaf.amber.api.networking.v1.Packet;
 import com.iamkaf.liteminer.Liteminer;
-import net.minecraft.resources.Identifier;
+import com.iamkaf.liteminer.compat.Ids;
 import net.minecraft.server.level.ServerPlayer;
 
 public class LiteminerNetwork {
     public static final NetworkChannel NET =
-            NetworkChannel.createOptional(Identifier.fromNamespaceAndPath(Liteminer.MOD_ID, "main"));
+            NetworkChannel.createOptional(Ids.of(Liteminer.MOD_ID, "main"));
 
     private static boolean initialized;
 
     public static final NetworkChannel HANDSHAKE = NetworkChannel.createOptional(
-            Identifier.fromNamespaceAndPath(Liteminer.MOD_ID, "handshake_v1"));
+            Ids.of(Liteminer.MOD_ID, "handshake_v1"));
 
     public static void init() {
         if (initialized) {

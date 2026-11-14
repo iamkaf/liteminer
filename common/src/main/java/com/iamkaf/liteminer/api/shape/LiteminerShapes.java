@@ -1,5 +1,6 @@
 package com.iamkaf.liteminer.api.shape;
 
+import com.iamkaf.liteminer.compat.Texts;
 import com.iamkaf.liteminer.Constants;
 import com.iamkaf.liteminer.shapes.ShapelessWalker;
 import com.iamkaf.liteminer.shapes.StaircaseDownWalker;
@@ -51,25 +52,25 @@ public final class LiteminerShapes {
     public static final Identifier THREE_BY_THREE = Constants.resource("three_by_three");
 
     static {
-        register(SHAPELESS, Component.translatable("shape.liteminer.shapeless"), new ShapelessWalker()::walk);
+        register(SHAPELESS, Texts.translatable("shape.liteminer.shapeless"), new ShapelessWalker()::walk);
         register(
                 SMALL_TUNNEL,
-                Component.translatable("shape.liteminer.small_tunnel"),
+                Texts.translatable("shape.liteminer.small_tunnel"),
                 VeinmineChecks.withoutInstantBreakExpansion(new TunnelWalker()::walk)
         );
         register(
                 STAIRCASE_UP,
-                Component.translatable("shape.liteminer.staircase_up"),
+                Texts.translatable("shape.liteminer.staircase_up"),
                 VeinmineChecks.withoutInstantBreakExpansion(new StaircaseUpWalker()::walk)
         );
         register(
                 STAIRCASE_DOWN,
-                Component.translatable("shape.liteminer.staircase_down"),
+                Texts.translatable("shape.liteminer.staircase_down"),
                 VeinmineChecks.withoutInstantBreakExpansion(new StaircaseDownWalker()::walk)
         );
         register(
                 THREE_BY_THREE,
-                Component.translatable("shape.liteminer.three_by_three"),
+                Texts.translatable("shape.liteminer.three_by_three"),
                 VeinmineChecks.withoutInstantBreakExpansion(new ThreeByThreeWalker()::walk)
         );
     }
