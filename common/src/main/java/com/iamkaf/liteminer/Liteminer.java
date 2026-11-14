@@ -1,5 +1,6 @@
 package com.iamkaf.liteminer;
 
+import com.iamkaf.liteminer.compat.OpacCompat;
 import com.iamkaf.liteminer.config.LiteminerConfig;
 import com.iamkaf.liteminer.event.Events;
 import com.iamkaf.liteminer.networking.LiteminerNetwork;
@@ -64,6 +65,7 @@ public final class Liteminer {
 
         LiteminerNetwork.init();
         Events.init();
+        OpacCompat.init();
     }
 
     /**
