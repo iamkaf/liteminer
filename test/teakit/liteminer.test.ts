@@ -834,8 +834,7 @@ describe("Liteminer config options", () => {
     }
   });
 
-  // Forge and NeoForge never apply the slowdown, so this only runs on Fabric.
-  test("slows mining by the size of the selection when configured", { tags: ["config"], target: { loader: "fabric", minecraft: ">=1.18 <26" } }, async (ctx) => {
+  test("slows mining by the size of the selection when configured", { target: { minecraft: ">=1.19" }, tags: ["config", "harvest"] }, async (ctx) => {
     const area = box({ x: 288, y: 69, z: 0 }, { x: 292, y: 72, z: 8 });
     const line = [2, 3, 4, 5].map((z) => block(290, 70, z));
     const scaled = await ctx.spy.method("config.harvest", "com.iamkaf.liteminer.Liteminer#getScaledBreakSpeedModifier");
@@ -849,21 +848,17 @@ describe("Liteminer config options", () => {
 
       await toggleConfigEntry(ctx, "Increased Harvesting Time");
       enabled = true;
-      // The slider's top end makes the break speed one over the number of selected blocks.
-      await setConfigSlider(ctx, "Harvesting Time Modifier", 1);
       await setBlocks(ctx, line);
       await mineWithClientAttack(ctx, line[0].pos, { x: 290.5, y: 70.5, z: 2.5 });
       await waitForAir(ctx, line.map((ore) => ore.pos));
       const seen = await scaled.$calls();
       const modifiers = seen.filter((call) => call.args?.[0] === 4).map((call) => Number(call.returned));
       if (modifiers.length === 0) throw new Error(`No modifier was computed for four blocks, saw ${JSON.stringify(seen.map((call) => [call.args, call.returned]))}`);
-      for (const modifier of modifiers) expect(Math.abs(modifier - 0.25)).toBeLessThan(0.001);
+      // The default modifier of 2 adds 0.2 to the break time divisor for each block past the first.
+      for (const modifier of modifiers) expect(Math.abs(modifier - 1 / 1.6)).toBeLessThan(0.001);
     } finally {
       await scaled.$detach();
-      if (enabled) {
-        await toggleConfigEntry(ctx, "Increased Harvesting Time");
-        await setConfigSlider(ctx, "Harvesting Time Modifier", 1 / 9);
-      }
+      if (enabled) await toggleConfigEntry(ctx, "Increased Harvesting Time");
       await cleanup(ctx, area, { x: 290, y: 70, z: 0 }, 12);
     }
   });
@@ -948,6 +943,32 @@ describe("Liteminer config options", () => {
     } finally {
       if (distinguishOff) await toggleConfigEntry(ctx, "Distinguish Grown Crops");
       await cleanup(ctx, area, { x: 310, y: 70, z: 0 }, 12);
+    }
+  });
+
+  test("keeps deepslate ore out of a vein when deepslate matching is off", { target: { minecraft: ">=1.19" }, tags: ["config", "deepslate"] }, async (ctx) => {
+    const area = box({ x: 318, y: 69, z: 0 }, { x: 322, y: 72, z: 8 });
+    const vein = [block(320, 70, 2, "minecraft:iron_ore"), block(320, 70, 3, "minecraft:deepslate_iron_ore")];
+    let matchingOff = false;
+    try {
+      await prepareCreativeTest(ctx, { x: 320, y: 70, z: 0 }, area, 12);
+      await ctx.world.fill({ x: 318, y: 69, z: 0 }, { x: 322, y: 69, z: 8 }, "minecraft:stone");
+      await setShape(ctx, 0);
+      await ctx.runtime.wait(500);
+      await setBlocks(ctx, vein);
+      await holdVeinmineAndMine(ctx, vein[0].pos, { x: 320.5, y: 70.5, z: 2.5 });
+      await waitForAir(ctx, vein.map((ore) => ore.pos));
+
+      await toggleConfigEntry(ctx, "Match Deepslate Ore Variants");
+      matchingOff = true;
+      await setBlocks(ctx, vein);
+      await holdVeinmineAndMine(ctx, vein[0].pos, { x: 320.5, y: 70.5, z: 2.5 });
+      await waitForAir(ctx, [vein[0].pos]);
+      await ctx.runtime.wait(500);
+      await assertBlocks(ctx, vein.slice(1));
+    } finally {
+      if (matchingOff) await toggleConfigEntry(ctx, "Match Deepslate Ore Variants");
+      await cleanup(ctx, area, { x: 320, y: 70, z: 0 }, 12);
     }
   });
 });
