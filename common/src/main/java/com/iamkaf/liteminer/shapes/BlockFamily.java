@@ -44,8 +44,9 @@ public class BlockFamily {
             return true;
         }
 
-        if (Liteminer.CONFIG.matchDeepslateOreVariants.get() && matchesDeepslateOreVariant(from, to)) {
-            return true;
+        // The setting decides deepslate pairs before the vanilla families below, which also list them.
+        if (matchesDeepslateOreVariant(from, to)) {
+            return Liteminer.CONFIG.matchDeepslateOreVariants.get();
         }
 
         if (BLOCK_MATCHES.containsKey(to)) {

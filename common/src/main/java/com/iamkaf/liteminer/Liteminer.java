@@ -104,13 +104,30 @@ public final class Liteminer {
         playerState.setShape(shape);
     }
 
-    public float onBreakSpeed(ServerPlayer player, Level level) {
-        LiteminerPlayerState playerState = getPlayerState(player);
-        var isVeinMining = playerState.getKeymappingState();
-
-        if (isVeinMining) {
-            return getScaledBreakSpeedModifier(getSelectedBlockCount(level, player, playerState.getShape()));
+    /**
+     * Slows a player's break speed by the size of their vein mining selection when Increased Harvesting Time is on.
+     * The server reads the player's synced key state; the client predicts with its own key state and shape.
+     */
+    public static float scaleBreakSpeed(Player player, float speed) {
+        if (!CONFIG.harvestTimePerBlockModifierEnabled.get()) {
+            return speed;
         }
-        return 1f;
+
+        //? if >=1.20 {
+        Level level = player.level();
+        //?} else {
+        /*Level level = player.level;
+        *///?}
+        if (!level.isClientSide()) {
+            LiteminerPlayerState playerState = instance.getPlayerState((ServerPlayer) player);
+            if (playerState.getKeymappingState()) {
+                return speed * getScaledBreakSpeedModifier(getSelectedBlockCount(level, player, playerState.getShape()));
+            }
+        } else if (LiteminerClient.isVeinMining()) {
+            return speed * getScaledBreakSpeedModifier(
+                    getSelectedBlockCount(level, player, LiteminerClient.shapes.getCurrentIndex())
+            );
+        }
+        return speed;
     }
 }

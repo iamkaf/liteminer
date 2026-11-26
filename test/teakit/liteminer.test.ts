@@ -5,7 +5,7 @@ import {
   expect,
   test,
 } from "@teakit/test";
-import type { BlockId, BlockPos, ItemId, TeaKitTestContext, Vec3 } from "@teakit/test";
+import type { BlockId, BlockPos, ItemId, SpyHandle, TeaKitTestContext, Vec3 } from "@teakit/test";
 
 describe.configure({
   timeout: "3m",
@@ -20,6 +20,7 @@ describe.configure({
     Capability.PlayerReset,
     Capability.RuntimeTiming,
     Capability.ServerCommands,
+    Capability.SpyInstrumentation,
     Capability.WorldBlock,
     Capability.WorldClear,
     Capability.WorldEntities,
@@ -76,6 +77,7 @@ describe("Liteminer vein mining", () => {
     const area = hungerArea();
     let zeroHungerDisallowed = false;
     let foodExhaustionDisabled = false;
+    const hud = await ctx.spy.method("hunger.hud", "com.iamkaf.liteminer.rendering.HUD#statusLine");
     try {
       await toggleConfigEntry(ctx, "Allow Vein Mining at Zero Hunger");
       zeroHungerDisallowed = true;
@@ -84,6 +86,8 @@ describe("Liteminer vein mining", () => {
       await ctx.client.keyState(96, true);
       await ctx.runtime.wait(1_200);
       await ctx.client.screenshot("liteminer-too-hungry-hud");
+      assertMatches(JSON.stringify((await hud.$calls()).map((call) => call.returned)), /too_hungry/, "HUD too hungry warning");
+      assertMatches(JSON.stringify((await hud.$calls()).map((call) => call.returned)), /"color"/, "HUD warning color");
       await ctx.player.mine(HUNGER_ORIGIN, { timeoutMs: 5_000 });
       await ctx.runtime.wait(500);
       await ctx.client.keyState(96, false);
@@ -97,6 +101,7 @@ describe("Liteminer vein mining", () => {
       await holdVeinmineAndMine(ctx, HUNGER_ORIGIN, HUNGER_LOOK);
       await waitForAir(ctx, [HUNGER_ORIGIN, HUNGER_SECONDARY]);
     } finally {
+      await hud.$detach();
       await ctx.client.keyState(96, false);
       if (foodExhaustionDisabled) await toggleConfigEntry(ctx, "Food Exhaustion");
       if (zeroHungerDisallowed) await toggleConfigEntry(ctx, "Allow Vein Mining at Zero Hunger");
@@ -640,6 +645,462 @@ describe("Liteminer vein interactions", () => {
   });
 });
 
+describe("Liteminer controls", () => {
+  test("toggles vein mining with one key press in toggle mode", { tags: ["keybinds"] }, async (ctx) => {
+    const area = box({ x: 238, y: 69, z: 0 }, { x: 242, y: 72, z: 6 });
+    const acks = await ctx.spy.method("controls.acks", "com.iamkaf.liteminer.networking.ClientMiningState#acknowledge");
+    let toggleMode = false;
+    try {
+      await cycleConfigDropdown(ctx, "Key Mode");
+      toggleMode = true;
+      await prepareCreativeTest(ctx, { x: 240, y: 70, z: 0 }, area, 12);
+      await ctx.world.fill({ x: 238, y: 69, z: 0 }, { x: 242, y: 69, z: 6 }, "minecraft:stone");
+      await setShape(ctx, 0);
+      await ctx.runtime.wait(500);
+      const line = [2, 3, 4].map((z) => block(240, 70, z));
+      await setBlocks(ctx, line);
+      await ctx.client.lookAt({ x: 240.5, y: 70.5, z: 2.5 });
+
+      // One press turns vein mining on and it stays on after the key comes up.
+      await tapVeinmineKey(ctx);
+      await ctx.runtime.wait(1_200);
+      await expectMiningState(acks, true);
+      await ctx.player.mine(line[0].pos, { timeoutMs: 5_000 });
+      await waitForAir(ctx, line.map((ore) => ore.pos));
+
+      // A second press turns it off again, so only the broken block goes.
+      await setBlocks(ctx, line);
+      await tapVeinmineKey(ctx);
+      await ctx.runtime.wait(1_200);
+      await expectMiningState(acks, false);
+      await ctx.player.mine(line[0].pos, { timeoutMs: 5_000 });
+      await waitForAir(ctx, [line[0].pos]);
+      await ctx.runtime.wait(500);
+      await assertBlocks(ctx, line.slice(1));
+    } finally {
+      await ctx.client.keyState(KEY_VEINMINE, false);
+      await acks.$detach();
+      if (toggleMode) await cycleConfigDropdown(ctx, "Key Mode");
+      await cleanup(ctx, area, { x: 240, y: 70, z: 0 }, 12);
+    }
+  });
+
+  test("stops vein mining when the hold key is released", { tags: ["keybinds"] }, async (ctx) => {
+    const acks = await ctx.spy.method("controls.release", "com.iamkaf.liteminer.networking.ClientMiningState#acknowledge");
+    try {
+      await ctx.client.closeMenus();
+      await ctx.client.keyState(KEY_VEINMINE, true);
+      await ctx.runtime.wait(1_200);
+      await expectMiningState(acks, true);
+      await ctx.client.keyState(KEY_VEINMINE, false);
+      await ctx.runtime.wait(1_200);
+      await expectMiningState(acks, false);
+    } finally {
+      await ctx.client.keyState(KEY_VEINMINE, false);
+      await acks.$detach();
+    }
+  });
+
+  test("cycles the shape with the scroll wheel while the key is held", { tags: ["keybinds"] }, async (ctx) => {
+    const area = box({ x: 248, y: 69, z: 0 }, { x: 252, y: 72, z: 6 });
+    const acks = await ctx.spy.method("controls.shapes", "com.iamkaf.liteminer.networking.ClientMiningState#acknowledge");
+    let hud = await ctx.spy.method("controls.hud", "com.iamkaf.liteminer.api.shape.LiteminerShape#displayName");
+    const scroll = (amount: number) => ctx.client.scroll({ x: 213.5, y: 120, verticalAmount: amount });
+    try {
+      await prepareCreativeTest(ctx, { x: 250, y: 70, z: 0 }, area, 12);
+      await ctx.world.fill({ x: 248, y: 69, z: 0 }, { x: 252, y: 69, z: 6 }, "minecraft:stone");
+      await setShape(ctx, 0);
+      await ctx.runtime.wait(500);
+      await ctx.client.keyState(KEY_VEINMINE, true);
+      await ctx.runtime.wait(1_200);
+      expect((await lastAppliedState(acks)).shape).toBe("liteminer:shapeless");
+
+      // Scrolling down walks forward through the registered shapes and wraps. Scrolling up walks back.
+      const forward = ["small_tunnel", "staircase_up", "staircase_down", "three_by_three", "shapeless"];
+      for (const shape of forward) {
+        await scroll(-1);
+        await ctx.runtime.wait(400);
+        expect((await lastAppliedState(acks)).shape).toBe(`liteminer:${shape}`);
+      }
+      await scroll(1);
+      await ctx.runtime.wait(400);
+      expect((await lastAppliedState(acks)).shape).toBe("liteminer:three_by_three");
+      await scroll(1);
+      await ctx.runtime.wait(400);
+      expect((await lastAppliedState(acks)).shape).toBe("liteminer:staircase_down");
+
+      // The server applies the cycled shape: only a tunnel digs through mixed blocks.
+      await scroll(1);
+      await ctx.runtime.wait(400);
+      await scroll(1);
+      await ctx.runtime.wait(400);
+      expect((await lastAppliedState(acks)).shape).toBe("liteminer:small_tunnel");
+      // Reading the whole history of a busy spy is heavy, so watch from a fresh spy.
+      await hud.$detach();
+      hud = await ctx.spy.method("controls.hud.fresh", "com.iamkaf.liteminer.api.shape.LiteminerShape#displayName");
+      await ctx.runtime.wait(300);
+      await ctx.client.screenshot("liteminer-scroll-cycled-shape");
+      assertMatches(JSON.stringify((await hud.$calls({ limit: 3 })).map((call) => call.returned)), /small_tunnel/, "HUD shape name");
+      await setBlocks(ctx, [block(250, 70, 2, "minecraft:stone"), block(250, 70, 3, "minecraft:dirt"), block(250, 70, 4, "minecraft:stone")]);
+      await ctx.client.lookAt({ x: 250.5, y: 70.5, z: 2.5 });
+      await attackBlock(ctx, { x: 250, y: 70, z: 2 });
+      await waitForAir(ctx, [{ x: 250, y: 70, z: 2 }, { x: 250, y: 70, z: 3 }, { x: 250, y: 70, z: 4 }]);
+    } finally {
+      await ctx.client.keyState(KEY_VEINMINE, false);
+      await acks.$detach();
+      await hud.$detach();
+      await setShape(ctx, 0);
+      await cleanup(ctx, area, { x: 250, y: 70, z: 0 }, 12);
+    }
+  });
+});
+
+describe("Liteminer block rules", () => {
+  test("melts ice below a vein unless the tool has Silk Touch", { tags: ["ice"] }, async (ctx) => {
+    const area = box({ x: 258, y: 69, z: -1 }, { x: 262, y: 73, z: 8 });
+    const ice = [2, 3, 4].map((z) => block(260, 70, z, "minecraft:ice"));
+    const waterAt = (z: number) => ({ x: 260, y: 70, z });
+    try {
+      await prepareSurvivalLine(ctx, area, { x: 260, y: 70, z: 0 });
+      await setBlocks(ctx, ice);
+      await holdVeinmineAndAttack(ctx, ice[0].pos, { x: 260.5, y: 70.5, z: 2.5 }, "minecraft:water");
+      // Like vanilla ice, each secondary block melts into water over a solid block.
+      for (const z of [3, 4]) {
+        await expect(async () => (await ctx.world.block(waterAt(z))).id).toEventuallyEqual("minecraft:water", {
+          timeout: 3_000,
+          interval: 50,
+        });
+      }
+
+      await prepareSurvivalLine(ctx, area, { x: 260, y: 70, z: 0 });
+      await ctx.commands.assert("/enchant @s minecraft:silk_touch 1");
+      await setBlocks(ctx, ice);
+      await holdVeinmineAndAttack(ctx, ice[0].pos, { x: 260.5, y: 70.5, z: 2.5 }, "minecraft:air");
+      await waitForAir(ctx, ice.map((entry) => entry.pos));
+      await ctx.runtime.wait(500);
+      for (const entry of ice) expect((await ctx.world.block(entry.pos)).id).toBe("minecraft:air");
+    } finally {
+      await cleanup(ctx, area, { x: 260, y: 70, z: 0 }, 12);
+    }
+  });
+
+  test("keeps tagged blocks out of a vein", { tags: ["tags"] }, async (ctx) => {
+    const area = box({ x: 268, y: 69, z: 0 }, { x: 272, y: 72, z: 8 });
+    const bedrock = [2, 3, 4].map((z) => block(270, 70, z, "minecraft:bedrock"));
+    const coal = [2, 3, 4].map((z) => block(272, 70, z));
+    try {
+      await prepareCreativeTest(ctx, { x: 270, y: 70, z: 0 }, area, 12);
+      await ctx.world.fill({ x: 268, y: 69, z: 0 }, { x: 272, y: 69, z: 8 }, "minecraft:stone");
+      await setShape(ctx, 0);
+      await ctx.runtime.wait(500);
+      // Creative players break bedrock, so only the excluded-blocks tag keeps the rest of the line.
+      await setBlocks(ctx, bedrock);
+      await holdVeinmineAndMine(ctx, bedrock[0].pos, { x: 270.5, y: 70.5, z: 2.5 });
+      await waitForAir(ctx, [bedrock[0].pos]);
+      await ctx.runtime.wait(500);
+      await assertBlocks(ctx, bedrock.slice(1));
+
+      // The same line of a mineable block goes together.
+      await ctx.player.teleport({ x: 272.5, y: 70, z: 0.5 });
+      await setBlocks(ctx, coal);
+      await holdVeinmineAndMine(ctx, coal[0].pos, { x: 272.5, y: 70.5, z: 2.5 });
+      await waitForAir(ctx, coal.map((ore) => ore.pos));
+    } finally {
+      await cleanup(ctx, area, { x: 270, y: 70, z: 0 }, 12);
+    }
+  });
+});
+
+describe("Liteminer config options", () => {
+// TeaKit delivers a plain click as the right button on 26.x, which resets a Konfig slider instead of moving it, so slider tests stop before 26.
+  test("caps a vein at the block break limit", { target: { minecraft: ">=1.18 <26" }, tags: ["config"] }, async (ctx) => {
+    const area = box({ x: 278, y: 69, z: 0 }, { x: 282, y: 72, z: 10 });
+    const line = [2, 3, 4, 5, 6, 7].map((z) => block(280, 70, z));
+    try {
+      // The limit counts the block that started the vein, so a limit of 3 breaks it and two neighbors.
+      await setConfigInt(ctx, "Block Break Limit", 3, 0);
+      await prepareCreativeTest(ctx, { x: 280, y: 70, z: 0 }, area, 12);
+      await ctx.world.fill({ x: 278, y: 69, z: 0 }, { x: 282, y: 69, z: 10 }, "minecraft:stone");
+      await setShape(ctx, 0);
+      await ctx.runtime.wait(500);
+      await setBlocks(ctx, line);
+      await holdVeinmineAndMine(ctx, line[0].pos, { x: 280.5, y: 70.5, z: 2.5 });
+      await waitForAir(ctx, line.slice(0, 3).map((ore) => ore.pos));
+      await ctx.runtime.wait(500);
+      await assertBlocks(ctx, line.slice(3));
+    } finally {
+      await setConfigInt(ctx, "Block Break Limit", 64, 63 / 2047);
+      await cleanup(ctx, area, { x: 280, y: 70, z: 0 }, 12);
+    }
+  });
+
+  test("slows mining by the size of the selection when configured", { target: { minecraft: ">=1.19" }, tags: ["config", "harvest"] }, async (ctx) => {
+    const area = box({ x: 288, y: 69, z: 0 }, { x: 292, y: 72, z: 8 });
+    const line = [2, 3, 4, 5].map((z) => block(290, 70, z));
+    const scaled = await ctx.spy.method("config.harvest", "com.iamkaf.liteminer.Liteminer#getScaledBreakSpeedModifier");
+    let enabled = false;
+    try {
+      await prepareSurvivalLine(ctx, area, { x: 290, y: 70, z: 0 });
+      await setBlocks(ctx, line);
+      await mineWithClientAttack(ctx, line[0].pos, { x: 290.5, y: 70.5, z: 2.5 });
+      await waitForAir(ctx, line.map((ore) => ore.pos));
+      expect((await scaled.$calls()).length).toBe(0);
+
+      await toggleConfigEntry(ctx, "Increased Harvesting Time");
+      enabled = true;
+      await setBlocks(ctx, line);
+      await mineWithClientAttack(ctx, line[0].pos, { x: 290.5, y: 70.5, z: 2.5 });
+      await waitForAir(ctx, line.map((ore) => ore.pos));
+      const seen = await scaled.$calls();
+      const modifiers = seen.filter((call) => call.args?.[0] === 4).map((call) => Number(call.returned));
+      if (modifiers.length === 0) throw new Error(`No modifier was computed for four blocks, saw ${JSON.stringify(seen.map((call) => [call.args, call.returned]))}`);
+      // The default modifier of 2 adds 0.2 to the break time divisor for each block past the first.
+      for (const modifier of modifiers) expect(Math.abs(modifier - 1 / 1.6)).toBeLessThan(0.001);
+    } finally {
+      await scaled.$detach();
+      if (enabled) await toggleConfigEntry(ctx, "Increased Harvesting Time");
+      await cleanup(ctx, area, { x: 290, y: 70, z: 0 }, 12);
+    }
+  });
+
+  test("charges the configured food exhaustion for each secondary block", { tags: ["config", "hunger"] }, async (ctx) => {
+    const area = box({ x: 298, y: 69, z: 0 }, { x: 302, y: 72, z: 8 });
+    const line = [2, 3, 4, 5].map((z) => block(300, 70, z));
+    const exhaustion = await ctx.spy.method("config.exhaustion", "com.iamkaf.liteminer.event.FoodExhaustion#getExhaustion");
+    const applied = await ctx.spy.method("config.exhaustion.applied", "com.iamkaf.liteminer.event.FoodExhaustion#apply");
+    // Amounts and applications since the last mining run.
+    let seen = 0;
+    let appliedSeen = 0;
+    const mineLine = async () => {
+      await setBlocks(ctx, line);
+      await holdVeinmineAndMine(ctx, line[0].pos, { x: 300.5, y: 70.5, z: 2.5 });
+      await waitForAir(ctx, line.map((ore) => ore.pos));
+      const calls = await exhaustion.$calls();
+      const amounts = calls.slice(seen).map((call) => Number(call.returned));
+      seen = calls.length;
+      const charges = (await applied.$calls()).length - appliedSeen;
+      appliedSeen += charges;
+      return { amounts, charges };
+    };
+    let amountRaised = false;
+    let disabled = false;
+    try {
+      await prepareSurvivalLine(ctx, area, { x: 300, y: 70, z: 0 });
+      // Each of the three blocks after the first is charged, at the default of 0.2.
+      const byDefault = await mineLine();
+      expect(byDefault.charges).toBe(3);
+      expect(byDefault.amounts.length).toBeGreaterThan(0);
+      for (const amount of byDefault.amounts) expect(Math.abs(amount - 0.2)).toBeLessThan(0.01);
+
+      if (!atLeast(await minecraftVersion(ctx), 26)) {
+        await setConfigSlider(ctx, "Food Exhaustion Amount", 1);
+        amountRaised = true;
+        const raised = await mineLine();
+        expect(raised.charges).toBe(3);
+        for (const amount of raised.amounts) expect(Math.abs(amount - 1)).toBeLessThan(0.01);
+      }
+
+      await toggleConfigEntry(ctx, "Food Exhaustion");
+      disabled = true;
+      const off = await mineLine();
+      expect(off.amounts.length).toBe(0);
+    } finally {
+      await exhaustion.$detach();
+      await applied.$detach();
+      if (disabled) await toggleConfigEntry(ctx, "Food Exhaustion");
+      if (amountRaised) await setConfigSlider(ctx, "Food Exhaustion Amount", 0.2);
+      await cleanup(ctx, area, { x: 300, y: 70, z: 0 }, 12);
+    }
+  });
+
+  test("keeps growing crops out of a grown crop vein unless configured", { tags: ["config"] }, async (ctx) => {
+    const area = box({ x: 308, y: 69, z: 0 }, { x: 312, y: 72, z: 8 });
+    const crops = [{ z: 2, age: 7 }, { z: 3, age: 7 }, { z: 4, age: 3 }, { z: 5, age: 7 }];
+    const cropAt = (z: number) => ({ x: 310, y: 70, z });
+    let distinguishOff = false;
+    const plant = async () => {
+      await ctx.world.fill({ x: 310, y: 69, z: 2 }, { x: 310, y: 69, z: 5 }, "minecraft:farmland");
+      // A crop that is already in the requested state makes /setblock report failure.
+      for (const crop of crops) await ctx.commands.run(`/setblock 310 70 ${crop.z} minecraft:wheat[age=${crop.age}]`);
+    };
+    try {
+      await prepareCreativeTest(ctx, { x: 310, y: 70, z: 0 }, area, 12);
+      await ctx.world.fill({ x: 308, y: 69, z: 0 }, { x: 312, y: 69, z: 8 }, "minecraft:stone");
+      await setShape(ctx, 0);
+      await ctx.runtime.wait(500);
+      await plant();
+      await holdVeinmineAndMine(ctx, cropAt(2), { x: 310.5, y: 70.5, z: 2.5 });
+      await waitForAir(ctx, [cropAt(2), cropAt(3)]);
+      await ctx.runtime.wait(500);
+      expect((await ctx.world.block(cropAt(4))).id).toBe("minecraft:wheat");
+      expect((await ctx.world.block(cropAt(5))).id).toBe("minecraft:wheat");
+
+      await toggleConfigEntry(ctx, "Distinguish Grown Crops");
+      distinguishOff = true;
+      await plant();
+      await holdVeinmineAndMine(ctx, cropAt(2), { x: 310.5, y: 70.5, z: 2.5 });
+      await waitForAir(ctx, crops.map((crop) => cropAt(crop.z)));
+    } finally {
+      if (distinguishOff) await toggleConfigEntry(ctx, "Distinguish Grown Crops");
+      await cleanup(ctx, area, { x: 310, y: 70, z: 0 }, 12);
+    }
+  });
+
+  test("keeps deepslate ore out of a vein when deepslate matching is off", { target: { minecraft: ">=1.19" }, tags: ["config", "deepslate"] }, async (ctx) => {
+    const area = box({ x: 318, y: 69, z: 0 }, { x: 322, y: 72, z: 8 });
+    const vein = [block(320, 70, 2, "minecraft:iron_ore"), block(320, 70, 3, "minecraft:deepslate_iron_ore")];
+    let matchingOff = false;
+    try {
+      await prepareCreativeTest(ctx, { x: 320, y: 70, z: 0 }, area, 12);
+      await ctx.world.fill({ x: 318, y: 69, z: 0 }, { x: 322, y: 69, z: 8 }, "minecraft:stone");
+      await setShape(ctx, 0);
+      await ctx.runtime.wait(500);
+      await setBlocks(ctx, vein);
+      await holdVeinmineAndMine(ctx, vein[0].pos, { x: 320.5, y: 70.5, z: 2.5 });
+      await waitForAir(ctx, vein.map((ore) => ore.pos));
+
+      await toggleConfigEntry(ctx, "Match Deepslate Ore Variants");
+      matchingOff = true;
+      await setBlocks(ctx, vein);
+      await holdVeinmineAndMine(ctx, vein[0].pos, { x: 320.5, y: 70.5, z: 2.5 });
+      await waitForAir(ctx, [vein[0].pos]);
+      await ctx.runtime.wait(500);
+      await assertBlocks(ctx, vein.slice(1));
+    } finally {
+      if (matchingOff) await toggleConfigEntry(ctx, "Match Deepslate Ore Variants");
+      await cleanup(ctx, area, { x: 320, y: 70, z: 0 }, 12);
+    }
+  });
+});
+
+describe("Liteminer client rendering", () => {
+  test("draws highlight lines and HUD text for a selection", { tags: ["highlights", "hud"] }, async (ctx) => {
+    const area = box({ x: 8, y: 69, z: 0 }, { x: 16, y: 72, z: 6 });
+    const render = await watchRendering(ctx);
+    try {
+      await prepareSelection(ctx, area);
+      await ctx.client.screenshot("liteminer-selection-render");
+
+      const drawn = await render.lines.$calls();
+      expect(drawn.length).toBeGreaterThan(0);
+      const last = drawn[drawn.length - 1];
+      // Four blocks in an L share their outer edges, so the merged outline has at least a box's twelve.
+      const lines = last?.args?.[2];
+      expect(Array.isArray(lines) && lines.length >= 12).toBe(true);
+      // The see-through lines are translucent, the solid ones opaque, in the configured default colors.
+      expect(Number(last?.args?.[3]) | 0).toBe(0x4b169c9c | 0);
+      expect(Number(last?.args?.[4]) | 0).toBe(0xfff9fffe | 0);
+
+      const hud = JSON.stringify((await render.hud.$calls()).map((call) => call.returned));
+      assertMatches(hud, /selected_blocks/, "HUD block count");
+      assertMatches(hud, /"args":\[4\]/, "HUD block count of 4");
+      assertMatches(JSON.stringify((await render.shape.$calls({ limit: 3 })).map((call) => call.returned)), /shape\.liteminer\.shapeless/, "HUD shape name");
+    } finally {
+      await render.detach();
+      await cleanup(ctx, area, { x: 12, y: 70, z: 0 }, 12);
+    }
+  });
+
+  test("hides highlights and the HUD when they are switched off", { tags: ["highlights", "hud"] }, async (ctx) => {
+    const area = box({ x: 8, y: 69, z: 0 }, { x: 16, y: 72, z: 6 });
+    const render = await watchRendering(ctx);
+    let highlightsOff = false;
+    let hudOff = false;
+    try {
+      await toggleConfigEntry(ctx, "Show Block Highlights");
+      highlightsOff = true;
+      const linesBefore = (await render.lines.$calls()).length;
+      const hudFirst = (await render.hud.$calls()).length;
+      await prepareSelection(ctx, area);
+      await ctx.client.screenshot("liteminer-highlights-off");
+      expect((await render.lines.$calls()).length).toBe(linesBefore);
+      expect((await render.hud.$calls()).length).toBeGreaterThan(hudFirst);
+
+      await ctx.client.keyState(KEY_VEINMINE, false);
+      await toggleConfigEntry(ctx, "Show Block Highlights");
+      highlightsOff = false;
+      await toggleConfigEntry(ctx, "Show HUD");
+      hudOff = true;
+      const hudBefore = (await render.hud.$calls()).length;
+      await prepareSelection(ctx, area);
+      await ctx.client.screenshot("liteminer-hud-off");
+      expect((await render.hud.$calls()).length).toBe(hudBefore);
+      expect((await render.lines.$calls()).length).toBeGreaterThan(linesBefore);
+    } finally {
+      await ctx.client.keyState(KEY_VEINMINE, false);
+      await render.detach();
+      if (highlightsOff) await toggleConfigEntry(ctx, "Show Block Highlights");
+      if (hudOff) await toggleConfigEntry(ctx, "Show HUD");
+      await cleanup(ctx, area, { x: 12, y: 70, z: 0 }, 12);
+    }
+  });
+
+  test("scales the HUD text", { target: { minecraft: ">=1.18 <26" }, tags: ["hud"] }, async (ctx) => {
+    const area = box({ x: 8, y: 69, z: 0 }, { x: 16, y: 72, z: 6 });
+    // The HUD reads its scale from the config every frame it draws, so the values it read show what it drew with.
+    const reads = await ctx.spy.method("hud.scale.reads", "com.iamkaf.konfig.impl.v1.config.model.ConfigValueImpl#get");
+    let scaled = false;
+    let seen = 0;
+    const scalesSince = async () => {
+      const calls = await reads.$calls();
+      const values = calls.slice(seen).map((call) => call.returned);
+      seen = calls.length;
+      return values;
+    };
+    try {
+      await setConfigSlider(ctx, "HUD Scale", 1);
+      scaled = true;
+      await scalesSince();
+      await prepareSelection(ctx, area);
+      await ctx.client.screenshot("liteminer-hud-scale-large");
+      const large = await scalesSince();
+      expect(large.includes(2)).toBe(true);
+      expect(large.includes(0.5)).toBe(false);
+
+      await ctx.client.keyState(KEY_VEINMINE, false);
+      await setConfigSlider(ctx, "HUD Scale", 0);
+      await scalesSince();
+      await prepareSelection(ctx, area);
+      await ctx.client.screenshot("liteminer-hud-scale-small");
+      const small = await scalesSince();
+      expect(small.includes(0.5)).toBe(true);
+      expect(small.includes(2)).toBe(false);
+    } finally {
+      await ctx.client.keyState(KEY_VEINMINE, false);
+      await reads.$detach();
+      if (scaled) await setConfigSlider(ctx, "HUD Scale", 1 / 3);
+      await cleanup(ctx, area, { x: 12, y: 70, z: 0 }, 12);
+    }
+  });
+
+  test("draws highlight lines in the configured colors", { target: { minecraft: ">=1.18 <26" }, tags: ["highlights"] }, async (ctx) => {
+    const area = box({ x: 8, y: 69, z: 0 }, { x: 16, y: 72, z: 6 });
+    const render = await watchRendering(ctx);
+    let changed = false;
+    try {
+      // Sliding red to its end turns the see-through default 169C9C into FF9C9C, and to zero turns F9FFFE into 00FFFE.
+      await setColorChannel(ctx, "Highlight See-through Color", "Red", 1);
+      await setColorChannel(ctx, "Highlight Foreground Color", "Red", 0);
+      changed = true;
+      await prepareSelection(ctx, area);
+      await ctx.client.screenshot("liteminer-highlight-colors");
+      const drawn = await render.lines.$calls();
+      const last = drawn[drawn.length - 1];
+      expect(drawn.length).toBeGreaterThan(0);
+      expect(Number(last?.args?.[3]) | 0).toBe(0x4bff9c9c | 0);
+      expect(Number(last?.args?.[4]) | 0).toBe(0xff00fffe | 0);
+    } finally {
+      await ctx.client.keyState(KEY_VEINMINE, false);
+      await render.detach();
+      if (changed) {
+        await setColorChannel(ctx, "Highlight See-through Color", "Red", 0x16 / 255, 0x16);
+        await setColorChannel(ctx, "Highlight Foreground Color", "Red", 0xf9 / 255, 0xf9);
+      }
+      await cleanup(ctx, area, { x: 12, y: 70, z: 0 }, 12);
+    }
+  });
+});
+
 async function prepareStripTest(ctx: TeaKitTestContext, area: Area, playerPos: Vec3, shape: number) {
   await ctx.client.closeMenus();
   await ctx.client.keyState(96, false);
@@ -1062,10 +1523,21 @@ async function mineWithClientAttack(ctx: TeaKitTestContext, target: BlockPos, lo
   await ctx.client.keyState(96, false);
 }
 
-async function attackBlock(ctx: TeaKitTestContext, target: BlockPos) {
+/** Holds the vein mining key and breaks a block by attacking it, for blocks that turn into something other than air. */
+async function holdVeinmineAndAttack(ctx: TeaKitTestContext, target: BlockPos, lookTarget: Vec3, becomes: BlockId) {
+  await ctx.client.closeMenus();
+  await ctx.client.lookAt(lookTarget);
+  await ctx.client.keyState(KEY_VEINMINE, true);
+  await ctx.runtime.wait(1_200);
+  await attackBlock(ctx, target, becomes);
+  await ctx.runtime.wait(500);
+  await ctx.client.keyState(KEY_VEINMINE, false);
+}
+
+async function attackBlock(ctx: TeaKitTestContext, target: BlockPos, becomes: BlockId = "minecraft:air") {
   await ctx.client.click({ x: 213.5, y: 120, button: 0, release: false });
   try {
-    await expect(async () => (await ctx.world.block(target)).id).toEventuallyEqual("minecraft:air", {
+    await expect(async () => (await ctx.world.block(target)).id).toEventuallyEqual(becomes, {
       timeout: 5_000,
       interval: 50,
     });
@@ -1132,3 +1604,178 @@ interface BlockPlacement {
   pos: BlockPos;
   id: BlockId;
 }
+
+const KEY_VEINMINE = 96;
+
+/** One real key press. TeaKit's own key() presses twice as far as key mappings are concerned, which toggles twice. */
+async function tapVeinmineKey(ctx: TeaKitTestContext) {
+  await ctx.client.keyState(KEY_VEINMINE, true);
+  await ctx.runtime.wait(100);
+  await ctx.client.keyState(KEY_VEINMINE, false);
+}
+
+function assertMatches(text: string, pattern: RegExp, what: string) {
+  if (!pattern.test(text)) throw new Error(`Expected ${what} to match ${pattern}, got ${text.slice(0, 600)}`);
+}
+
+/** The newest confirmed request. Mining state is only applied once the server's reply is acknowledged. */
+async function lastAppliedState(acks: SpyHandle): Promise<{ active?: boolean; shape?: string }> {
+  const applied = (await acks.$calls()).filter((call) => call.returned === true);
+  const reply = applied[applied.length - 1]?.args?.[0] as { active?: boolean; shape?: string } | undefined;
+  if (!reply) throw new Error("The server confirmed no mining change");
+  return reply;
+}
+
+async function expectMiningState(acks: SpyHandle, active: boolean) {
+  const state = await lastAppliedState(acks);
+  if (state.active !== active) {
+    throw new Error(`Expected vein mining ${active ? "on" : "off"}, saw ${JSON.stringify((await acks.$calls()).map((call) => [call.args, call.returned]))}`);
+  }
+}
+
+/** A survival player with a netherite pickaxe on a stone floor, built while still in creative so nothing falls. */
+async function prepareSurvivalLine(ctx: TeaKitTestContext, area: Area, playerPos: Vec3) {
+  await ctx.client.closeMenus();
+  await ctx.client.keyState(KEY_VEINMINE, false);
+  await setShape(ctx, 0);
+  await ctx.player.reset({ gameMode: "creative", inventory: "clear" });
+  await removeEntities(ctx, playerPos, 12, "minecraft:item");
+  await ctx.world.clear(area.min, area.max);
+  await ctx.world.fill({ x: area.min.x, y: 69, z: area.min.z }, { x: area.max.x, y: 69, z: area.max.z }, "minecraft:stone");
+  await ctx.player.reset({ gameMode: "survival", inventory: "clear", food: 20, saturation: 0 });
+  await ctx.player.teleport(playerPos);
+  await ctx.player.give("minecraft:netherite_pickaxe");
+  await ctx.player.inventory().selectHotbar(0);
+}
+
+/** The class that draws highlight lines depends on how the Minecraft version renders them. */
+async function highlightLineClass(ctx: TeaKitTestContext): Promise<string> {
+  const version = await minecraftVersion(ctx);
+  if (atLeast(version, 1, 21, 11)) return "ModernLines";
+  if (atLeast(version, 1, 21, 5)) return "PipelineLines";
+  return "ClassicLines";
+}
+
+interface RenderingSpies {
+  lines: SpyHandle;
+  /** The HUD's block count line, built once per frame while the HUD is drawn. */
+  hud: SpyHandle;
+  shape: SpyHandle;
+  detach(): Promise<void>;
+}
+
+/** Watches what Liteminer hands to the renderer: outline lines, and HUD text lines with their x position. */
+async function watchRendering(ctx: TeaKitTestContext): Promise<RenderingSpies> {
+  const lines = await ctx.spy.method("rendering.lines", `com.iamkaf.liteminer.compat.${await highlightLineClass(ctx)}#draw`);
+  const hud = await ctx.spy.method("rendering.hud", "com.iamkaf.liteminer.rendering.HUD#statusLine");
+  const shape = await ctx.spy.method("rendering.shape", "com.iamkaf.liteminer.api.shape.LiteminerShape#displayName");
+  return {
+    lines,
+    hud,
+    shape,
+    detach: async () => {
+      await lines.$detach();
+      await hud.$detach();
+      await shape.$detach();
+    },
+  };
+}
+
+/** Four coal ore blocks in an L, selected by holding the key while looking at the end of the line. */
+async function prepareSelection(ctx: TeaKitTestContext, area: Area) {
+  await prepareCreativeTest(ctx, { x: 12, y: 70, z: 0 }, area, 12);
+  await ctx.world.fill({ x: 8, y: 69, z: 0 }, { x: 16, y: 69, z: 6 }, "minecraft:stone");
+  await setBlocks(ctx, [block(12, 70, 3), block(12, 70, 4), block(12, 70, 5), block(12, 71, 5)]);
+  await setShape(ctx, 0);
+  await ctx.runtime.wait(500);
+  await ctx.client.lookAt({ x: 12.5, y: 70.5, z: 3.5 });
+  await ctx.client.keyState(KEY_VEINMINE, true);
+  await ctx.runtime.wait(1_600);
+}
+
+async function openConfigRow(ctx: TeaKitTestContext, label: string) {
+  await ctx.client.closeMenus();
+  await ctx.client.command("/liteminer config");
+  await ctx.client.waitForScreen("Liteminer Configuration", { timeoutMs: 10_000 });
+  const screen = await scrollToConfigEntry(ctx, label);
+  const row = screen.lists("selection_list").entries().find((entry) => entry.label === label);
+  if (!row) throw new Error(`Liteminer config entry disappeared: ${label}`);
+  return row;
+}
+
+/** Konfig right-aligns a control min(200, max(132, width / 2)) wide, with a 4 pixel slider margin. */
+function sliderPoint(row: { x: number; y: number; width: number; height: number }, fraction: number) {
+  const controlWidth = Math.min(200, Math.max(132, Math.floor(row.width / 2)));
+  const left = row.x + row.width - controlWidth;
+  return { x: Math.round(left + 4 + (controlWidth - 8) * fraction), y: Math.round(row.y + row.height / 2) };
+}
+
+/** Clicks a Konfig slider at a fraction of its length, then presses arrow keys for fine steps. */
+async function setConfigSlider(ctx: TeaKitTestContext, label: string, fraction: number, arrows: number[] = []) {
+  const row = await openConfigRow(ctx, label);
+  await ctx.client.click(sliderPoint(row, fraction));
+  await ctx.runtime.wait(300);
+  for (const arrow of arrows) {
+    await ctx.client.key(arrow, { release: true });
+    await ctx.runtime.wait(150);
+  }
+  await ctx.client.closeMenus();
+  await ctx.runtime.wait(500);
+}
+
+/**
+ * Sets an integer slider exactly. A click lands near the target, one arrow press reveals where, and arrow presses
+ * walk the rest of the way. Konfig's own Reset only returns to the values the screen opened with, and a right
+ * click never reaches the slider, so this is how a test puts a setting back.
+ */
+async function setConfigInt(ctx: TeaKitTestContext, label: string, target: number, guess: number) {
+  const steps = await ctx.spy.method("config.steps", "com.iamkaf.konfig.impl.v1.client.field.KonfigFieldValues#stepInt");
+  const current = async () => {
+    const calls = await steps.$calls();
+    return Number(calls[calls.length - 1]?.returned);
+  };
+  try {
+    const row = await openConfigRow(ctx, label);
+    await ctx.client.click(sliderPoint(row, guess));
+    await ctx.runtime.wait(300);
+    await ctx.client.key(KEY_RIGHT, { release: true });
+    await ctx.runtime.wait(150);
+    let value = await current();
+    for (let attempt = 0; value !== target; attempt += 1) {
+      if (attempt > 40 || Number.isNaN(value)) throw new Error(`Could not set ${label} to ${target}, stuck at ${value}`);
+      await ctx.client.key(target > value ? KEY_RIGHT : KEY_LEFT, { release: true });
+      await ctx.runtime.wait(100);
+      value = await current();
+    }
+  } finally {
+    await steps.$detach();
+    await ctx.client.closeMenus();
+    await ctx.runtime.wait(500);
+  }
+}
+
+const KEY_RIGHT = 262;
+const KEY_LEFT = 263;
+
+/** Opens a color row's editor and moves one channel slider to its start or end. */
+async function setColorChannel(ctx: TeaKitTestContext, label: string, channel: string, fraction: number, exact?: number) {
+  const row = await openConfigRow(ctx, label);
+  await ctx.client.click({ x: row.x + row.width - 30, y: row.y + row.height / 2 });
+  await ctx.runtime.wait(500);
+  const slider = (await ctx.client.screen()).widgets().all().find((widget) => widget.label.startsWith(`${channel}:`));
+  if (!slider) throw new Error(`The color editor for ${label} has no ${channel} slider`);
+  await ctx.client.click({ x: Math.round(slider.x + 4 + (slider.width - 8) * fraction), y: slider.y + slider.height / 2 });
+  await ctx.runtime.wait(300);
+  // The slider names its value, so arrow presses can walk an inexact click to the exact channel.
+  for (let attempt = 0; exact !== undefined && attempt < 12; attempt += 1) {
+    const value = Number(/(\d+)$/.exec((await ctx.client.screen()).widgets().all().find((widget) => widget.label.startsWith(`${channel}:`))?.label ?? "")?.[1]);
+    if (value === exact) break;
+    await ctx.client.key(value < exact ? KEY_RIGHT : KEY_LEFT, { release: true });
+    await ctx.runtime.wait(150);
+  }
+  await ctx.client.screen().then((screen) => screen.widgets().activate("Done"));
+  await ctx.runtime.wait(300);
+  await ctx.client.closeMenus();
+  await ctx.runtime.wait(500);
+}
+
