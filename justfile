@@ -26,5 +26,6 @@ run-client node:
   @if ! just list-nodes | grep -Fxq "{{node}}"; then echo "Unknown node: {{node}}"; exit 1; fi
   @version="{{node}}"; loader="${version##*-}"; version="${version%-*}"; ./gradlew --configure-on-demand ":$loader:$version:runClient" --console=plain
 
-test-check node timeout="240":
+# The full suite takes about 5 minutes per node.
+test-check node timeout="600":
   @./teakitw check --node "{{node}}" --timeout "{{timeout}}"
