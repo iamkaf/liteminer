@@ -997,7 +997,8 @@ describe("Liteminer client rendering", () => {
 
       const hud = JSON.stringify((await render.hud.$calls()).map((call) => call.returned));
       assertMatches(hud, /selected_blocks/, "HUD block count");
-      assertMatches(hud, /"args":\[4\]/, "HUD block count of 4");
+      // Before 1.19 the HUD text is a TranslatableComponent, which the spy summarizes as args=[4].
+      assertMatches(hud, /"args":\[4\]|args=\[4\]/, "HUD block count of 4");
       assertMatches(JSON.stringify((await render.shape.$calls({ limit: 3 })).map((call) => call.returned)), /shape\.liteminer\.shapeless/, "HUD shape name");
     } finally {
       await render.detach();
