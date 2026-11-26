@@ -705,7 +705,11 @@ describe("Liteminer controls", () => {
     const area = box({ x: 248, y: 69, z: 0 }, { x: 252, y: 72, z: 6 });
     const acks = await ctx.spy.method("controls.shapes", "com.iamkaf.liteminer.networking.ClientMiningState#acknowledge");
     let hud = await ctx.spy.method("controls.hud", "com.iamkaf.liteminer.api.shape.LiteminerShape#displayName");
-    const scroll = (amount: number) => ctx.client.scroll({ x: 213.5, y: 120, verticalAmount: amount });
+    // Scrolling down moves to the next shape. Tracking it keeps setShape's scroll-wheel fallback in step.
+    const scroll = async (amount: number) => {
+      await ctx.client.scroll({ x: 213.5, y: 120, verticalAmount: amount });
+      selectedShape = (selectedShape - amount + SHAPE_COUNT) % SHAPE_COUNT;
+    };
     try {
       await prepareCreativeTest(ctx, { x: 250, y: 70, z: 0 }, area, 12);
       await ctx.world.fill({ x: 248, y: 69, z: 0 }, { x: 252, y: 69, z: 6 }, "minecraft:stone");
