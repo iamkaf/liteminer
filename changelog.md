@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 4.7.2
+
+### Fixed
+
+- NeoForge 1.21.1: Liteminer works with NeoForge 21.1.62 and newer again. 4.7.1 required NeoForge 21.1.268, which launchers don't offer yet.
+
 ## 4.7.1
 
 ### Fixed
