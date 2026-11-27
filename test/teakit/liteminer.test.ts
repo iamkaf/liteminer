@@ -30,6 +30,7 @@ describe.configure({
   ],
 });
 
+// Tests that open the config screen start at 1.19: TeaKit sends 1.18 client commands, /liteminer config among them, to the server as chat.
 describe("Liteminer vein mining", () => {
   test("mines a connected ore vein", async (ctx) => {
     const area = box({ x: 0, y: 69, z: 0 }, { x: 4, y: 73, z: 4 });
@@ -646,7 +647,7 @@ describe("Liteminer vein interactions", () => {
 });
 
 describe("Liteminer controls", () => {
-  test("toggles vein mining with one key press in toggle mode", { tags: ["keybinds"] }, async (ctx) => {
+  test("toggles vein mining with one key press in toggle mode", { target: { minecraft: ">=1.19" }, tags: ["keybinds"] }, async (ctx) => {
     const area = box({ x: 238, y: 69, z: 0 }, { x: 242, y: 72, z: 6 });
     const acks = await ctx.spy.method("controls.acks", "com.iamkaf.liteminer.networking.ClientMiningState#acknowledge");
     let toggleMode = false;
@@ -705,7 +706,11 @@ describe("Liteminer controls", () => {
     const area = box({ x: 248, y: 69, z: 0 }, { x: 252, y: 72, z: 6 });
     const acks = await ctx.spy.method("controls.shapes", "com.iamkaf.liteminer.networking.ClientMiningState#acknowledge");
     let hud = await ctx.spy.method("controls.hud", "com.iamkaf.liteminer.api.shape.LiteminerShape#displayName");
-    const scroll = (amount: number) => ctx.client.scroll({ x: 213.5, y: 120, verticalAmount: amount });
+    // Scrolling down moves to the next shape. Tracking it keeps setShape's scroll-wheel fallback in step.
+    const scroll = async (amount: number) => {
+      await ctx.client.scroll({ x: 213.5, y: 120, verticalAmount: amount });
+      selectedShape = (selectedShape - amount + SHAPE_COUNT) % SHAPE_COUNT;
+    };
     try {
       await prepareCreativeTest(ctx, { x: 250, y: 70, z: 0 }, area, 12);
       await ctx.world.fill({ x: 248, y: 69, z: 0 }, { x: 252, y: 69, z: 6 }, "minecraft:stone");
@@ -813,7 +818,7 @@ describe("Liteminer block rules", () => {
 
 describe("Liteminer config options", () => {
 // TeaKit delivers a plain click as the right button on 26.x, which resets a Konfig slider instead of moving it, so slider tests stop before 26.
-  test("caps a vein at the block break limit", { target: { minecraft: ">=1.18 <26" }, tags: ["config"] }, async (ctx) => {
+  test("caps a vein at the block break limit", { target: { minecraft: ">=1.19 <26" }, tags: ["config"] }, async (ctx) => {
     const area = box({ x: 278, y: 69, z: 0 }, { x: 282, y: 72, z: 10 });
     const line = [2, 3, 4, 5, 6, 7].map((z) => block(280, 70, z));
     try {
@@ -863,7 +868,7 @@ describe("Liteminer config options", () => {
     }
   });
 
-  test("charges the configured food exhaustion for each secondary block", { tags: ["config", "hunger"] }, async (ctx) => {
+  test("charges the configured food exhaustion for each secondary block", { target: { minecraft: ">=1.19" }, tags: ["config", "hunger"] }, async (ctx) => {
     const area = box({ x: 298, y: 69, z: 0 }, { x: 302, y: 72, z: 8 });
     const line = [2, 3, 4, 5].map((z) => block(300, 70, z));
     const exhaustion = await ctx.spy.method("config.exhaustion", "com.iamkaf.liteminer.event.FoodExhaustion#getExhaustion");
@@ -913,7 +918,7 @@ describe("Liteminer config options", () => {
     }
   });
 
-  test("keeps growing crops out of a grown crop vein unless configured", { tags: ["config"] }, async (ctx) => {
+  test("keeps growing crops out of a grown crop vein unless configured", { target: { minecraft: ">=1.19" }, tags: ["config"] }, async (ctx) => {
     const area = box({ x: 308, y: 69, z: 0 }, { x: 312, y: 72, z: 8 });
     const crops = [{ z: 2, age: 7 }, { z: 3, age: 7 }, { z: 4, age: 3 }, { z: 5, age: 7 }];
     const cropAt = (z: number) => ({ x: 310, y: 70, z });
@@ -993,7 +998,8 @@ describe("Liteminer client rendering", () => {
 
       const hud = JSON.stringify((await render.hud.$calls()).map((call) => call.returned));
       assertMatches(hud, /selected_blocks/, "HUD block count");
-      assertMatches(hud, /"args":\[4\]/, "HUD block count of 4");
+      // Before 1.19 the HUD text is a TranslatableComponent, which the spy summarizes as args=[4].
+      assertMatches(hud, /"args":\[4\]|args=\[4\]/, "HUD block count of 4");
       assertMatches(JSON.stringify((await render.shape.$calls({ limit: 3 })).map((call) => call.returned)), /shape\.liteminer\.shapeless/, "HUD shape name");
     } finally {
       await render.detach();
@@ -1001,7 +1007,7 @@ describe("Liteminer client rendering", () => {
     }
   });
 
-  test("hides highlights and the HUD when they are switched off", { tags: ["highlights", "hud"] }, async (ctx) => {
+  test("hides highlights and the HUD when they are switched off", { target: { minecraft: ">=1.19" }, tags: ["highlights", "hud"] }, async (ctx) => {
     const area = box({ x: 8, y: 69, z: 0 }, { x: 16, y: 72, z: 6 });
     const render = await watchRendering(ctx);
     let highlightsOff = false;
@@ -1035,7 +1041,7 @@ describe("Liteminer client rendering", () => {
     }
   });
 
-  test("scales the HUD text", { target: { minecraft: ">=1.18 <26" }, tags: ["hud"] }, async (ctx) => {
+  test("scales the HUD text", { target: { minecraft: ">=1.19 <26" }, tags: ["hud"] }, async (ctx) => {
     const area = box({ x: 8, y: 69, z: 0 }, { x: 16, y: 72, z: 6 });
     // The HUD reads its scale from the config every frame it draws, so the values it read show what it drew with.
     const reads = await ctx.spy.method("hud.scale.reads", "com.iamkaf.konfig.impl.v1.config.model.ConfigValueImpl#get");
@@ -1073,7 +1079,7 @@ describe("Liteminer client rendering", () => {
     }
   });
 
-  test("draws highlight lines in the configured colors", { target: { minecraft: ">=1.18 <26" }, tags: ["highlights"] }, async (ctx) => {
+  test("draws highlight lines in the configured colors", { target: { minecraft: ">=1.19 <26" }, tags: ["highlights"] }, async (ctx) => {
     const area = box({ x: 8, y: 69, z: 0 }, { x: 16, y: 72, z: 6 });
     const render = await watchRendering(ctx);
     let changed = false;
